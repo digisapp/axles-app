@@ -24,6 +24,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Store,
 } from 'lucide-react';
 
 interface NavItem {
@@ -63,6 +64,11 @@ const navItems: NavItem[] = [
     href: '/dashboard/bulk',
     label: 'Bulk Import',
     icon: <Upload className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/storefront',
+    label: 'Storefront',
+    icon: <Store className="w-5 h-5" />,
   },
   {
     href: '/dashboard/messages',
