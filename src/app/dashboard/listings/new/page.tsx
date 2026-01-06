@@ -26,6 +26,7 @@ import {
   TrendingUp,
   AlertCircle,
 } from 'lucide-react';
+import { VINDecoder } from '@/components/listings/VINDecoder';
 import type { Category, AIPriceEstimate } from '@/types';
 
 export default function NewListingPage() {
@@ -76,6 +77,39 @@ export default function NewListingPage() {
 
     fetchCategories();
   }, [supabase]);
+
+  const handleVINDecode = (data: Record<string, unknown>) => {
+    // Auto-fill form fields from VIN decode
+    const updates: Partial<typeof formData> = {};
+
+    if (data.year && typeof data.year === 'number') {
+      updates.year = data.year.toString();
+    }
+    if (data.make && typeof data.make === 'string') {
+      updates.make = data.make;
+    }
+    if (data.model && typeof data.model === 'string') {
+      updates.model = data.model;
+    }
+    if (data.vin && typeof data.vin === 'string') {
+      updates.vin = data.vin;
+    }
+
+    // Add additional specs from VIN
+    const newSpecs: Record<string, string> = { ...formData.specs };
+    if (data.trim && typeof data.trim === 'string') newSpecs.trim = data.trim;
+    if (data.bodyClass && typeof data.bodyClass === 'string') newSpecs.bodyClass = data.bodyClass;
+    if (data.fuelType && typeof data.fuelType === 'string') newSpecs.fuelType = data.fuelType;
+    if (data.engineHP && typeof data.engineHP === 'string') newSpecs.engineHP = data.engineHP;
+    if (data.engineCylinders && typeof data.engineCylinders === 'string') newSpecs.engineCylinders = data.engineCylinders;
+    if (data.transmissionStyle && typeof data.transmissionStyle === 'string') newSpecs.transmission = data.transmissionStyle;
+    if (data.driveType && typeof data.driveType === 'string') newSpecs.driveType = data.driveType;
+    if (data.gvwr && typeof data.gvwr === 'string') newSpecs.gvwr = data.gvwr;
+
+    updates.specs = newSpecs;
+
+    setFormData({ ...formData, ...updates });
+  };
 
   const handleGetPriceEstimate = async () => {
     if (!formData.make || !formData.model) {
@@ -274,10 +308,36 @@ export default function NewListingPage() {
               </CardContent>
             </Card>
 
+            {/* VIN Decoder */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  VIN Decoder
+                </CardTitle>
+                <CardDescription>
+                  Enter a VIN to auto-fill vehicle details from the NHTSA database
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <VINDecoder onDecode={handleVINDecode} defaultValue={formData.vin} />
+              </CardContent>
+            </Card>
+
             {/* Equipment Details */}
             <Card>
               <CardHeader>
                 <CardTitle>Equipment Details</CardTitle>
+                <CardDescription>
+                  {formData.make || formData.model ? (
+                    <span className="text-green-600 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Some fields auto-filled from VIN
+                    </span>
+                  ) : (
+                    'Enter details manually or use VIN decoder above'
+                  )}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-3 gap-4">
@@ -311,7 +371,7 @@ export default function NewListingPage() {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="mileage">Mileage</Label>
                     <Input
@@ -332,16 +392,34 @@ export default function NewListingPage() {
                       onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="vin">VIN</Label>
-                    <Input
-                      id="vin"
-                      placeholder="1XPWD40X1ED215307"
-                      value={formData.vin}
-                      onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
-                    />
-                  </div>
                 </div>
+
+                {/* Display additional specs from VIN if present */}
+                {Object.keys(formData.specs).length > 0 && (
+                  <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Additional Specs (from VIN)</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                      {formData.specs.trim && (
+                        <div><span className="text-muted-foreground">Trim:</span> {formData.specs.trim}</div>
+                      )}
+                      {formData.specs.bodyClass && (
+                        <div><span className="text-muted-foreground">Body:</span> {formData.specs.bodyClass}</div>
+                      )}
+                      {formData.specs.engineHP && (
+                        <div><span className="text-muted-foreground">Engine:</span> {formData.specs.engineHP} HP</div>
+                      )}
+                      {formData.specs.transmission && (
+                        <div><span className="text-muted-foreground">Trans:</span> {formData.specs.transmission}</div>
+                      )}
+                      {formData.specs.fuelType && (
+                        <div><span className="text-muted-foreground">Fuel:</span> {formData.specs.fuelType}</div>
+                      )}
+                      {formData.specs.driveType && (
+                        <div><span className="text-muted-foreground">Drive:</span> {formData.specs.driveType}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

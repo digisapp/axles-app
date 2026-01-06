@@ -37,7 +37,8 @@ import {
   ChevronRight,
   X,
 } from 'lucide-react';
-import type { Listing, AISearchResult } from '@/types';
+import { AdvancedFilters, FilterValues } from '@/components/search/AdvancedFilters';
+import type { Listing, AISearchResult, Category } from '@/types';
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -54,6 +55,24 @@ function SearchPageContent() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('created_at');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({});
+
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -81,16 +100,27 @@ function SearchPageContent() {
         if (query) params.set('q', query);
         if (category) params.set('category', category);
 
-        // Add AI-extracted filters if available
+        // Add advanced filters
+        if (advancedFilters.priceMin) params.set('min_price', advancedFilters.priceMin.toString());
+        if (advancedFilters.priceMax) params.set('max_price', advancedFilters.priceMax.toString());
+        if (advancedFilters.yearMin) params.set('min_year', advancedFilters.yearMin.toString());
+        if (advancedFilters.yearMax) params.set('max_year', advancedFilters.yearMax.toString());
+        if (advancedFilters.mileageMax) params.set('max_mileage', advancedFilters.mileageMax.toString());
+        if (advancedFilters.makes?.length) params.set('make', advancedFilters.makes.join(','));
+        if (advancedFilters.conditions?.length) params.set('condition', advancedFilters.conditions.join(','));
+        if (advancedFilters.states?.length) params.set('state', advancedFilters.states.join(','));
+        if (advancedFilters.category) params.set('category', advancedFilters.category);
+
+        // Add AI-extracted filters if available (but don't override user filters)
         if (aiInterpretation?.filters) {
           const f = aiInterpretation.filters;
-          if (f.min_price) params.set('min_price', f.min_price.toString());
-          if (f.max_price) params.set('max_price', f.max_price.toString());
-          if (f.min_year) params.set('min_year', f.min_year.toString());
-          if (f.max_year) params.set('max_year', f.max_year.toString());
-          if (f.make) params.set('make', f.make);
-          if (f.state) params.set('state', f.state);
-          if (f.max_mileage) params.set('max_mileage', f.max_mileage.toString());
+          if (!advancedFilters.priceMin && f.min_price) params.set('min_price', f.min_price.toString());
+          if (!advancedFilters.priceMax && f.max_price) params.set('max_price', f.max_price.toString());
+          if (!advancedFilters.yearMin && f.min_year) params.set('min_year', f.min_year.toString());
+          if (!advancedFilters.yearMax && f.max_year) params.set('max_year', f.max_year.toString());
+          if (!advancedFilters.makes?.length && f.make) params.set('make', f.make);
+          if (!advancedFilters.states?.length && f.state) params.set('state', f.state);
+          if (!advancedFilters.mileageMax && f.max_mileage) params.set('max_mileage', f.max_mileage.toString());
         }
 
         const response = await fetch(`/api/listings?${params.toString()}`);
@@ -107,7 +137,7 @@ function SearchPageContent() {
     };
 
     fetchListings();
-  }, [query, category, page, sortBy, aiInterpretation?.filters]);
+  }, [query, category, page, sortBy, aiInterpretation?.filters, advancedFilters]);
 
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -163,63 +193,54 @@ function SearchPageContent() {
                 <Button variant="outline" size="sm" className="gap-2 flex-shrink-0 md:hidden">
                   <SlidersHorizontal className="w-4 h-4" />
                   Filters
+                  {Object.keys(advancedFilters).length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs px-1.5">
+                      {Object.keys(advancedFilters).length}
+                    </Badge>
+                  )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="h-[80vh] rounded-t-xl">
+              <SheetContent side="bottom" className="h-[85vh] rounded-t-xl overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>Filters</SheetTitle>
                 </SheetHeader>
-                <div className="mt-6 space-y-6">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Sort By</label>
-                    <Select value={sortBy} onValueChange={(value) => { setSortBy(value); setFiltersOpen(false); }}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sort by" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="created_at">Newest First</SelectItem>
-                        <SelectItem value="price">Price: Low to High</SelectItem>
-                        <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                        <SelectItem value="year">Year: Newest</SelectItem>
-                        <SelectItem value="mileage">Mileage: Lowest</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">View Mode</label>
-                    <div className="flex gap-2">
-                      <Button
-                        variant={viewMode === 'grid' ? 'default' : 'outline'}
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setViewMode('grid')}
-                      >
-                        <Grid3X3 className="w-4 h-4 mr-2" />
-                        Grid
-                      </Button>
-                      <Button
-                        variant={viewMode === 'list' ? 'default' : 'outline'}
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setViewMode('list')}
-                      >
-                        <List className="w-4 h-4 mr-2" />
-                        List
-                      </Button>
-                    </div>
-                  </div>
-                  <Button className="w-full" onClick={() => setFiltersOpen(false)}>
-                    Apply Filters
-                  </Button>
+                <div className="mt-4">
+                  <AdvancedFilters
+                    filters={advancedFilters}
+                    onFiltersChange={setAdvancedFilters}
+                    categories={categories}
+                    onClose={() => setFiltersOpen(false)}
+                  />
                 </div>
               </SheetContent>
             </Sheet>
 
-            {/* Desktop Filters */}
-            <Button variant="outline" size="sm" className="gap-2 hidden md:flex">
-              <SlidersHorizontal className="w-4 h-4" />
-              Filters
-            </Button>
+            {/* Desktop Filter Sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 hidden md:flex">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Filters
+                  {Object.keys(advancedFilters).length > 0 && (
+                    <Badge variant="secondary" className="ml-1 text-xs px-1.5">
+                      {Object.keys(advancedFilters).length}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[400px] overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>Filters</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4">
+                  <AdvancedFilters
+                    filters={advancedFilters}
+                    onFiltersChange={setAdvancedFilters}
+                    categories={categories}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
 
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-32 md:w-40 flex-shrink-0">

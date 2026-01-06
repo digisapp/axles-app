@@ -25,6 +25,9 @@ import {
 import { FavoriteButton } from '@/components/listings/FavoriteButton';
 import { ContactSeller } from '@/components/listings/ContactSeller';
 import { ShareButton } from '@/components/listings/ShareButton';
+import { ImageGallery } from '@/components/listings/ImageGallery';
+import { TrackViewClient } from '@/components/listings/TrackViewClient';
+import { RecentlyViewed } from '@/components/listings/RecentlyViewed';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -67,11 +70,33 @@ export default async function ListingPage({ params }: PageProps) {
     .or(`make.eq.${listing.make},category_id.eq.${listing.category_id}`)
     .limit(4);
 
-  const primaryImage = listing.images?.find((img: { is_primary: boolean }) => img.is_primary) || listing.images?.[0];
-  const otherImages = listing.images?.filter((img: { id: string }) => img.id !== primaryImage?.id) || [];
+  // Sort images by sort_order, primary first
+  const sortedImages = [...(listing.images || [])]
+    .sort((a: { is_primary: boolean; sort_order: number }, b: { is_primary: boolean; sort_order: number }) => {
+      if (a.is_primary && !b.is_primary) return -1;
+      if (!a.is_primary && b.is_primary) return 1;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+
+  // Prepare data for tracking
+  const primaryImage = sortedImages[0];
+  const trackingData = {
+    id: listing.id,
+    title: listing.title,
+    price: listing.price,
+    year: listing.year,
+    make: listing.make,
+    model: listing.model,
+    city: listing.city,
+    state: listing.state,
+    imageUrl: primaryImage?.url || null,
+  };
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Track view client-side */}
+      <TrackViewClient listing={trackingData} />
+
       <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
         {/* Back link - Mobile */}
         <div className="flex items-center justify-between mb-4 md:hidden">
@@ -107,51 +132,12 @@ export default async function ListingPage({ params }: PageProps) {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Image Gallery */}
-            <div className="space-y-2 md:space-y-4">
-              <div className="relative aspect-[16/10] md:aspect-[16/10] rounded-lg md:rounded-xl overflow-hidden bg-muted">
-                {primaryImage ? (
-                  <Image
-                    src={primaryImage.url}
-                    alt={listing.title}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-muted-foreground">No Image Available</span>
-                  </div>
-                )}
-                {listing.is_featured && (
-                  <Badge className="absolute top-3 left-3 md:top-4 md:left-4 bg-secondary text-secondary-foreground">
-                    Featured
-                  </Badge>
-                )}
-              </div>
-
-              {otherImages.length > 0 && (
-                <div className="grid grid-cols-4 gap-1 md:gap-2">
-                  {otherImages.slice(0, 4).map((img: { id: string; url: string; thumbnail_url?: string }, index: number) => (
-                    <div
-                      key={img.id}
-                      className="relative aspect-[4/3] rounded md:rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-80 transition-opacity"
-                    >
-                      <Image
-                        src={img.thumbnail_url || img.url}
-                        alt={`${listing.title} - Image ${index + 2}`}
-                        fill
-                        className="object-cover"
-                      />
-                      {index === 3 && otherImages.length > 4 && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <span className="text-white font-semibold text-sm md:text-base">
-                            +{otherImages.length - 4}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+            <div className="relative">
+              <ImageGallery images={sortedImages} title={listing.title} />
+              {listing.is_featured && (
+                <Badge className="absolute top-3 left-3 md:top-4 md:left-4 bg-secondary text-secondary-foreground z-10">
+                  Featured
+                </Badge>
               )}
             </div>
 
@@ -478,6 +464,11 @@ export default async function ListingPage({ params }: PageProps) {
             </div>
           </div>
         )}
+
+        {/* Recently Viewed */}
+        <div className="mt-8 md:mt-12">
+          <RecentlyViewed currentListingId={id} maxItems={6} />
+        </div>
 
         {/* Mobile Contact Form */}
         <div className="lg:hidden mt-8">
