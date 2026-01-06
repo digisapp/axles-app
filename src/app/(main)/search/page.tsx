@@ -17,7 +17,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  ArrowLeft,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
   Grid3X3,
   List,
   MapPin,
@@ -29,6 +35,7 @@ import {
   Heart,
   ChevronLeft,
   ChevronRight,
+  X,
 } from 'lucide-react';
 import type { Listing, AISearchResult } from '@/types';
 
@@ -46,6 +53,7 @@ function SearchPageContent() {
   const [aiInterpretation, setAiInterpretation] = useState<AISearchResult | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('created_at');
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -109,45 +117,27 @@ function SearchPageContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
-          <Link href="/" className="flex-shrink-0">
-            <Image
-              src="/images/axlesai-logo.png"
-              alt="AxlesAI"
-              width={80}
-              height={60}
-              className="dark:brightness-110"
-            />
-          </Link>
+      {/* Mobile Search Bar */}
+      <div className="md:hidden sticky top-14 z-40 bg-background border-b px-4 py-3">
+        <AISearchBar defaultValue={query} size="small" />
+      </div>
 
-          <div className="flex-1 max-w-2xl">
-            <AISearchBar defaultValue={query} />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link href="/login">
-              <Button variant="ghost" size="sm">Sign In</Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="sm">Sign Up</Button>
-            </Link>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
+        {/* Desktop Search Bar */}
+        <div className="hidden md:block mb-6">
+          <AISearchBar defaultValue={query} />
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
         {/* AI Interpretation Banner */}
         {aiInterpretation && (
-          <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+          <div className="mb-4 md:mb-6 p-3 md:p-4 bg-primary/5 border border-primary/20 rounded-xl">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Sparkles className="w-5 h-5 text-primary" />
+              <div className="p-1.5 md:p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-primary" />
               </div>
-              <div>
-                <p className="font-medium">{aiInterpretation.interpretation}</p>
-                <p className="text-sm text-muted-foreground mt-1">
+              <div className="min-w-0">
+                <p className="font-medium text-sm md:text-base line-clamp-2">{aiInterpretation.interpretation}</p>
+                <p className="text-xs md:text-sm text-muted-foreground mt-1">
                   AI confidence: {Math.round(aiInterpretation.confidence * 100)}%
                 </p>
               </div>
@@ -156,24 +146,83 @@ function SearchPageContent() {
         )}
 
         {/* Results Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6">
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-xl md:text-2xl font-bold line-clamp-1">
               {query ? `Results for "${query}"` : category ? `${category.replace(/-/g, ' ')}` : 'All Listings'}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {totalCount.toLocaleString()} listings found
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+            {/* Mobile Filter Button */}
+            <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 flex-shrink-0 md:hidden">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[80vh] rounded-t-xl">
+                <SheetHeader>
+                  <SheetTitle>Filters</SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 space-y-6">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Sort By</label>
+                    <Select value={sortBy} onValueChange={(value) => { setSortBy(value); setFiltersOpen(false); }}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="created_at">Newest First</SelectItem>
+                        <SelectItem value="price">Price: Low to High</SelectItem>
+                        <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                        <SelectItem value="year">Year: Newest</SelectItem>
+                        <SelectItem value="mileage">Mileage: Lowest</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">View Mode</label>
+                    <div className="flex gap-2">
+                      <Button
+                        variant={viewMode === 'grid' ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => setViewMode('grid')}
+                      >
+                        <Grid3X3 className="w-4 h-4 mr-2" />
+                        Grid
+                      </Button>
+                      <Button
+                        variant={viewMode === 'list' ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => setViewMode('list')}
+                      >
+                        <List className="w-4 h-4 mr-2" />
+                        List
+                      </Button>
+                    </div>
+                  </div>
+                  <Button className="w-full" onClick={() => setFiltersOpen(false)}>
+                    Apply Filters
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Desktop Filters */}
+            <Button variant="outline" size="sm" className="gap-2 hidden md:flex">
               <SlidersHorizontal className="w-4 h-4" />
               Filters
             </Button>
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-32 md:w-40 flex-shrink-0">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -185,7 +234,7 @@ function SearchPageContent() {
               </SelectContent>
             </Select>
 
-            <div className="flex border rounded-lg overflow-hidden">
+            <div className="hidden sm:flex border rounded-lg overflow-hidden flex-shrink-0">
               <Button
                 variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                 size="sm"
@@ -208,16 +257,16 @@ function SearchPageContent() {
 
         {/* Results Grid */}
         {isLoading ? (
-          <div className={viewMode === 'grid' ? 'grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : 'space-y-4'}>
+          <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4' : 'space-y-4'}>
             {[...Array(8)].map((_, i) => (
               <ListingCardSkeleton key={i} viewMode={viewMode} />
             ))}
           </div>
         ) : listings.length === 0 ? (
-          <div className="text-center py-16">
-            <Filter className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No listings found</h2>
-            <p className="text-muted-foreground mb-4">
+          <div className="text-center py-12 md:py-16">
+            <Filter className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-lg md:text-xl font-semibold mb-2">No listings found</h2>
+            <p className="text-sm md:text-base text-muted-foreground mb-4">
               Try adjusting your search or filters
             </p>
             <Button asChild>
@@ -225,7 +274,7 @@ function SearchPageContent() {
             </Button>
           </div>
         ) : (
-          <div className={viewMode === 'grid' ? 'grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : 'space-y-4'}>
+          <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4' : 'space-y-4'}>
             {listings.map((listing) => (
               <ListingCard key={listing.id} listing={listing} viewMode={viewMode} />
             ))}
@@ -234,7 +283,7 @@ function SearchPageContent() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-8">
+          <div className="flex items-center justify-center gap-2 mt-6 md:mt-8">
             <Button
               variant="outline"
               size="sm"
@@ -242,11 +291,11 @@ function SearchPageContent() {
               onClick={() => handlePageChange(page - 1)}
             >
               <ChevronLeft className="w-4 h-4" />
-              Previous
+              <span className="hidden sm:inline ml-1">Previous</span>
             </Button>
 
-            <span className="text-sm text-muted-foreground px-4">
-              Page {page} of {totalPages}
+            <span className="text-sm text-muted-foreground px-2 md:px-4">
+              {page} / {totalPages}
             </span>
 
             <Button
@@ -255,12 +304,12 @@ function SearchPageContent() {
               disabled={page >= totalPages}
               onClick={() => handlePageChange(page + 1)}
             >
-              Next
+              <span className="hidden sm:inline mr-1">Next</span>
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
@@ -271,8 +320,8 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
   if (viewMode === 'list') {
     return (
       <Link href={`/listing/${listing.id}`}>
-        <Card className="flex overflow-hidden hover:shadow-lg transition-shadow">
-          <div className="relative w-64 h-48 flex-shrink-0">
+        <Card className="flex flex-col sm:flex-row overflow-hidden hover:shadow-lg transition-shadow">
+          <div className="relative w-full sm:w-48 md:w-64 h-48 sm:h-40 md:h-48 flex-shrink-0">
             {primaryImage ? (
               <Image
                 src={primaryImage.thumbnail_url || primaryImage.url}
@@ -282,52 +331,52 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
               />
             ) : (
               <div className="w-full h-full bg-muted flex items-center justify-center">
-                <span className="text-muted-foreground">No Image</span>
+                <span className="text-muted-foreground text-sm">No Image</span>
               </div>
             )}
             {listing.is_featured && (
-              <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">
+              <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground text-xs">
                 Featured
               </Badge>
             )}
           </div>
 
-          <div className="flex-1 p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold text-lg line-clamp-1">{listing.title}</h3>
-                <p className="text-2xl font-bold text-primary mt-1">
-                  {listing.price ? `$${listing.price.toLocaleString()}` : 'Call for Price'}
+          <div className="flex-1 p-3 md:p-4">
+            <div className="flex justify-between items-start gap-2">
+              <div className="min-w-0">
+                <h3 className="font-semibold text-sm md:text-lg line-clamp-1">{listing.title}</h3>
+                <p className="text-lg md:text-2xl font-bold text-primary mt-1">
+                  {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
                 </p>
               </div>
-              <Button variant="ghost" size="icon">
-                <Heart className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="flex-shrink-0">
+                <Heart className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
             </div>
 
-            <div className="flex flex-wrap gap-3 mt-3 text-sm text-muted-foreground">
+            <div className="flex flex-wrap gap-2 md:gap-3 mt-2 md:mt-3 text-xs md:text-sm text-muted-foreground">
               {listing.year && (
                 <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-3 h-3 md:w-4 md:h-4" />
                   {listing.year}
                 </span>
               )}
               {listing.mileage && (
                 <span className="flex items-center gap-1">
-                  <Gauge className="w-4 h-4" />
+                  <Gauge className="w-3 h-3 md:w-4 md:h-4" />
                   {listing.mileage.toLocaleString()} mi
                 </span>
               )}
               {(listing.city || listing.state) && (
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
+                  <MapPin className="w-3 h-3 md:w-4 md:h-4" />
                   {[listing.city, listing.state].filter(Boolean).join(', ')}
                 </span>
               )}
             </div>
 
             {listing.description && (
-              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+              <p className="text-xs md:text-sm text-muted-foreground mt-2 line-clamp-2 hidden md:block">
                 {listing.description}
               </p>
             )}
@@ -350,37 +399,38 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground">No Image</span>
+              <span className="text-muted-foreground text-xs md:text-sm">No Image</span>
             </div>
           )}
           {listing.is_featured && (
-            <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground">
+            <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground text-xs">
               Featured
             </Badge>
           )}
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+            className="absolute top-2 right-2 bg-white/80 hover:bg-white w-7 h-7 md:w-8 md:h-8"
           >
-            <Heart className="w-4 h-4" />
+            <Heart className="w-3 h-3 md:w-4 md:h-4" />
           </Button>
         </div>
 
-        <div className="p-4">
-          <h3 className="font-semibold line-clamp-1">{listing.title}</h3>
-          <p className="text-xl font-bold text-primary mt-1">
+        <div className="p-2 md:p-4">
+          <h3 className="font-semibold text-sm md:text-base line-clamp-1">{listing.title}</h3>
+          <p className="text-base md:text-xl font-bold text-primary mt-0.5 md:mt-1">
             {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
           </p>
 
-          <div className="flex flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap gap-1 md:gap-2 mt-1 md:mt-2 text-xs text-muted-foreground">
             {listing.year && <span>{listing.year}</span>}
+            {listing.year && listing.mileage && <span>-</span>}
             {listing.mileage && <span>{listing.mileage.toLocaleString()} mi</span>}
           </div>
 
           {(listing.city || listing.state) && (
-            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
+            <p className="text-xs text-muted-foreground mt-1 md:mt-2 flex items-center gap-1 line-clamp-1">
+              <MapPin className="w-3 h-3 flex-shrink-0" />
               {[listing.city, listing.state].filter(Boolean).join(', ')}
             </p>
           )}
@@ -393,13 +443,13 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
 function ListingCardSkeleton({ viewMode }: { viewMode: 'grid' | 'list' }) {
   if (viewMode === 'list') {
     return (
-      <Card className="flex overflow-hidden">
-        <Skeleton className="w-64 h-48" />
-        <div className="flex-1 p-4 space-y-3">
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="h-8 w-32" />
+      <Card className="flex flex-col sm:flex-row overflow-hidden">
+        <Skeleton className="w-full sm:w-48 md:w-64 h-48 sm:h-40 md:h-48" />
+        <div className="flex-1 p-3 md:p-4 space-y-2 md:space-y-3">
+          <Skeleton className="h-5 md:h-6 w-3/4" />
+          <Skeleton className="h-6 md:h-8 w-32" />
           <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-2/3 hidden md:block" />
         </div>
       </Card>
     );
@@ -408,10 +458,10 @@ function ListingCardSkeleton({ viewMode }: { viewMode: 'grid' | 'list' }) {
   return (
     <Card className="overflow-hidden">
       <Skeleton className="aspect-[4/3] w-full" />
-      <div className="p-4 space-y-3">
-        <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-6 w-24" />
-        <Skeleton className="h-4 w-1/2" />
+      <div className="p-2 md:p-4 space-y-2 md:space-y-3">
+        <Skeleton className="h-4 md:h-5 w-3/4" />
+        <Skeleton className="h-5 md:h-6 w-24" />
+        <Skeleton className="h-3 md:h-4 w-1/2" />
       </div>
     </Card>
   );
@@ -419,7 +469,7 @@ function ListingCardSkeleton({ viewMode }: { viewMode: 'grid' | 'list' }) {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
       <SearchPageContent />
     </Suspense>
   );

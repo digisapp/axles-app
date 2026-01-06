@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
-  ArrowLeft,
   MapPin,
   Calendar,
   Gauge,
@@ -20,9 +19,12 @@ import {
   Check,
   AlertCircle,
   Building2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { FavoriteButton } from '@/components/listings/FavoriteButton';
 import { ContactSeller } from '@/components/listings/ContactSeller';
+import { ShareButton } from '@/components/listings/ShareButton';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -70,34 +72,43 @@ export default async function ListingPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
+        {/* Back link - Mobile */}
+        <div className="flex items-center justify-between mb-4 md:hidden">
+          <Link
+            href="/search"
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back
+          </Link>
+          <div className="flex items-center gap-2">
+            <FavoriteButton listingId={id} size="sm" />
+            <ShareButton title={listing.title} size="sm" />
+          </div>
+        </div>
+
+        {/* Back link - Desktop */}
+        <div className="hidden md:flex items-center justify-between mb-6">
           <Link
             href="/search"
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4" />
             Back to Search
           </Link>
-
           <div className="flex items-center gap-2">
             <FavoriteButton listingId={id} />
-            <Button variant="ghost" size="sm">
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
+            <ShareButton title={listing.title} />
           </div>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {/* Image Gallery */}
-            <div className="space-y-4">
-              <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-muted">
+            <div className="space-y-2 md:space-y-4">
+              <div className="relative aspect-[16/10] md:aspect-[16/10] rounded-lg md:rounded-xl overflow-hidden bg-muted">
                 {primaryImage ? (
                   <Image
                     src={primaryImage.url}
@@ -112,18 +123,18 @@ export default async function ListingPage({ params }: PageProps) {
                   </div>
                 )}
                 {listing.is_featured && (
-                  <Badge className="absolute top-4 left-4 bg-secondary text-secondary-foreground">
+                  <Badge className="absolute top-3 left-3 md:top-4 md:left-4 bg-secondary text-secondary-foreground">
                     Featured
                   </Badge>
                 )}
               </div>
 
               {otherImages.length > 0 && (
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-1 md:gap-2">
                   {otherImages.slice(0, 4).map((img: { id: string; url: string; thumbnail_url?: string }, index: number) => (
                     <div
                       key={img.id}
-                      className="relative aspect-[4/3] rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-80 transition-opacity"
+                      className="relative aspect-[4/3] rounded md:rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-80 transition-opacity"
                     >
                       <Image
                         src={img.thumbnail_url || img.url}
@@ -133,8 +144,8 @@ export default async function ListingPage({ params }: PageProps) {
                       />
                       {index === 3 && otherImages.length > 4 && (
                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <span className="text-white font-semibold">
-                            +{otherImages.length - 4} more
+                          <span className="text-white font-semibold text-sm md:text-base">
+                            +{otherImages.length - 4}
                           </span>
                         </div>
                       )}
@@ -146,22 +157,22 @@ export default async function ListingPage({ params }: PageProps) {
 
             {/* Title & Price */}
             <div>
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 md:gap-4">
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold">{listing.title}</h1>
-                  <div className="flex flex-wrap items-center gap-3 mt-2 text-muted-foreground">
+                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">{listing.title}</h1>
+                  <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2 text-sm text-muted-foreground">
                     {listing.year && <span>{listing.year}</span>}
                     {listing.make && <span>{listing.make}</span>}
                     {listing.model && <span>{listing.model}</span>}
                     {listing.condition && (
-                      <Badge variant="outline" className="capitalize">
+                      <Badge variant="outline" className="capitalize text-xs">
                         {listing.condition}
                       </Badge>
                     )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-3xl font-bold text-primary">
+                <div className="md:text-right">
+                  <p className="text-2xl md:text-3xl font-bold text-primary">
                     {listing.price ? `$${listing.price.toLocaleString()}` : 'Call for Price'}
                   </p>
                   {listing.price_type === 'negotiable' && (
@@ -171,17 +182,59 @@ export default async function ListingPage({ params }: PageProps) {
               </div>
             </div>
 
+            {/* Mobile Contact CTA */}
+            <div className="lg:hidden">
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                      {listing.user?.avatar_url ? (
+                        <Image
+                          src={listing.user.avatar_url}
+                          alt={listing.user.company_name || 'Seller'}
+                          width={40}
+                          height={40}
+                          className="rounded-full"
+                        />
+                      ) : (
+                        <Building2 className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">
+                        {listing.user?.company_name || 'Private Seller'}
+                      </p>
+                      {listing.user?.is_dealer && (
+                        <Badge variant="secondary" className="text-xs mt-0.5">
+                          <Shield className="w-3 h-3 mr-1" />
+                          Verified Dealer
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  {listing.user?.phone && (
+                    <Button className="w-full" size="lg" asChild>
+                      <a href={`tel:${listing.user.phone}`}>
+                        <Phone className="w-4 h-4 mr-2" />
+                        Call Seller
+                      </a>
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
             {/* AI Price Analysis */}
             {listing.ai_price_estimate && (
               <Card className="border-primary/20 bg-primary/5">
-                <CardContent className="p-4">
+                <CardContent className="p-3 md:p-4">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <TrendingUp className="w-5 h-5 text-primary" />
+                    <div className="p-1.5 md:p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                      <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">AI Price Analysis</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <h3 className="font-semibold text-sm md:text-base">AI Price Analysis</h3>
+                      <p className="text-xs md:text-sm text-muted-foreground mt-1">
                         Estimated market value:{' '}
                         <strong>${listing.ai_price_estimate.toLocaleString()}</strong>
                         {listing.ai_price_confidence && (
@@ -191,15 +244,15 @@ export default async function ListingPage({ params }: PageProps) {
                         )}
                       </p>
                       {listing.price && listing.ai_price_estimate && (
-                        <p className="text-sm mt-1">
+                        <p className="text-xs md:text-sm mt-1">
                           {listing.price < listing.ai_price_estimate * 0.95 ? (
                             <span className="text-green-600 flex items-center gap-1">
-                              <Check className="w-4 h-4" />
+                              <Check className="w-3 h-3 md:w-4 md:h-4" />
                               Good deal - below market value
                             </span>
                           ) : listing.price > listing.ai_price_estimate * 1.05 ? (
                             <span className="text-amber-600 flex items-center gap-1">
-                              <AlertCircle className="w-4 h-4" />
+                              <AlertCircle className="w-3 h-3 md:w-4 md:h-4" />
                               Above estimated market value
                             </span>
                           ) : (
@@ -217,13 +270,13 @@ export default async function ListingPage({ params }: PageProps) {
 
             {/* Details */}
             <Card>
-              <CardHeader>
-                <CardTitle>Details</CardTitle>
+              <CardHeader className="pb-2 md:pb-4">
+                <CardTitle className="text-base md:text-lg">Details</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
                   {listing.year && (
-                    <DetailRow icon={<Calendar />} label="Year" value={listing.year} />
+                    <DetailRow icon={<Calendar className="w-4 h-4" />} label="Year" value={listing.year} />
                   )}
                   {listing.make && (
                     <DetailRow icon={null} label="Make" value={listing.make} />
@@ -233,23 +286,23 @@ export default async function ListingPage({ params }: PageProps) {
                   )}
                   {listing.mileage && (
                     <DetailRow
-                      icon={<Gauge />}
+                      icon={<Gauge className="w-4 h-4" />}
                       label="Mileage"
-                      value={`${listing.mileage.toLocaleString()} miles`}
+                      value={`${listing.mileage.toLocaleString()} mi`}
                     />
                   )}
                   {listing.hours && (
                     <DetailRow icon={null} label="Hours" value={listing.hours.toLocaleString()} />
                   )}
                   {listing.vin && (
-                    <DetailRow icon={<Shield />} label="VIN" value={listing.vin} />
+                    <DetailRow icon={<Shield className="w-4 h-4" />} label="VIN" value={listing.vin} />
                   )}
                   {listing.condition && (
                     <DetailRow icon={null} label="Condition" value={listing.condition} />
                   )}
                   {(listing.city || listing.state) && (
                     <DetailRow
-                      icon={<MapPin />}
+                      icon={<MapPin className="w-4 h-4" />}
                       label="Location"
                       value={[listing.city, listing.state].filter(Boolean).join(', ')}
                     />
@@ -261,11 +314,11 @@ export default async function ListingPage({ params }: PageProps) {
             {/* Specifications */}
             {listing.specs && Object.keys(listing.specs).length > 0 && (
               <Card>
-                <CardHeader>
-                  <CardTitle>Specifications</CardTitle>
+                <CardHeader className="pb-2 md:pb-4">
+                  <CardTitle className="text-base md:text-lg">Specifications</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
                     {Object.entries(listing.specs).map(([key, value]) => (
                       <DetailRow
                         key={key}
@@ -282,18 +335,18 @@ export default async function ListingPage({ params }: PageProps) {
             {/* Description */}
             {listing.description && (
               <Card>
-                <CardHeader>
-                  <CardTitle>Description</CardTitle>
+                <CardHeader className="pb-2 md:pb-4">
+                  <CardTitle className="text-base md:text-lg">Description</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="whitespace-pre-wrap">{listing.description}</p>
+                  <p className="text-sm md:text-base whitespace-pre-wrap">{listing.description}</p>
                 </CardContent>
               </Card>
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
+          {/* Sidebar - Desktop */}
+          <div className="hidden lg:block space-y-6">
             {/* Seller Info */}
             <Card>
               <CardHeader>
@@ -387,14 +440,14 @@ export default async function ListingPage({ params }: PageProps) {
 
         {/* Similar Listings */}
         {similarListings && similarListings.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">Similar Listings</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="mt-8 md:mt-12">
+            <h2 className="text-lg md:text-2xl font-bold mb-4 md:mb-6">Similar Listings</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
               {similarListings.map((item) => {
                 const itemImage = item.images?.find((img: { is_primary: boolean }) => img.is_primary) || item.images?.[0];
                 return (
                   <Link key={item.id} href={`/listing/${item.id}`}>
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
                       <div className="relative aspect-[4/3] bg-muted">
                         {itemImage ? (
                           <Image
@@ -404,17 +457,17 @@ export default async function ListingPage({ params }: PageProps) {
                             className="object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
                             No Image
                           </div>
                         )}
                       </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold truncate">{item.title}</h3>
-                        <p className="text-lg font-bold text-primary mt-1">
+                      <CardContent className="p-2 md:p-4">
+                        <h3 className="font-semibold text-sm md:text-base truncate">{item.title}</h3>
+                        <p className="text-base md:text-lg font-bold text-primary mt-0.5 md:mt-1">
                           {item.price ? `$${item.price.toLocaleString()}` : 'Call'}
                         </p>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-xs md:text-sm text-muted-foreground truncate mt-0.5">
                           {[item.year, item.make, item.model].filter(Boolean).join(' ')}
                         </p>
                       </CardContent>
@@ -425,7 +478,16 @@ export default async function ListingPage({ params }: PageProps) {
             </div>
           </div>
         )}
-      </main>
+
+        {/* Mobile Contact Form */}
+        <div className="lg:hidden mt-8">
+          <ContactSeller
+            listingId={id}
+            sellerId={listing.user?.id || ''}
+            listingTitle={listing.title}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -440,11 +502,11 @@ function DetailRow({
   value: string | number;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      {icon && <span className="text-muted-foreground">{icon}</span>}
-      <div>
-        <p className="text-sm text-muted-foreground capitalize">{label}</p>
-        <p className="font-medium">{value}</p>
+    <div className="flex items-center gap-2 md:gap-3">
+      {icon && <span className="text-muted-foreground flex-shrink-0">{icon}</span>}
+      <div className="min-w-0">
+        <p className="text-xs md:text-sm text-muted-foreground capitalize">{label}</p>
+        <p className="font-medium text-sm md:text-base truncate">{value}</p>
       </div>
     </div>
   );
