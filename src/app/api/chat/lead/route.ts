@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { sendEmail } from '@/lib/email/resend';
+import { chatLeadCapturedEmail } from '@/lib/email/templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +15,13 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
+
+    // Get dealer info for notification
+    const { data: dealer } = await supabase
+      .from('profiles')
+      .select('email, company_name, notification_settings')
+      .eq('id', dealerId)
+      .single();
 
     // Update conversation with visitor info
     if (conversationId) {
@@ -54,6 +63,31 @@ export async function POST(request: NextRequest) {
         .from('chat_conversations')
         .update({ lead_id: lead.id })
         .eq('id', conversationId);
+    }
+
+    // Send notification email to dealer
+    const notificationSettings = dealer?.notification_settings || {};
+    const shouldNotifyLead = notificationSettings.new_lead !== false; // Default to true
+
+    if (shouldNotifyLead && dealer?.email) {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+      try {
+        await sendEmail({
+          to: dealer.email,
+          subject: `New lead captured from chat: ${name}`,
+          html: chatLeadCapturedEmail({
+            dealerName: dealer.company_name || 'Dealer',
+            visitorName: name,
+            visitorEmail: email,
+            visitorPhone: phone,
+            conversationUrl: `${baseUrl}/dashboard/conversations/${conversationId}`,
+            leadsUrl: `${baseUrl}/dashboard/leads`,
+          }),
+        });
+      } catch (emailError) {
+        console.error('Failed to send lead notification:', emailError);
+        // Don't fail the request if email fails
+      }
     }
 
     return NextResponse.json({

@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
+import { sendEmail } from '@/lib/email/resend';
+import { newChatConversationEmail } from '@/lib/email/templates';
 
 function getXai() {
   if (!process.env.XAI_API_KEY) {
@@ -10,6 +12,29 @@ function getXai() {
   return createXai({
     apiKey: process.env.XAI_API_KEY,
   });
+}
+
+// Send notification email (non-blocking)
+async function sendNewChatNotification(
+  dealerEmail: string,
+  dealerName: string,
+  visitorMessage: string,
+  conversationId: string
+) {
+  try {
+    const conversationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/conversations/${conversationId}`;
+    await sendEmail({
+      to: dealerEmail,
+      subject: `New chat on your AxlesAI storefront`,
+      html: newChatConversationEmail({
+        dealerName,
+        visitorMessage,
+        conversationUrl,
+      }),
+    });
+  } catch (error) {
+    console.error('Failed to send chat notification:', error);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -28,13 +53,17 @@ export async function POST(request: NextRequest) {
     // Get dealer info
     const { data: dealer } = await supabase
       .from('profiles')
-      .select('company_name, phone, email, city, state, chat_settings')
+      .select('company_name, phone, email, city, state, chat_settings, notification_settings')
       .eq('id', dealerId)
       .single();
 
     if (!dealer) {
       return NextResponse.json({ error: 'Dealer not found' }, { status: 404 });
     }
+
+    // Check notification preferences
+    const notificationSettings = dealer.notification_settings || {};
+    const shouldNotifyNewChat = notificationSettings.new_chat !== false; // Default to true
 
     // Get dealer's active listings for context
     const { data: listings } = await supabase
@@ -60,6 +89,7 @@ export async function POST(request: NextRequest) {
 
     // Create or get conversation
     let activeConversationId = conversationId;
+    let isNewConversation = false;
 
     if (!activeConversationId) {
       // Create new conversation
@@ -73,6 +103,17 @@ export async function POST(request: NextRequest) {
         .single();
 
       activeConversationId = newConversation?.id;
+      isNewConversation = true;
+
+      // Send notification for new conversation (non-blocking)
+      if (shouldNotifyNewChat && dealer.email && activeConversationId) {
+        sendNewChatNotification(
+          dealer.email,
+          dealer.company_name || 'Dealer',
+          message,
+          activeConversationId
+        );
+      }
     }
 
     // Save user message

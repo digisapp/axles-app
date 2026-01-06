@@ -26,6 +26,7 @@ import {
   Facebook,
   Instagram,
   Clock,
+  Bell,
 } from 'lucide-react';
 
 export default function StorefrontSettingsPage() {
@@ -64,6 +65,9 @@ export default function StorefrontSettingsPage() {
       saturday: { open: '10:00', close: '14:00', closed: false },
       sunday: { open: '', close: '', closed: true },
     },
+    notify_new_chat: true,
+    notify_new_lead: true,
+    notify_new_message: true,
   });
 
   useEffect(() => {
@@ -87,6 +91,7 @@ export default function StorefrontSettingsPage() {
         const socialLinks = profile.social_links || {};
         const chatSettings = profile.chat_settings || {};
         const businessHours = profile.business_hours || formData.business_hours;
+        const notificationSettings = profile.notification_settings || {};
 
         setFormData({
           slug: profile.slug || '',
@@ -105,6 +110,9 @@ export default function StorefrontSettingsPage() {
           social_facebook: socialLinks.facebook || '',
           social_instagram: socialLinks.instagram || '',
           business_hours: businessHours,
+          notify_new_chat: notificationSettings.new_chat !== false,
+          notify_new_lead: notificationSettings.new_lead !== false,
+          notify_new_message: notificationSettings.new_message !== false,
         });
       }
 
@@ -188,6 +196,11 @@ export default function StorefrontSettingsPage() {
             instagram: formData.social_instagram || null,
           },
           business_hours: formData.business_hours,
+          notification_settings: {
+            new_chat: formData.notify_new_chat,
+            new_lead: formData.notify_new_lead,
+            new_message: formData.notify_new_message,
+          },
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -288,7 +301,7 @@ export default function StorefrontSettingsPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="general">
               <Store className="w-4 h-4 mr-2" />
               General
@@ -300,6 +313,10 @@ export default function StorefrontSettingsPage() {
             <TabsTrigger value="chat">
               <MessageCircle className="w-4 h-4 mr-2" />
               AI Chat
+            </TabsTrigger>
+            <TabsTrigger value="notifications">
+              <Bell className="w-4 h-4 mr-2" />
+              Alerts
             </TabsTrigger>
             <TabsTrigger value="hours">
               <Clock className="w-4 h-4 mr-2" />
@@ -587,6 +604,58 @@ export default function StorefrontSettingsPage() {
                     </div>
                   </>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Notification Settings */}
+          <TabsContent value="notifications" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Email Notifications</CardTitle>
+                <CardDescription>
+                  Choose which events you want to be notified about via email
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="font-medium">New Chat Conversations</p>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified when a visitor starts a chat on your storefront
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.notify_new_chat}
+                    onCheckedChange={(checked) => setFormData({ ...formData, notify_new_chat: checked })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="font-medium">New Leads Captured</p>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified when a visitor submits their contact information
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.notify_new_lead}
+                    onCheckedChange={(checked) => setFormData({ ...formData, notify_new_lead: checked })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="font-medium">New Messages</p>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified when you receive a direct message from a buyer
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.notify_new_message}
+                    onCheckedChange={(checked) => setFormData({ ...formData, notify_new_message: checked })}
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
