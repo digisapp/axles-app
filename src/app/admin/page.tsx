@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Users,
   Package,
@@ -12,6 +13,8 @@ import {
   DollarSign,
   ArrowUpRight,
   Shield,
+  Building2,
+  Clock,
 } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
@@ -23,15 +26,17 @@ export default async function AdminDashboardPage() {
     redirect('/login?redirect=/admin');
   }
 
-  // Check if user is admin (you would typically check a role field)
+  // Check if user is admin
   const { data: profile } = await supabase
     .from('profiles')
-    .select('is_dealer')
+    .select('is_admin')
     .eq('id', user.id)
     .single();
 
-  // For now, allow any authenticated user - in production, check admin role
-  // if (!profile?.is_admin) redirect('/dashboard');
+  // Restrict to admins only
+  if (!profile?.is_admin) {
+    redirect('/dashboard');
+  }
 
   // Get stats
   const { count: totalUsers } = await supabase
@@ -84,6 +89,18 @@ export default async function AdminDashboardPage() {
 
   const totalViews = viewsData?.reduce((sum, l) => sum + (l.views_count || 0), 0) || 0;
 
+  // Get pending dealers count
+  const { count: pendingDealers } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact', head: true })
+    .eq('dealer_status', 'pending');
+
+  // Get total dealers count
+  const { count: totalDealers } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_dealer', true);
+
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
@@ -108,11 +125,11 @@ export default async function AdminDashboardPage() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Users className="w-5 h-5 text-muted-foreground" />
+                <Users className="w-5 h-5 text-blue-500" />
                 <ArrowUpRight className="w-4 h-4 text-green-500" />
               </div>
               <p className="text-3xl font-bold">{totalUsers || 0}</p>
@@ -123,7 +140,22 @@ export default async function AdminDashboardPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Package className="w-5 h-5 text-muted-foreground" />
+                <Building2 className="w-5 h-5 text-green-500" />
+                {(pendingDealers || 0) > 0 && (
+                  <Badge variant="outline" className="text-xs text-yellow-600 border-yellow-300">
+                    {pendingDealers} pending
+                  </Badge>
+                )}
+              </div>
+              <p className="text-3xl font-bold">{totalDealers || 0}</p>
+              <p className="text-sm text-muted-foreground">Dealers</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <Package className="w-5 h-5 text-purple-500" />
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
                   {activeListings} active
                 </span>
@@ -136,7 +168,7 @@ export default async function AdminDashboardPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Eye className="w-5 h-5 text-muted-foreground" />
+                <Eye className="w-5 h-5 text-orange-500" />
               </div>
               <p className="text-3xl font-bold">{totalViews.toLocaleString()}</p>
               <p className="text-sm text-muted-foreground">Total Views</p>
@@ -146,7 +178,7 @@ export default async function AdminDashboardPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <MessageSquare className="w-5 h-5 text-muted-foreground" />
+                <MessageSquare className="w-5 h-5 text-cyan-500" />
               </div>
               <p className="text-3xl font-bold">{totalMessages || 0}</p>
               <p className="text-sm text-muted-foreground">Messages Sent</p>
@@ -255,16 +287,37 @@ export default async function AdminDashboardPage() {
         {/* Quick Actions */}
         <div className="mt-8">
           <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link href="/admin/dealers">
+              <Card className="hover:border-primary transition-colors cursor-pointer relative">
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="p-3 bg-yellow-100 rounded-lg">
+                    <Building2 className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">Dealer Verification</p>
+                      {(pendingDealers || 0) > 0 && (
+                        <Badge variant="destructive" className="text-xs">
+                          {pendingDealers} pending
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Approve dealers</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
             <Link href="/admin/users">
               <Card className="hover:border-primary transition-colors cursor-pointer">
                 <CardContent className="p-6 flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-lg">
-                    <Users className="w-6 h-6 text-primary" />
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Users className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-medium">Manage Users</p>
-                    <p className="text-sm text-muted-foreground">View and edit users</p>
+                    <p className="font-medium">User Management</p>
+                    <p className="text-sm text-muted-foreground">Manage all users</p>
                   </div>
                 </CardContent>
               </Card>
@@ -273,8 +326,8 @@ export default async function AdminDashboardPage() {
             <Link href="/admin/listings">
               <Card className="hover:border-primary transition-colors cursor-pointer">
                 <CardContent className="p-6 flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-lg">
-                    <Package className="w-6 h-6 text-primary" />
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Package className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
                     <p className="font-medium">Manage Listings</p>
@@ -287,12 +340,12 @@ export default async function AdminDashboardPage() {
             <Link href="/admin/analytics">
               <Card className="hover:border-primary transition-colors cursor-pointer">
                 <CardContent className="p-6 flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-lg">
-                    <TrendingUp className="w-6 h-6 text-primary" />
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <TrendingUp className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
                     <p className="font-medium">Analytics</p>
-                    <p className="text-sm text-muted-foreground">View reports</p>
+                    <p className="text-sm text-muted-foreground">Charts & reports</p>
                   </div>
                 </CardContent>
               </Card>
@@ -301,8 +354,8 @@ export default async function AdminDashboardPage() {
             <Link href="/admin/settings">
               <Card className="hover:border-primary transition-colors cursor-pointer">
                 <CardContent className="p-6 flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-lg">
-                    <DollarSign className="w-6 h-6 text-primary" />
+                  <div className="p-3 bg-orange-100 rounded-lg">
+                    <DollarSign className="w-6 h-6 text-orange-600" />
                   </div>
                   <div>
                     <p className="font-medium">Billing</p>
