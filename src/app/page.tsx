@@ -158,10 +158,10 @@ export default function HomePage() {
       </header>
 
       {/* Main Content - Google-style centered */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">
+      <main className="relative z-10 flex-1 flex flex-col items-center pt-8 md:pt-16 px-4">
         {/* Logo with glow effect */}
         <div className={cn(
-          "mb-6 md:mb-8 mt-12 md:mt-16 transition-all duration-500",
+          "mb-6 md:mb-8 transition-all duration-500",
           isTyping && "logo-glow scale-105"
         )}>
           <Image
