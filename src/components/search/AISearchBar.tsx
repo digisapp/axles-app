@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Sparkles, Mic, X } from 'lucide-react';
+import { Search, Mic, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -186,13 +186,12 @@ export function AISearchBar({
           disabled={isLoading || !query.trim()}
           size={isLarge ? 'lg' : isSmall ? 'sm' : 'default'}
           className={cn(
-            'rounded-full gap-2',
-            isLarge && 'px-6',
+            'rounded-full',
+            isLarge && 'px-8',
             isSmall && 'px-3'
           )}
         >
-          <Sparkles className={cn(isSmall ? 'w-3 h-3' : 'w-4 h-4')} />
-          {isLarge ? 'Search with AI' : isSmall ? '' : 'Search'}
+          {isSmall ? <Search className="w-4 h-4" /> : 'Search'}
         </Button>
       </div>
 
