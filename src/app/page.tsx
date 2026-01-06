@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { AISearchBar } from '@/components/search/AISearchBar';
 import { Button } from '@/components/ui/button';
-import { Truck, Container, HardHat, MapPin, TrendingUp, Shield, Zap, Sparkles, ArrowRight } from 'lucide-react';
+import { Truck, Container, HardHat, MapPin, TrendingUp, Zap, Sparkles, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function HomePage() {
@@ -13,12 +13,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col gradient-bg relative overflow-hidden">
-      {/* Animated background orbs */}
-      <div className="orb orb-1" />
-      <div className="orb orb-2" />
-      <div className="orb orb-3" />
-
-      {/* Noise texture */}
+      {/* Subtle noise texture */}
       <div className="noise-overlay" />
 
       {/* Header */}
@@ -44,10 +39,10 @@ export default function HomePage() {
       </header>
 
       {/* Main Content - Google-style centered */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 -mt-16">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4">
         {/* Logo with glow effect */}
         <div className={cn(
-          "mb-6 md:mb-8 transition-all duration-500",
+          "mb-6 md:mb-8 mt-12 md:mt-16 transition-all duration-500",
           isTyping && "logo-glow scale-105"
         )}>
           <Image
@@ -70,7 +65,7 @@ export default function HomePage() {
 
         {/* Search Bar - Glass Effect */}
         <div className="w-full max-w-2xl mb-8 md:mb-10 px-2">
-          <div className="search-glass rounded-2xl p-1">
+          <div className="search-glass rounded-full p-1">
             <AISearchBar
               size="large"
               autoFocus
@@ -132,38 +127,6 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Features Section */}
-      <section className="relative z-10 py-16 md:py-24 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3">
-              Why Choose <span className="gradient-text">AxlesAI</span>?
-            </h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              The future of equipment marketplace is here
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4 md:gap-6">
-            <FeatureCard
-              icon={<Zap className="w-5 h-5 md:w-6 md:h-6" />}
-              title="AI-Powered Search"
-              description="Describe what you need in plain English. Our AI instantly understands and finds matches."
-            />
-            <FeatureCard
-              icon={<TrendingUp className="w-5 h-5 md:w-6 md:h-6" />}
-              title="Smart Pricing"
-              description="Get instant market value estimates powered by real-time data analysis."
-            />
-            <FeatureCard
-              icon={<Shield className="w-5 h-5 md:w-6 md:h-6" />}
-              title="Verified Listings"
-              description="AI analyzes photos to verify condition and detect potential issues."
-            />
-          </div>
-        </div>
-      </section>
-
       {/* Stats Section */}
       <section className="relative z-10 py-12 md:py-16 px-4">
         <div className="max-w-4xl mx-auto">
@@ -216,26 +179,6 @@ function CategoryPill({
       {icon}
       <span>{label}</span>
     </Link>
-  );
-}
-
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="feature-glass flex flex-col items-center text-center p-6 md:p-8 rounded-2xl md:rounded-3xl">
-      <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 md:mb-5">
-        {icon}
-      </div>
-      <h3 className="font-semibold text-base md:text-lg mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-    </div>
   );
 }
 
