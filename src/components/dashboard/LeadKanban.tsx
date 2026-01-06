@@ -30,6 +30,8 @@ import {
   Clock,
   User,
   Package,
+  Flame,
+  TrendingUp,
 } from 'lucide-react';
 
 interface Lead {
@@ -40,6 +42,15 @@ interface Lead {
   message?: string;
   status: string;
   priority: string;
+  score?: number;
+  score_factors?: {
+    companyEmail?: boolean;
+    hasPhone?: boolean;
+    phoneMatchesState?: boolean;
+    highIntentMessage?: boolean;
+    aiSentiment?: string;
+    aiIntent?: string;
+  };
   notes?: string;
   last_contacted_at?: string;
   created_at: string;
@@ -208,6 +219,41 @@ export function LeadKanban({ leads: initialLeads }: LeadKanbanProps) {
                   </div>
                 )}
 
+                {/* Lead Score Breakdown */}
+                {selectedLead.score !== undefined && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4" />
+                      Lead Score: {selectedLead.score}/100
+                    </h4>
+                    {selectedLead.score_factors && (
+                      <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg space-y-1">
+                        {selectedLead.score_factors.companyEmail && (
+                          <p className="text-green-600">✓ Business email domain</p>
+                        )}
+                        {selectedLead.score_factors.hasPhone && (
+                          <p className="text-green-600">✓ Phone number provided</p>
+                        )}
+                        {selectedLead.score_factors.phoneMatchesState && (
+                          <p className="text-green-600">✓ Local buyer (phone matches state)</p>
+                        )}
+                        {selectedLead.score_factors.highIntentMessage && (
+                          <p className="text-green-600">✓ High-intent keywords detected</p>
+                        )}
+                        {selectedLead.score_factors.aiSentiment === 'very_positive' && (
+                          <p className="text-green-600">✓ AI: Very positive sentiment</p>
+                        )}
+                        {selectedLead.score_factors.aiIntent === 'ready_to_buy' && (
+                          <p className="text-green-600">✓ AI: Ready to buy</p>
+                        )}
+                        {selectedLead.score_factors.aiIntent === 'serious_inquiry' && (
+                          <p className="text-blue-600">○ AI: Serious inquiry</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Notes */}
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium">Notes</h4>
@@ -265,9 +311,30 @@ function LeadCard({
     qualified: 'won',
   };
 
+  // Score label and styling
+  const getScoreDisplay = (score?: number) => {
+    if (score === undefined || score === null) return null;
+    if (score >= 70) return { label: 'Hot', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', icon: Flame };
+    if (score >= 50) return { label: 'Warm', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', icon: TrendingUp };
+    if (score >= 30) return { label: 'Cool', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', icon: null };
+    return { label: 'Cold', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400', icon: null };
+  };
+
+  const scoreDisplay = getScoreDisplay(lead.score);
+
   return (
     <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onViewDetails}>
       <CardContent className="p-3 space-y-2">
+        {/* Score Badge (if available) */}
+        {scoreDisplay && (
+          <div className="flex items-center justify-between mb-1">
+            <Badge variant="secondary" className={`text-xs ${scoreDisplay.color}`}>
+              {scoreDisplay.icon && <scoreDisplay.icon className="w-3 h-3 mr-1" />}
+              {scoreDisplay.label} ({lead.score})
+            </Badge>
+          </div>
+        )}
+
         <div className="flex items-start justify-between">
           <div className="min-w-0">
             <p className="font-medium truncate">{lead.buyer_name}</p>

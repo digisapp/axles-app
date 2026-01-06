@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { calculateLeadScoreWithAI } from '@/lib/leads/scoring';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,7 +33,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the lead
+    // Get listing info for scoring
+    let listingState: string | null = null;
+    let listingTitle: string | null = null;
+    if (listing_id) {
+      const { data: listing } = await supabase
+        .from('listings')
+        .select('title, state')
+        .eq('id', listing_id)
+        .single();
+      if (listing) {
+        listingState = listing.state;
+        listingTitle = listing.title;
+      }
+    }
+
+    // Calculate lead score with AI
+    const { score, factors, priority } = await calculateLeadScoreWithAI({
+      buyerEmail: buyer_email,
+      buyerPhone: buyer_phone,
+      message: message,
+      listingState: listingState,
+      listingTitle: listingTitle || undefined,
+    });
+
+    // Create the lead with score
     const { data: lead, error } = await supabase
       .from('leads')
       .insert({
@@ -43,7 +68,9 @@ export async function POST(request: NextRequest) {
         buyer_phone: buyer_phone || null,
         message: message || null,
         status: 'new',
-        priority: 'medium',
+        priority: priority,
+        score: score,
+        score_factors: factors,
       })
       .select()
       .single();
@@ -60,18 +87,8 @@ export async function POST(request: NextRequest) {
       .eq('id', seller_id)
       .single();
 
-    // Get listing info if available
-    let listingTitle = 'your listing';
-    if (listing_id) {
-      const { data: listing } = await supabase
-        .from('listings')
-        .select('title')
-        .eq('id', listing_id)
-        .single();
-      if (listing) {
-        listingTitle = listing.title;
-      }
-    }
+    // Use listing title from earlier fetch, or fallback
+    const emailListingTitle = listingTitle || 'your listing';
 
     // Send email notification to seller (if Resend is configured)
     if (seller?.email && process.env.RESEND_API_KEY) {
@@ -85,11 +102,11 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             from: 'AxlesAI <leads@axles.ai>',
             to: seller.email,
-            subject: `New Lead: ${buyer_name} interested in ${listingTitle}`,
+            subject: `New Lead: ${buyer_name} interested in ${emailListingTitle}`,
             html: `
               <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #333;">New Lead Received!</h2>
-                <p>You have a new inquiry about <strong>${listingTitle}</strong>.</p>
+                <p>You have a new inquiry about <strong>${emailListingTitle}</strong>.</p>
 
                 <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                   <h3 style="margin-top: 0;">Contact Information</h3>
