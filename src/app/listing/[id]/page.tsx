@@ -14,8 +14,6 @@ import {
   Calendar,
   Gauge,
   Phone,
-  Mail,
-  Heart,
   Share2,
   Shield,
   TrendingUp,
@@ -23,6 +21,8 @@ import {
   AlertCircle,
   Building2,
 } from 'lucide-react';
+import { FavoriteButton } from '@/components/listings/FavoriteButton';
+import { ContactSeller } from '@/components/listings/ContactSeller';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -53,6 +53,18 @@ export default async function ListingPage({ params }: PageProps) {
     .update({ views_count: (listing.views_count || 0) + 1 })
     .eq('id', id);
 
+  // Get similar listings
+  const { data: similarListings } = await supabase
+    .from('listings')
+    .select(`
+      id, title, price, year, make, model, city, state,
+      images:listing_images(url, is_primary)
+    `)
+    .eq('status', 'active')
+    .neq('id', id)
+    .or(`make.eq.${listing.make},category_id.eq.${listing.category_id}`)
+    .limit(4);
+
   const primaryImage = listing.images?.find((img: { is_primary: boolean }) => img.is_primary) || listing.images?.[0];
   const otherImages = listing.images?.filter((img: { id: string }) => img.id !== primaryImage?.id) || [];
 
@@ -70,10 +82,7 @@ export default async function ListingPage({ params }: PageProps) {
           </Link>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              <Heart className="w-4 h-4 mr-2" />
-              Save
-            </Button>
+            <FavoriteButton listingId={id} />
             <Button variant="ghost" size="sm">
               <Share2 className="w-4 h-4 mr-2" />
               Share
@@ -322,18 +331,23 @@ export default async function ListingPage({ params }: PageProps) {
 
                 <div className="space-y-3">
                   {listing.user?.phone && (
-                    <Button className="w-full" size="lg">
-                      <Phone className="w-4 h-4 mr-2" />
-                      {listing.user.phone}
+                    <Button className="w-full" size="lg" asChild>
+                      <a href={`tel:${listing.user.phone}`}>
+                        <Phone className="w-4 h-4 mr-2" />
+                        {listing.user.phone}
+                      </a>
                     </Button>
                   )}
-                  <Button variant="outline" className="w-full" size="lg">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Contact Seller
-                  </Button>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Contact Form */}
+            <ContactSeller
+              listingId={id}
+              sellerId={listing.user?.id || ''}
+              listingTitle={listing.title}
+            />
 
             {/* Quick Stats */}
             <Card>
@@ -370,6 +384,47 @@ export default async function ListingPage({ params }: PageProps) {
             </Card>
           </div>
         </div>
+
+        {/* Similar Listings */}
+        {similarListings && similarListings.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">Similar Listings</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {similarListings.map((item) => {
+                const itemImage = item.images?.find((img: { is_primary: boolean }) => img.is_primary) || item.images?.[0];
+                return (
+                  <Link key={item.id} href={`/listing/${item.id}`}>
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="relative aspect-[4/3] bg-muted">
+                        {itemImage ? (
+                          <Image
+                            src={itemImage.url}
+                            alt={item.title}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            No Image
+                          </div>
+                        )}
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold truncate">{item.title}</h3>
+                        <p className="text-lg font-bold text-primary mt-1">
+                          {item.price ? `$${item.price.toLocaleString()}` : 'Call'}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {[item.year, item.make, item.model].filter(Boolean).join(' ')}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
