@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,6 @@ import {
   Heart,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Store,
   Bot,
   Bell,
@@ -129,7 +129,13 @@ export function Sidebar({ unreadMessages = 0, newLeads = 0 }: SidebarProps) {
         {/* Logo */}
         <div className="h-16 border-b flex items-center px-4">
           <Link href="/" className="flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary flex-shrink-0" />
+            <Image
+              src="/images/axlesai-logo.png"
+              alt="AxlesAI"
+              width={32}
+              height={32}
+              className="w-8 h-8 flex-shrink-0"
+            />
             {!collapsed && (
               <span className="font-bold text-lg">AxlesAI</span>
             )}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,6 @@ import {
   MessageSquare,
   Heart,
   Menu,
-  Sparkles,
   X,
 } from 'lucide-react';
 
@@ -115,7 +115,13 @@ export function MobileSidebar({
       <SheetContent side="left" className="w-72 p-0">
         <SheetHeader className="h-16 border-b px-4 flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary" />
+            <Image
+              src="/images/axlesai-logo.png"
+              alt="AxlesAI"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
             <SheetTitle className="font-bold text-lg">AxlesAI</SheetTitle>
           </div>
         </SheetHeader>

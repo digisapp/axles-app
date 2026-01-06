@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Truck, Container, HardHat, MapPin, TrendingUp, Zap, Sparkles, ArrowRight, LayoutDashboard, Package, Settings, LogOut, User } from 'lucide-react';
+import { Truck, Container, HardHat, MapPin, TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
@@ -76,10 +76,16 @@ export default function HomePage() {
       {/* Header */}
       <header className="relative z-10 w-full px-4 py-3 md:py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/images/axlesai-logo.png"
+              alt="AxlesAI"
+              width={28}
+              height={28}
+              className="w-7 h-7"
+            />
             <span className="font-semibold text-sm hidden sm:block">AxlesAI</span>
-          </div>
+          </Link>
           <div className="flex gap-2 items-center">
             {isLoading ? (
               <div className="w-20 h-8" />
@@ -230,25 +236,17 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Stats Section */}
-      <section className="relative z-10 py-12 md:py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="glass-card rounded-3xl p-8 md:p-12">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <StatItem value="10K+" label="Listings" />
-              <StatItem value="500+" label="Dealers" />
-              <StatItem value="50" label="States" />
-              <StatItem value="24/7" label="AI Support" />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="relative z-10 py-8 md:py-10 px-4 border-t border-white/10">
+      <footer className="relative z-10 py-8 md:py-10 px-4 border-t border-white/10 mt-auto">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary" />
+            <Image
+              src="/images/axlesai-logo.png"
+              alt="AxlesAI"
+              width={20}
+              height={20}
+              className="w-5 h-5"
+            />
             <p className="text-xs md:text-sm text-muted-foreground">
               &copy; {new Date().getFullYear()} AxlesAI. All rights reserved.
             </p>
@@ -282,15 +280,6 @@ function CategoryPill({
       {icon}
       <span>{label}</span>
     </Link>
-  );
-}
-
-function StatItem({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="text-center">
-      <p className="text-2xl md:text-4xl font-bold gradient-text mb-1">{value}</p>
-      <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
-    </div>
   );
 }
 
