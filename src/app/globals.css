@@ -192,3 +192,21 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Logo glow animation when typing */
+@keyframes logoGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6)) drop-shadow(0 0 20px rgba(59, 130, 246, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.8)) drop-shadow(0 0 30px rgba(59, 130, 246, 0.5));
+  }
+}
+
+.logo-glow {
+  animation: logoGlow 1.5s ease-in-out infinite;
+}
+
+.logo-glow img {
+  filter: brightness(1.1);
+}

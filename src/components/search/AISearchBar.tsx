@@ -12,6 +12,7 @@ interface AISearchBarProps {
   className?: string;
   size?: 'small' | 'default' | 'large';
   autoFocus?: boolean;
+  onTypingChange?: (isTyping: boolean) => void;
 }
 
 export function AISearchBar({
@@ -20,6 +21,7 @@ export function AISearchBar({
   className,
   size = 'default',
   autoFocus = false,
+  onTypingChange,
 }: AISearchBarProps) {
   const router = useRouter();
   const [query, setQuery] = useState(defaultValue);
@@ -96,6 +98,9 @@ export function AISearchBar({
     const value = e.target.value;
     setQuery(value);
     setSelectedIndex(-1);
+
+    // Notify parent about typing state
+    onTypingChange?.(value.length > 0);
 
     // Show example suggestions when typing
     if (value.length > 0) {

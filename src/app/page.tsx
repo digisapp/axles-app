@@ -1,10 +1,16 @@
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AISearchBar } from '@/components/search/AISearchBar';
 import { Button } from '@/components/ui/button';
 import { Truck, Container, HardHat, MapPin, TrendingUp, Shield, Zap } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function HomePage() {
+  const [isTyping, setIsTyping] = useState(false);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -20,16 +26,22 @@ export default function HomePage() {
       </header>
 
       {/* Main Content - Google-style centered */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 -mt-8 md:-mt-20">
-        {/* Logo */}
-        <div className="mb-4 md:mb-8">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 pt-8 md:pt-16">
+        {/* Logo with glow effect */}
+        <div className={cn(
+          "mb-6 md:mb-10 mt-8 md:mt-12 transition-all duration-300",
+          isTyping && "logo-glow"
+        )}>
           <Image
             src="/images/axlesai-logo.png"
             alt="AxlesAI"
-            width={280}
-            height={200}
+            width={200}
+            height={80}
             priority
-            className="dark:brightness-110 w-48 md:w-auto"
+            className={cn(
+              "dark:brightness-110 w-32 md:w-40 transition-all duration-300",
+              isTyping && "scale-105 brightness-110"
+            )}
           />
         </div>
 
@@ -40,7 +52,12 @@ export default function HomePage() {
 
         {/* Search Bar */}
         <div className="w-full max-w-2xl mb-6 md:mb-8 px-2">
-          <AISearchBar size="large" autoFocus placeholder='Try "2020 Peterbilt 579 under $100k"' />
+          <AISearchBar
+            size="large"
+            autoFocus
+            placeholder='Try "2020 Peterbilt 579 under $100k"'
+            onTypingChange={setIsTyping}
+          />
         </div>
 
         {/* Action Buttons */}
@@ -85,7 +102,7 @@ export default function HomePage() {
       </main>
 
       {/* Features Section */}
-      <section className="py-12 md:py-16 px-4 bg-muted/30">
+      <section className="py-12 md:py-16 px-4 bg-muted/30 mt-12">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-xl md:text-2xl font-bold text-center mb-8 md:mb-12">
             Why Choose <span className="gradient-text">AxlesAI</span>?
