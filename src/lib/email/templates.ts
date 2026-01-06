@@ -381,6 +381,74 @@ export function chatLeadCapturedEmail({
   `;
 }
 
+export function savedSearchAlertEmail({
+  userName,
+  searchName,
+  newListingsCount,
+  listings,
+  searchUrl,
+}: {
+  userName: string;
+  searchName: string;
+  newListingsCount: number;
+  listings: Array<{ title: string; price: string; url: string }>;
+  searchUrl: string;
+}) {
+  const listingRows = listings.slice(0, 5).map(l => `
+    <tr>
+      <td style="padding: 12px; border-bottom: 1px solid #eee;">
+        <a href="${l.url}" style="color: #0066cc; text-decoration: none; font-weight: 500;">${l.title}</a>
+        <br>
+        <span style="color: #666; font-size: 14px;">${l.price}</span>
+      </td>
+    </tr>
+  `).join('');
+
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="${baseStyles} background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="${containerStyles} background-color: white; border-radius: 12px;">
+          <div style="${headerStyles}">
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlesai-logo.png" alt="AxlesAI" height="40" style="height: 40px;">
+          </div>
+
+          <h1 style="font-size: 24px; margin-bottom: 16px;">${newListingsCount} New Matches!</h1>
+
+          <p>Hi ${userName},</p>
+
+          <p>We found <strong>${newListingsCount} new listing${newListingsCount > 1 ? 's' : ''}</strong> matching your saved search:</p>
+
+          <div style="background-color: #f0f9ff; padding: 12px 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #0066cc;">
+            <strong>${searchName}</strong>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            ${listingRows}
+          </table>
+
+          ${newListingsCount > 5 ? `<p style="color: #666; font-size: 14px;">... and ${newListingsCount - 5} more</p>` : ''}
+
+          <p style="text-align: center; margin: 32px 0;">
+            <a href="${searchUrl}" style="${buttonStyles}">
+              View All Matches
+            </a>
+          </p>
+
+          <div style="${footerStyles}">
+            <p style="font-size: 12px; color: #999;">You're receiving this because you saved this search on AxlesAI. Manage your alerts in your dashboard.</p>
+            <p>&copy; ${new Date().getFullYear()} AxlesAI. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
 export function newLeadEmail({
   dealerName,
   buyerName,

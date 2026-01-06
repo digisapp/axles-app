@@ -40,6 +40,8 @@ import {
   Flame,
 } from 'lucide-react';
 import { AdvancedFilters, FilterValues } from '@/components/search/AdvancedFilters';
+import { CompareButton } from '@/components/listings/CompareButton';
+import { SaveSearchButton } from '@/components/search/SaveSearchButton';
 import type { Listing, AISearchResult, Category } from '@/types';
 
 function SearchPageContent() {
@@ -189,6 +191,13 @@ function SearchPageContent() {
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+            {/* Save Search Button */}
+            {(query || Object.keys(advancedFilters).length > 0) && (
+              <SaveSearchButton
+                query={query}
+                filters={advancedFilters as Record<string, unknown>}
+              />
+            )}
             {/* Mobile Filter Button */}
             <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
               <SheetTrigger asChild>
@@ -410,9 +419,26 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
                   )}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="flex-shrink-0">
-                <Heart className="w-4 h-4 md:w-5 md:h-5" />
-              </Button>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <CompareButton
+                  listing={{
+                    id: listing.id,
+                    title: listing.title,
+                    price: listing.price ?? null,
+                    year: listing.year ?? null,
+                    make: listing.make ?? null,
+                    model: listing.model ?? null,
+                    mileage: listing.mileage ?? null,
+                    hours: listing.hours ?? null,
+                    condition: listing.condition ?? null,
+                    image_url: primaryImage?.thumbnail_url || primaryImage?.url || null,
+                  }}
+                  variant="icon"
+                />
+                <Button variant="ghost" size="icon" className="flex-shrink-0">
+                  <Heart className="w-4 h-4 md:w-5 md:h-5" />
+                </Button>
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-2 md:gap-3 mt-2 md:mt-3 text-xs md:text-sm text-muted-foreground">
@@ -480,13 +506,31 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
               {dealInfo.percentage}% Off
             </Badge>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2 bg-white/80 hover:bg-white w-7 h-7 md:w-8 md:h-8"
-          >
-            <Heart className="w-3 h-3 md:w-4 md:h-4" />
-          </Button>
+          <div className="absolute top-2 right-2 flex gap-1">
+            <CompareButton
+              listing={{
+                id: listing.id,
+                title: listing.title,
+                price: listing.price ?? null,
+                year: listing.year ?? null,
+                make: listing.make ?? null,
+                model: listing.model ?? null,
+                mileage: listing.mileage ?? null,
+                hours: listing.hours ?? null,
+                condition: listing.condition ?? null,
+                image_url: primaryImage?.thumbnail_url || primaryImage?.url || null,
+              }}
+              variant="icon"
+              className="bg-white/80 hover:bg-white w-7 h-7 md:w-8 md:h-8"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-white/80 hover:bg-white w-7 h-7 md:w-8 md:h-8"
+            >
+              <Heart className="w-3 h-3 md:w-4 md:h-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="p-2 md:p-4">

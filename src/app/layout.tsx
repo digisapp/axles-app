@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
+import { CompareProvider } from "@/context/CompareContext";
+import { CompareBar } from "@/components/listings/CompareBar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -85,8 +87,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
         <NotificationProvider>
-          {children}
-          <Toaster position="top-right" richColors closeButton />
+          <CompareProvider>
+            {children}
+            <CompareBar />
+            <Toaster position="top-right" richColors closeButton />
+          </CompareProvider>
         </NotificationProvider>
       </body>
     </html>

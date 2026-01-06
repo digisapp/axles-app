@@ -28,6 +28,7 @@ import { ShareButton } from '@/components/listings/ShareButton';
 import { ImageGallery } from '@/components/listings/ImageGallery';
 import { TrackViewClient } from '@/components/listings/TrackViewClient';
 import { RecentlyViewed } from '@/components/listings/RecentlyViewed';
+import { CompareButton } from '@/components/listings/CompareButton';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -108,6 +109,21 @@ export default async function ListingPage({ params }: PageProps) {
             Back
           </Link>
           <div className="flex items-center gap-2">
+            <CompareButton
+              listing={{
+                id: listing.id,
+                title: listing.title,
+                price: listing.price,
+                year: listing.year,
+                make: listing.make,
+                model: listing.model,
+                mileage: listing.mileage,
+                hours: listing.hours,
+                condition: listing.condition,
+                image_url: sortedImages[0]?.thumbnail_url || sortedImages[0]?.url,
+              }}
+              variant="icon"
+            />
             <FavoriteButton listingId={id} size="sm" />
             <ShareButton title={listing.title} size="sm" />
           </div>
@@ -123,6 +139,21 @@ export default async function ListingPage({ params }: PageProps) {
             Back to Search
           </Link>
           <div className="flex items-center gap-2">
+            <CompareButton
+              listing={{
+                id: listing.id,
+                title: listing.title,
+                price: listing.price,
+                year: listing.year,
+                make: listing.make,
+                model: listing.model,
+                mileage: listing.mileage,
+                hours: listing.hours,
+                condition: listing.condition,
+                image_url: sortedImages[0]?.thumbnail_url || sortedImages[0]?.url,
+              }}
+              variant="icon"
+            />
             <FavoriteButton listingId={id} />
             <ShareButton title={listing.title} />
           </div>

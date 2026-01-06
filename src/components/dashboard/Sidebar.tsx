@@ -26,6 +26,7 @@ import {
   Sparkles,
   Store,
   Bot,
+  Bell,
 } from 'lucide-react';
 
 interface NavItem {
@@ -85,6 +86,11 @@ const navItems: NavItem[] = [
     href: '/dashboard/saved',
     label: 'Saved',
     icon: <Heart className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/alerts',
+    label: 'Alerts',
+    icon: <Bell className="w-5 h-5" />,
   },
   {
     href: '/dashboard/settings',
