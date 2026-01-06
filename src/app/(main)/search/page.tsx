@@ -419,6 +419,7 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
                 alt={listing.title}
                 fill
                 className="object-cover"
+                unoptimized
               />
             ) : (
               <div className="w-full h-full bg-muted flex items-center justify-center">
@@ -523,6 +524,7 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
               alt={listing.title}
               fill
               className="object-cover"
+              unoptimized
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center">

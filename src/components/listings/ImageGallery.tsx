@@ -126,6 +126,7 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
             className="object-cover cursor-pointer transition-transform"
             onClick={() => setIsLightboxOpen(true)}
             priority={selectedIndex === 0}
+            unoptimized
           />
 
           {/* Navigation arrows */}
@@ -193,6 +194,7 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
                   alt={`Thumbnail ${index + 1}`}
                   fill
                   className="object-cover"
+                  unoptimized
                 />
               </button>
             ))}
@@ -333,6 +335,7 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
                 height={800}
                 className="max-h-[calc(100vh-160px)] w-auto object-contain"
                 onClick={(e) => e.stopPropagation()}
+                unoptimized
               />
             </div>
           </div>
@@ -362,6 +365,7 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
                     alt={`Thumbnail ${index + 1}`}
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                 </button>
               ))}
