@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Sparkles,
   Store,
+  Bot,
 } from 'lucide-react';
 
 interface NavItem {
@@ -69,6 +70,11 @@ const navItems: NavItem[] = [
     href: '/dashboard/storefront',
     label: 'Storefront',
     icon: <Store className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/conversations',
+    label: 'AI Chats',
+    icon: <Bot className="w-5 h-5" />,
   },
   {
     href: '/dashboard/messages',
