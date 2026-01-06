@@ -63,17 +63,14 @@ export default function HomePage() {
           The <span className="text-foreground font-medium">AI-powered</span> marketplace for trucks, trailers & heavy equipment
         </p>
 
-        {/* Search Bar - Glass Effect */}
+        {/* Search Bar */}
         <div className="w-full max-w-2xl mb-8 md:mb-10 px-2">
-          <div className="search-glass rounded-full p-1">
-            <AISearchBar
-              size="large"
-              autoFocus
-              placeholder='Try "2020 Peterbilt 579 under $100k"'
-              onTypingChange={setIsTyping}
-              className="!bg-transparent !border-none !shadow-none"
-            />
-          </div>
+          <AISearchBar
+            size="large"
+            autoFocus
+            placeholder='Try "2020 Peterbilt 579 under $100k"'
+            onTypingChange={setIsTyping}
+          />
         </div>
 
         {/* Action Buttons */}
