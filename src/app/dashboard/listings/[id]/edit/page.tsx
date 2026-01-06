@@ -36,6 +36,7 @@ import {
   Trash2,
   Eye,
   CheckCircle,
+  Wand2,
 } from 'lucide-react';
 import { ImageUpload } from '@/components/listings/ImageUpload';
 import type { Category, AIPriceEstimate } from '@/types';
@@ -67,6 +68,7 @@ export default function EditListingPage({ params }: PageProps) {
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [priceEstimate, setPriceEstimate] = useState<AIPriceEstimate | null>(null);
   const [isEstimating, setIsEstimating] = useState(false);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -163,6 +165,69 @@ export default function EditListingPage({ params }: PageProps) {
 
     fetchData();
   }, [id, supabase]);
+
+  // Handle AI detections from image upload
+  const handleAIDetection = (data: { make?: string; model?: string; type?: string; tags?: string[] }) => {
+    const updates: Partial<typeof formData> = {};
+
+    // Only auto-fill if fields are empty
+    if (data.make && !formData.make) {
+      updates.make = data.make;
+    }
+    if (data.model && !formData.model) {
+      updates.model = data.model;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      setFormData({ ...formData, ...updates });
+    }
+  };
+
+  // Generate AI description from images
+  const handleGenerateDescription = async () => {
+    if (images.length === 0) {
+      alert('Please upload at least one image first');
+      return;
+    }
+
+    setIsGeneratingDescription(true);
+
+    try {
+      const imageUrls = images
+        .filter((img) => !img.uploading && img.url)
+        .slice(0, 4)
+        .map((img) => img.url);
+
+      const response = await fetch('/api/ai/describe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrls,
+          specs: {
+            year: formData.year,
+            make: formData.make,
+            model: formData.model,
+            mileage: formData.mileage,
+            hours: formData.hours,
+            condition: formData.condition,
+            ...formData.specs,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const { data } = await response.json();
+        setFormData({ ...formData, description: data.description });
+      } else {
+        alert('Failed to generate description');
+      }
+    } catch (error) {
+      console.error('Description generation error:', error);
+      alert('Failed to generate description');
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
 
   const handleGetPriceEstimate = async () => {
     if (!formData.make || !formData.model) {
@@ -378,6 +443,7 @@ export default function EditListingPage({ params }: PageProps) {
                 listingId={id}
                 images={images}
                 onChange={setImages}
+                onAIDetection={handleAIDetection}
               />
             </CardContent>
           </Card>
@@ -446,7 +512,24 @@ export default function EditListingPage({ params }: PageProps) {
               </div>
 
               <div>
-                <Label htmlFor="description">Description</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateDescription}
+                    disabled={isGeneratingDescription || images.length === 0}
+                    className="text-xs"
+                  >
+                    {isGeneratingDescription ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Wand2 className="w-3 h-3 mr-1" />
+                    )}
+                    AI Generate
+                  </Button>
+                </div>
                 <Textarea
                   id="description"
                   placeholder="Describe your equipment in detail..."
@@ -454,6 +537,11 @@ export default function EditListingPage({ params }: PageProps) {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
+                {images.length === 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Upload photos to enable AI description generation
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

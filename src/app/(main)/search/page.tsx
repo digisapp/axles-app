@@ -36,6 +36,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  TrendingDown,
+  Flame,
 } from 'lucide-react';
 import { AdvancedFilters, FilterValues } from '@/components/search/AdvancedFilters';
 import type { Listing, AISearchResult, Category } from '@/types';
@@ -335,8 +337,27 @@ function SearchPageContent() {
   );
 }
 
+// Calculate deal percentage based on AI price estimate
+function getDealInfo(listing: Listing): { type: 'hot' | 'good' | null; percentage: number } | null {
+  if (!listing.price || !listing.ai_price_estimate) return null;
+
+  const ratio = listing.price / listing.ai_price_estimate;
+
+  // 15%+ below market = Hot Deal
+  if (ratio <= 0.85) {
+    return { type: 'hot', percentage: Math.round((1 - ratio) * 100) };
+  }
+  // 5-15% below market = Good Deal
+  if (ratio <= 0.95) {
+    return { type: 'good', percentage: Math.round((1 - ratio) * 100) };
+  }
+
+  return null;
+}
+
 function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid' | 'list' }) {
   const primaryImage = listing.images?.find((img) => img.is_primary) || listing.images?.[0];
+  const dealInfo = getDealInfo(listing);
 
   if (viewMode === 'list') {
     return (
@@ -360,15 +381,34 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
                 Featured
               </Badge>
             )}
+            {dealInfo && (
+              <Badge
+                className={`absolute top-2 ${listing.is_featured ? 'left-20' : 'left-2'} text-xs ${
+                  dealInfo.type === 'hot'
+                    ? 'bg-red-500 text-white'
+                    : 'bg-green-500 text-white'
+                }`}
+              >
+                {dealInfo.type === 'hot' ? <Flame className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
+                {dealInfo.percentage}% Below Market
+              </Badge>
+            )}
           </div>
 
           <div className="flex-1 p-3 md:p-4">
             <div className="flex justify-between items-start gap-2">
               <div className="min-w-0">
                 <h3 className="font-semibold text-sm md:text-lg line-clamp-1">{listing.title}</h3>
-                <p className="text-lg md:text-2xl font-bold text-primary mt-1">
-                  {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
-                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-lg md:text-2xl font-bold text-primary">
+                    {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
+                  </p>
+                  {dealInfo && (
+                    <span className="text-xs text-muted-foreground line-through">
+                      ${listing.ai_price_estimate?.toLocaleString()}
+                    </span>
+                  )}
+                </div>
               </div>
               <Button variant="ghost" size="icon" className="flex-shrink-0">
                 <Heart className="w-4 h-4 md:w-5 md:h-5" />
@@ -428,6 +468,18 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
               Featured
             </Badge>
           )}
+          {dealInfo && (
+            <Badge
+              className={`absolute ${listing.is_featured ? 'top-8' : 'top-2'} left-2 text-[10px] md:text-xs ${
+                dealInfo.type === 'hot'
+                  ? 'bg-red-500 text-white'
+                  : 'bg-green-500 text-white'
+              }`}
+            >
+              {dealInfo.type === 'hot' ? <Flame className="w-2.5 h-2.5 md:w-3 md:h-3 mr-0.5" /> : <TrendingDown className="w-2.5 h-2.5 md:w-3 md:h-3 mr-0.5" />}
+              {dealInfo.percentage}% Off
+            </Badge>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -439,9 +491,16 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
 
         <div className="p-2 md:p-4">
           <h3 className="font-semibold text-sm md:text-base line-clamp-1">{listing.title}</h3>
-          <p className="text-base md:text-xl font-bold text-primary mt-0.5 md:mt-1">
-            {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
-          </p>
+          <div className="flex items-center gap-1.5 mt-0.5 md:mt-1">
+            <p className="text-base md:text-xl font-bold text-primary">
+              {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
+            </p>
+            {dealInfo && (
+              <span className="text-[10px] md:text-xs text-muted-foreground line-through">
+                ${listing.ai_price_estimate?.toLocaleString()}
+              </span>
+            )}
+          </div>
 
           <div className="flex flex-wrap gap-1 md:gap-2 mt-1 md:mt-2 text-xs text-muted-foreground">
             {listing.year && <span>{listing.year}</span>}

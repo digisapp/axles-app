@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Upload,
   X,
@@ -11,7 +12,21 @@ import {
   Loader2,
   ImageIcon,
   GripVertical,
+  Sparkles,
+  AlertTriangle,
+  CheckCircle,
 } from 'lucide-react';
+
+interface AIAnalysis {
+  detected_type?: string;
+  detected_make?: string;
+  detected_model?: string;
+  damage_detected: boolean;
+  damage_areas?: string[];
+  quality_score: number;
+  suggested_tags: string[];
+  is_valid_equipment_photo: boolean;
+}
 
 interface UploadedImage {
   id?: string;
@@ -21,12 +36,15 @@ interface UploadedImage {
   sort_order: number;
   file?: File;
   uploading?: boolean;
+  ai_analysis?: AIAnalysis;
+  analyzing?: boolean;
 }
 
 interface ImageUploadProps {
   listingId?: string;
   images: UploadedImage[];
   onChange: (images: UploadedImage[]) => void;
+  onAIDetection?: (data: { make?: string; model?: string; type?: string; tags?: string[] }) => void;
   maxImages?: number;
 }
 
@@ -34,11 +52,49 @@ export function ImageUpload({
   listingId,
   images,
   onChange,
+  onAIDetection,
   maxImages = 20,
 }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
   const supabase = createClient();
+
+  // Analyze image with AI
+  const analyzeImageWithAI = async (imageUrl: string, imageIndex: number) => {
+    try {
+      const response = await fetch('/api/ai/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl }),
+      });
+
+      if (response.ok) {
+        const { data } = await response.json();
+
+        // Update image with analysis
+        onChange(images.map((img, idx) =>
+          idx === imageIndex
+            ? { ...img, ai_analysis: data, analyzing: false }
+            : img
+        ));
+
+        // If this is the first image and we have detections, notify parent
+        if (imageIndex === 0 && onAIDetection) {
+          onAIDetection({
+            make: data.detected_make,
+            model: data.detected_model,
+            type: data.detected_type,
+            tags: data.suggested_tags,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('AI analysis failed:', error);
+      onChange(images.map((img, idx) =>
+        idx === imageIndex ? { ...img, analyzing: false } : img
+      ));
+    }
+  };
 
   const uploadImage = async (file: File): Promise<string | null> => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -98,16 +154,21 @@ export function ImageUpload({
           URL.revokeObjectURL(currentImages[targetIndex].url);
           currentImages = currentImages.map((img, idx) =>
             idx === targetIndex
-              ? { ...img, url, uploading: false, file: undefined }
+              ? { ...img, url, uploading: false, file: undefined, analyzing: true }
               : img
           );
           onChange(currentImages);
+
+          // Trigger AI analysis for the uploaded image (only first 3 images to save API calls)
+          if (targetIndex < 3) {
+            analyzeImageWithAI(url, targetIndex);
+          }
         }
       }
 
       setUploadingCount((prev) => prev - 1);
     }
-  }, [images, maxImages, onChange, supabase]);
+  }, [images, maxImages, onChange, supabase, analyzeImageWithAI]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -216,6 +277,19 @@ export function ImageUpload({
                 <div className="absolute inset-0 flex items-center justify-center bg-muted">
                   <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                 </div>
+              ) : image.analyzing ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted">
+                  <Image
+                    src={image.url}
+                    alt={`Image ${index + 1}`}
+                    fill
+                    className="object-cover opacity-50"
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40">
+                    <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+                    <span className="text-xs text-white mt-1">AI Analyzing...</span>
+                  </div>
+                </div>
               ) : (
                 <Image
                   src={image.url}
@@ -223,6 +297,30 @@ export function ImageUpload({
                   fill
                   className="object-cover"
                 />
+              )}
+
+              {/* AI Analysis Badges */}
+              {image.ai_analysis && !image.uploading && !image.analyzing && (
+                <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1">
+                  {image.ai_analysis.damage_detected && (
+                    <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                      <AlertTriangle className="w-3 h-3 mr-0.5" />
+                      Damage
+                    </Badge>
+                  )}
+                  {image.ai_analysis.quality_score >= 0.8 && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-100 text-green-700">
+                      <CheckCircle className="w-3 h-3 mr-0.5" />
+                      HQ
+                    </Badge>
+                  )}
+                  {image.ai_analysis.detected_make && index === 0 && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-blue-100 text-blue-700">
+                      <Sparkles className="w-3 h-3 mr-0.5" />
+                      {image.ai_analysis.detected_make}
+                    </Badge>
+                  )}
+                </div>
               )}
 
               {/* Overlay Controls */}
