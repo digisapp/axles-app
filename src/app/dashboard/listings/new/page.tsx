@@ -25,7 +25,11 @@ import {
   DollarSign,
   TrendingUp,
   AlertCircle,
+  Video,
+  Tag,
+  CalendarDays,
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { VINDecoder } from '@/components/listings/VINDecoder';
 import type { Category, AIPriceEstimate } from '@/types';
 
@@ -35,6 +39,7 @@ export default function NewListingPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [industries, setIndustries] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [priceEstimate, setPriceEstimate] = useState<AIPriceEstimate | null>(null);
   const [isEstimating, setIsEstimating] = useState(false);
 
@@ -54,6 +59,12 @@ export default function NewListingPage() {
     city: '',
     state: '',
     zip_code: '',
+    video_url: '',
+    listing_type: 'sale',
+    rental_rate_daily: '',
+    rental_rate_weekly: '',
+    rental_rate_monthly: '',
+    selected_industries: [] as string[],
     specs: {} as Record<string, string>,
   });
 
@@ -75,7 +86,20 @@ export default function NewListingPage() {
       }
     };
 
+    const fetchIndustries = async () => {
+      try {
+        const response = await fetch('/api/industries');
+        if (response.ok) {
+          const { data } = await response.json();
+          setIndustries(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching industries:', error);
+      }
+    };
+
     fetchCategories();
+    fetchIndustries();
   }, [supabase]);
 
   const handleVINDecode = (data: Record<string, unknown>) => {
@@ -175,11 +199,17 @@ export default function NewListingPage() {
         city: formData.city || null,
         state: formData.state || null,
         zip_code: formData.zip_code || null,
+        video_url: formData.video_url || null,
+        listing_type: formData.listing_type,
+        rental_rate_daily: formData.rental_rate_daily ? parseFloat(formData.rental_rate_daily) : null,
+        rental_rate_weekly: formData.rental_rate_weekly ? parseFloat(formData.rental_rate_weekly) : null,
+        rental_rate_monthly: formData.rental_rate_monthly ? parseFloat(formData.rental_rate_monthly) : null,
         specs: Object.keys(formData.specs).length > 0 ? formData.specs : {},
         status,
         ai_price_estimate: priceEstimate?.estimated_price || null,
         ai_price_confidence: priceEstimate?.confidence || null,
         published_at: status === 'active' ? new Date().toISOString() : null,
+        industries: formData.selected_industries,
       };
 
       const response = await fetch('/api/listings', {
@@ -579,6 +609,152 @@ export default function NewListingPage() {
                       onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
                     />
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Video Walkaround */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="w-5 h-5" />
+                  Video Walkaround
+                </CardTitle>
+                <CardDescription>
+                  Add a YouTube or Vimeo video URL to showcase your equipment
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <Label htmlFor="video_url">Video URL</Label>
+                  <Input
+                    id="video_url"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={formData.video_url}
+                    onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Supports YouTube and Vimeo links
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Listing Type & Rental */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarDays className="w-5 h-5" />
+                  Listing Type
+                </CardTitle>
+                <CardDescription>
+                  Choose whether this equipment is for sale, rent, or both
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="listing_type">Availability</Label>
+                  <Select
+                    value={formData.listing_type}
+                    onValueChange={(v) => setFormData({ ...formData, listing_type: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sale">For Sale Only</SelectItem>
+                      <SelectItem value="rent">For Rent Only</SelectItem>
+                      <SelectItem value="sale_or_rent">For Sale or Rent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {(formData.listing_type === 'rent' || formData.listing_type === 'sale_or_rent') && (
+                  <div className="grid md:grid-cols-3 gap-4 pt-4 border-t">
+                    <div>
+                      <Label htmlFor="rental_daily">Daily Rate</Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="rental_daily"
+                          type="number"
+                          placeholder="250"
+                          value={formData.rental_rate_daily}
+                          onChange={(e) => setFormData({ ...formData, rental_rate_daily: e.target.value })}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="rental_weekly">Weekly Rate</Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="rental_weekly"
+                          type="number"
+                          placeholder="1500"
+                          value={formData.rental_rate_weekly}
+                          onChange={(e) => setFormData({ ...formData, rental_rate_weekly: e.target.value })}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="rental_monthly">Monthly Rate</Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="rental_monthly"
+                          type="number"
+                          placeholder="5000"
+                          value={formData.rental_rate_monthly}
+                          onChange={(e) => setFormData({ ...formData, rental_rate_monthly: e.target.value })}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Industry Tags */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Tag className="w-5 h-5" />
+                  Industry Tags
+                </CardTitle>
+                <CardDescription>
+                  Select industries this equipment is suited for (helps buyers find your listing)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {industries.map((industry) => (
+                    <label
+                      key={industry.id}
+                      className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                    >
+                      <Checkbox
+                        checked={formData.selected_industries.includes(industry.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setFormData({
+                              ...formData,
+                              selected_industries: [...formData.selected_industries, industry.id],
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              selected_industries: formData.selected_industries.filter((id) => id !== industry.id),
+                            });
+                          }
+                        }}
+                      />
+                      <span className="text-sm">{industry.name}</span>
+                    </label>
+                  ))}
                 </div>
               </CardContent>
             </Card>

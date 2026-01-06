@@ -37,6 +37,7 @@ import {
   Eye,
   CheckCircle,
   Wand2,
+  Video,
 } from 'lucide-react';
 import { ImageUpload } from '@/components/listings/ImageUpload';
 import type { Category, AIPriceEstimate } from '@/types';
@@ -87,6 +88,7 @@ export default function EditListingPage({ params }: PageProps) {
     city: '',
     state: '',
     zip_code: '',
+    video_url: '',
     status: 'draft',
     specs: {} as Record<string, string>,
   });
@@ -142,6 +144,7 @@ export default function EditListingPage({ params }: PageProps) {
           city: listing.city || '',
           state: listing.state || '',
           zip_code: listing.zip_code || '',
+          video_url: listing.video_url || '',
           status: listing.status || 'draft',
           specs: listing.specs || {},
         });
@@ -777,6 +780,33 @@ export default function EditListingPage({ params }: PageProps) {
                     onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
                   />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Video Walkaround */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="w-5 h-5" />
+                Video Walkaround
+              </CardTitle>
+              <CardDescription>
+                Add a YouTube or Vimeo video URL to showcase your equipment
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div>
+                <Label htmlFor="video_url">Video URL</Label>
+                <Input
+                  id="video_url"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={formData.video_url}
+                  onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Supports YouTube and Vimeo links
+                </p>
               </div>
             </CardContent>
           </Card>

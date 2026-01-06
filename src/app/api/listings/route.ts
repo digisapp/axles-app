@@ -20,6 +20,8 @@ export async function GET(request: NextRequest) {
   const city = searchParams.get('city');
   const maxMileage = searchParams.get('max_mileage');
   const featured = searchParams.get('featured');
+  const listingType = searchParams.get('listing_type');
+  const industry = searchParams.get('industry');
   const sort = searchParams.get('sort') || 'created_at';
   const order = searchParams.get('order') || 'desc';
   const search = searchParams.get('q');
@@ -59,6 +61,13 @@ export async function GET(request: NextRequest) {
   if (city) query = query.ilike('city', `%${city}%`);
   if (maxMileage) query = query.lte('mileage', parseInt(maxMileage));
   if (featured === 'true') query = query.eq('is_featured', true);
+  if (listingType) {
+    if (listingType === 'rent') {
+      query = query.in('listing_type', ['rent', 'sale_or_rent']);
+    } else if (listingType === 'sale') {
+      query = query.in('listing_type', ['sale', 'sale_or_rent']);
+    }
+  }
 
   // Full-text search
   if (search) {
@@ -115,7 +124,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const listingData = await request.json();
+    const body = await request.json();
+
+    // Extract industries from the request body
+    const { industries, ...listingData } = body;
 
     const { data, error } = await supabase
       .from('listings')
@@ -132,6 +144,23 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to create listing' },
         { status: 500 }
       );
+    }
+
+    // If industries were provided, insert them into the junction table
+    if (industries && Array.isArray(industries) && industries.length > 0) {
+      const industryInserts = industries.map((industryId: string) => ({
+        listing_id: data.id,
+        industry_id: industryId,
+      }));
+
+      const { error: industryError } = await supabase
+        .from('listing_industries')
+        .insert(industryInserts);
+
+      if (industryError) {
+        console.error('Industry insert error:', industryError);
+        // Don't fail the whole request, just log the error
+      }
     }
 
     return NextResponse.json({ data });

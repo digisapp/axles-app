@@ -29,6 +29,8 @@ import { ImageGallery } from '@/components/listings/ImageGallery';
 import { TrackViewClient } from '@/components/listings/TrackViewClient';
 import { RecentlyViewed } from '@/components/listings/RecentlyViewed';
 import { CompareButton } from '@/components/listings/CompareButton';
+import { FinancingCalculator } from '@/components/listings/FinancingCalculator';
+import { VideoPlayer } from '@/components/listings/VideoPlayer';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -360,6 +362,11 @@ export default async function ListingPage({ params }: PageProps) {
                 </CardContent>
               </Card>
             )}
+
+            {/* Video Walkaround */}
+            {listing.video_url && (
+              <VideoPlayer videoUrl={listing.video_url} title={listing.title} />
+            )}
           </div>
 
           {/* Sidebar - Desktop */}
@@ -437,6 +444,11 @@ export default async function ListingPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
+            {/* Financing Calculator */}
+            {listing.price && listing.price > 0 && (
+              <FinancingCalculator listingPrice={listing.price} />
+            )}
+
             {/* Safety Tips */}
             <Card className="bg-muted/50">
               <CardContent className="p-4">
@@ -501,13 +513,16 @@ export default async function ListingPage({ params }: PageProps) {
           <RecentlyViewed currentListingId={id} maxItems={6} />
         </div>
 
-        {/* Mobile Contact Form */}
-        <div className="lg:hidden mt-8">
+        {/* Mobile Contact Form & Financing */}
+        <div className="lg:hidden mt-8 space-y-6">
           <ContactSeller
             listingId={id}
             sellerId={listing.user?.id || ''}
             listingTitle={listing.title}
           />
+          {listing.price && listing.price > 0 && (
+            <FinancingCalculator listingPrice={listing.price} />
+          )}
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Truck, Container, HardHat, MapPin, TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, User } from 'lucide-react';
+import { Truck, Container, HardHat, MapPin, TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, User, RefreshCw, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
@@ -211,6 +211,17 @@ export default function HomePage() {
               Sell Equipment
             </Link>
           </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="gap-2 w-full sm:w-auto rounded-full glass-button !bg-white/80 dark:!bg-white/10"
+            asChild
+          >
+            <Link href="/trade-in">
+              <RefreshCw className="w-4 h-4" />
+              Trade-In
+            </Link>
+          </Button>
         </div>
 
         {/* Quick Category Links */}
@@ -229,6 +240,11 @@ export default function HomePage() {
             href="/search?category=heavy-equipment"
             icon={<HardHat className="w-4 h-4" />}
             label="Equipment"
+          />
+          <CategoryPill
+            href="/search?listing_type=rent"
+            icon={<CalendarDays className="w-4 h-4" />}
+            label="For Rent"
           />
           <CategoryPill
             href="/search?location=near"
@@ -254,6 +270,9 @@ export default function HomePage() {
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+            <FooterLink href="/trade-in">Trade-In</FooterLink>
+            <FooterLink href="/tools/axle-weight-calculator">Weight Calculator</FooterLink>
+            <FooterLink href="/dealers">Dealers</FooterLink>
             <FooterLink href="/about">About</FooterLink>
             <FooterLink href="/privacy">Privacy</FooterLink>
             <FooterLink href="/terms">Terms</FooterLink>

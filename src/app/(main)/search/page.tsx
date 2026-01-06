@@ -1,10 +1,24 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { AISearchBar } from '@/components/search/AISearchBar';
+
+// Dynamically import MapView to avoid SSR issues with Leaflet
+const MapView = dynamic(
+  () => import('@/components/search/MapView').then((mod) => mod.MapViewWrapper),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-[500px] md:h-[600px] bg-muted rounded-lg flex items-center justify-center">
+        <span className="text-muted-foreground">Loading map...</span>
+      </div>
+    ),
+  }
+);
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +41,7 @@ import {
   Grid3X3,
   List,
   MapPin,
+  Map,
   Calendar,
   Gauge,
   Sparkles,
@@ -56,7 +71,7 @@ function SearchPageContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [aiInterpretation, setAiInterpretation] = useState<AISearchResult | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
   const [sortBy, setSortBy] = useState('created_at');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -283,12 +298,37 @@ function SearchPageContent() {
               >
                 <List className="w-4 h-4" />
               </Button>
+              <Button
+                variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="rounded-none"
+                onClick={() => setViewMode('map')}
+              >
+                <Map className="w-4 h-4" />
+              </Button>
             </div>
+
+            {/* Mobile Map Toggle */}
+            <Button
+              variant={viewMode === 'map' ? 'secondary' : 'outline'}
+              size="sm"
+              className="sm:hidden flex-shrink-0"
+              onClick={() => setViewMode(viewMode === 'map' ? 'grid' : 'map')}
+            >
+              <Map className="w-4 h-4 mr-1" />
+              Map
+            </Button>
           </div>
         </div>
 
-        {/* Results Grid */}
-        {isLoading ? (
+        {/* Results Grid / Map */}
+        {viewMode === 'map' ? (
+          <MapView
+            listings={listings}
+            isLoading={isLoading}
+            onClose={() => setViewMode('grid')}
+          />
+        ) : isLoading ? (
           <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4' : 'space-y-4'}>
             {[...Array(8)].map((_, i) => (
               <ListingCardSkeleton key={i} viewMode={viewMode} />
@@ -313,8 +353,8 @@ function SearchPageContent() {
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
+        {/* Pagination - hide when in map view */}
+        {totalPages > 1 && viewMode !== 'map' && (
           <div className="flex items-center justify-center gap-2 mt-6 md:mt-8">
             <Button
               variant="outline"
@@ -564,7 +604,7 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
   );
 }
 
-function ListingCardSkeleton({ viewMode }: { viewMode: 'grid' | 'list' }) {
+function ListingCardSkeleton({ viewMode }: { viewMode: 'grid' | 'list' | 'map' }) {
   if (viewMode === 'list') {
     return (
       <Card className="flex flex-col sm:flex-row overflow-hidden">
