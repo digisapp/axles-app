@@ -91,7 +91,7 @@ export default function HomePage() {
               height={28}
               className="w-7 h-7"
             />
-            <span className="font-semibold text-sm hidden sm:block">AxlesAI</span>
+            <span className="font-semibold text-sm">AxlesAI</span>
           </Link>
           <div className="flex gap-2 items-center">
             {isLoading ? (
