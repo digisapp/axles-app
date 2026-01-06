@@ -1,6 +1,15 @@
 -- Dealer Storefronts Migration
 -- Adds storefront capabilities for dealers at axles.ai/[slug]
 
+-- Create update_updated_at function if it doesn't exist
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Add storefront columns to profiles
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS tagline TEXT;
