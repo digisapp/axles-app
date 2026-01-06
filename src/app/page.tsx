@@ -73,6 +73,13 @@ export default function HomePage() {
       {/* Subtle noise texture */}
       <div className="noise-overlay" />
 
+      {/* Top Banner */}
+      <div className="relative z-10 w-full bg-primary/10 border-b border-primary/20 py-2 px-4">
+        <p className="text-center text-sm text-foreground/80">
+          The <span className="font-semibold text-primary">AI-powered</span> marketplace for trucks, trailers & heavy equipment
+        </p>
+      </div>
+
       {/* Header */}
       <header className="relative z-10 w-full px-4 py-3 md:py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -169,11 +176,6 @@ export default function HomePage() {
             )}
           />
         </div>
-
-        {/* Tagline */}
-        <p className="text-base md:text-lg text-muted-foreground mb-8 md:mb-10 text-center max-w-lg px-4">
-          The <span className="text-foreground font-medium">AI-powered</span> marketplace for trucks, trailers & heavy equipment
-        </p>
 
         {/* Search Bar */}
         <div className="w-full max-w-2xl mb-8 md:mb-10 px-2">
