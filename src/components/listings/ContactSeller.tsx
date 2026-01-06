@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Send, Loader2, CheckCircle } from 'lucide-react';
+import { Mail, Send, Loader2, CheckCircle, User, Phone } from 'lucide-react';
 
 interface ContactSellerProps {
   listingId: string;
@@ -16,52 +18,86 @@ interface ContactSellerProps {
 
 export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSellerProps) {
   const router = useRouter();
-  const [message, setMessage] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
+  });
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [error, setError] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const supabase = createClient();
 
   const defaultMessage = `Hi, I'm interested in your listing: ${listingTitle}. Is it still available?`;
+
+  // Check if user is logged in on mount
+  useState(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user);
+      if (user?.email) {
+        setFormData(prev => ({ ...prev, email: user.email || '' }));
+      }
+    });
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push(`/login?redirect=/listing/${listingId}`);
+    // Validate required fields
+    if (!formData.name.trim()) {
+      setError('Please enter your name');
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError('Please enter your email');
+      return;
+    }
+    if (!formData.email.includes('@')) {
+      setError('Please enter a valid email');
       return;
     }
 
-    if (user.id === sellerId) {
-      setError("You can't message yourself");
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Check if user is trying to message themselves
+    if (user?.id === sellerId) {
+      setError("You can't contact yourself");
       return;
     }
 
     setIsSending(true);
 
     try {
-      const response = await fetch('/api/messages', {
+      // Create lead via API
+      const response = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           listing_id: listingId,
-          recipient_id: sellerId,
-          content: message || defaultMessage,
+          seller_id: sellerId,
+          buyer_name: formData.name.trim(),
+          buyer_email: formData.email.trim(),
+          buyer_phone: formData.phone.trim() || null,
+          message: formData.message.trim() || defaultMessage,
         }),
       });
 
       if (response.ok) {
         setIsSent(true);
-        setMessage('');
+        setFormData({ name: '', email: '', phone: '', message: '' });
       } else {
         const data = await response.json();
-        setError(data.error || 'Failed to send message');
+        setError(data.error || 'Failed to send inquiry');
       }
     } catch (err) {
-      setError('Failed to send message');
+      setError('Failed to send inquiry. Please try again.');
     } finally {
       setIsSending(false);
     }
@@ -71,18 +107,18 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-6 h-6 text-green-600" />
           </div>
-          <h3 className="font-semibold mb-2">Message Sent!</h3>
+          <h3 className="font-semibold mb-2">Inquiry Sent!</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            The seller will receive your message and can respond directly.
+            The seller will receive your message and contact you shortly.
           </p>
           <Button
             variant="outline"
-            onClick={() => router.push('/dashboard/messages')}
+            onClick={() => setIsSent(false)}
           >
-            View Messages
+            Send Another Inquiry
           </Button>
         </CardContent>
       </Card>
@@ -105,13 +141,69 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
             </div>
           )}
 
-          <Textarea
-            placeholder={defaultMessage}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={4}
-            className="resize-none"
-          />
+          <div className="grid gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name *</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="Your name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="pl-9"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone (optional)</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="(555) 123-4567"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="message">Message</Label>
+            <Textarea
+              id="message"
+              name="message"
+              placeholder={defaultMessage}
+              value={formData.message}
+              onChange={handleChange}
+              rows={4}
+              className="resize-none"
+            />
+          </div>
 
           <Button type="submit" className="w-full" disabled={isSending}>
             {isSending ? (
@@ -119,8 +211,12 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
             ) : (
               <Send className="w-4 h-4 mr-2" />
             )}
-            Send Message
+            Send Inquiry
           </Button>
+
+          <p className="text-xs text-muted-foreground text-center">
+            Your contact info will be shared with the seller
+          </p>
         </form>
       </CardContent>
     </Card>
