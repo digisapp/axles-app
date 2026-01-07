@@ -13,7 +13,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Truck, Container, HardHat, MapPin, TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, User, RefreshCw, CalendarDays } from 'lucide-react';
+import { Truck, Container, HardHat, MapPin, TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, User, RefreshCw, CalendarDays, Flame, TrendingDown } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
@@ -24,10 +26,25 @@ interface UserProfile {
   avatar_url?: string;
 }
 
+interface DealListing {
+  id: string;
+  title: string;
+  price: number;
+  ai_price_estimate: number;
+  discount_percent: number;
+  savings: number;
+  year?: number;
+  make?: string;
+  model?: string;
+  images?: { url: string; thumbnail_url?: string; is_primary?: boolean }[];
+  category?: { name: string; slug: string };
+}
+
 export default function HomePage() {
   const [isTyping, setIsTyping] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [deals, setDeals] = useState<DealListing[]>([]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -60,6 +77,23 @@ export default function HomePage() {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Fetch hot deals
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const response = await fetch('/api/deals?limit=4&min_discount=5');
+        if (response.ok) {
+          const data = await response.json();
+          setDeals(data.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching deals:', error);
+      }
+    };
+
+    fetchDeals();
   }, []);
 
   const handleSignOut = async () => {
@@ -252,6 +286,29 @@ export default function HomePage() {
           </Button>
         </div>
 
+        {/* Hot Deals Section */}
+        {deals.length > 0 && (
+          <div className="w-full max-w-4xl px-4 mb-8 md:mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                <Flame className="w-5 h-5 text-orange-500" />
+                Hot Deals
+              </h2>
+              <Link
+                href="/search?sort=deal"
+                className="text-sm text-primary hover:underline"
+              >
+                View All →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              {deals.map((deal) => (
+                <DealCard key={deal.id} deal={deal} />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Quick Category Links */}
         <div className="flex flex-wrap justify-center gap-2 md:gap-3 max-w-2xl px-4">
           <CategoryPill
@@ -339,6 +396,50 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
       className="text-xs md:text-sm text-muted-foreground hover:text-foreground transition-colors"
     >
       {children}
+    </Link>
+  );
+}
+
+function DealCard({ deal }: { deal: DealListing }) {
+  const primaryImage = deal.images?.find((img) => img.is_primary) || deal.images?.[0];
+
+  return (
+    <Link href={`/listing/${deal.id}`}>
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur">
+        <div className="relative aspect-[4/3]">
+          {primaryImage ? (
+            <Image
+              src={primaryImage.thumbnail_url || primaryImage.url}
+              alt={deal.title}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center">
+              <span className="text-muted-foreground text-xs">No Image</span>
+            </div>
+          )}
+          <Badge className="absolute top-2 left-2 bg-red-500 text-white text-[10px] md:text-xs">
+            <TrendingDown className="w-3 h-3 mr-1" />
+            {deal.discount_percent}% Off
+          </Badge>
+        </div>
+        <div className="p-2 md:p-3">
+          <h3 className="font-semibold text-xs md:text-sm line-clamp-1">{deal.title}</h3>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className="text-sm md:text-base font-bold text-primary">
+              ${deal.price.toLocaleString()}
+            </span>
+            <span className="text-[10px] md:text-xs text-muted-foreground line-through">
+              ${deal.ai_price_estimate.toLocaleString()}
+            </span>
+          </div>
+          <p className="text-[10px] md:text-xs text-green-600 dark:text-green-400 mt-0.5">
+            Save ${deal.savings.toLocaleString()}
+          </p>
+        </div>
+      </Card>
     </Link>
   );
 }
