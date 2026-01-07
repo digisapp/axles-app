@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, RefreshCw, CalendarDays, Flame, TrendingDown } from 'lucide-react';
+import { TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, RefreshCw, CalendarDays, Flame, TrendingDown, Calculator } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -271,6 +271,17 @@ export default function HomePage() {
             <Link href="/dashboard/listings/new">
               <TrendingUp className="w-4 h-4" />
               Sell Equipment
+            </Link>
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="gap-2 w-full sm:w-auto rounded-full glass-button !bg-white/80 dark:!bg-white/10"
+            asChild
+          >
+            <Link href="/finance">
+              <Calculator className="w-4 h-4" />
+              Finance
             </Link>
           </Button>
           <Button
