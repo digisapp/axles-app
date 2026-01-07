@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Truck, Container, HardHat, MapPin, TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, User, RefreshCw, CalendarDays, Flame, TrendingDown } from 'lucide-react';
+import { TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, RefreshCw, CalendarDays, Flame, TrendingDown } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -236,16 +236,16 @@ export default function HomePage() {
             🚛 Best Priced Sleepers
           </Link>
           <Link
-            href="/search?category=reefer-trailers&sort=price"
+            href="/search?location=near"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
-            ❄️ Reefer Deals
+            📍 Near Me
           </Link>
           <Link
-            href="/search?category=flatbed-trailers&sort=price"
+            href="/search?sort=deal"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
-            📦 Flatbed Trailers
+            💰 View All Deals
           </Link>
         </div>
 
@@ -284,6 +284,17 @@ export default function HomePage() {
               Trade-In
             </Link>
           </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="gap-2 w-full sm:w-auto rounded-full glass-button !bg-white/80 dark:!bg-white/10"
+            asChild
+          >
+            <Link href="/search?listing_type=rent">
+              <CalendarDays className="w-4 h-4" />
+              Rentals
+            </Link>
+          </Button>
         </div>
 
         {/* Hot Deals Section */}
@@ -309,34 +320,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Quick Category Links */}
-        <div className="flex flex-wrap justify-center gap-2 md:gap-3 max-w-2xl px-4">
-          <CategoryPill
-            href="/search?category=heavy-duty-trucks"
-            icon={<Truck className="w-4 h-4" />}
-            label="Heavy Duty"
-          />
-          <CategoryPill
-            href="/search?category=trailers"
-            icon={<Container className="w-4 h-4" />}
-            label="Trailers"
-          />
-          <CategoryPill
-            href="/search?category=heavy-equipment"
-            icon={<HardHat className="w-4 h-4" />}
-            label="Equipment"
-          />
-          <CategoryPill
-            href="/search?listing_type=rent"
-            icon={<CalendarDays className="w-4 h-4" />}
-            label="For Rent"
-          />
-          <CategoryPill
-            href="/search?location=near"
-            icon={<MapPin className="w-4 h-4" />}
-            label="Near Me"
-          />
-        </div>
       </main>
 
       {/* Footer */}
@@ -366,26 +349,6 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
-  );
-}
-
-function CategoryPill({
-  href,
-  icon,
-  label,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="pill-glass flex items-center gap-1.5 md:gap-2 px-4 md:px-5 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-medium"
-    >
-      {icon}
-      <span>{label}</span>
-    </Link>
   );
 }
 
