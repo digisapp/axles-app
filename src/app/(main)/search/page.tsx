@@ -167,8 +167,19 @@ function SearchPageContent() {
           if (!advancedFilters.conditions?.length && f.condition) params.set('condition', f.condition.join(','));
         }
 
-        // Only add text search if no category filter was applied
-        if (query && !params.has('category')) params.set('q', query);
+        // HARDENING: Check ALL possible category sources
+        const hasCategory = params.has('category') || !!advancedFilters.category || !!category || !!aiFilters?.category_slug || !!detectedCategory;
+
+        // Only add text search if NO category filter exists from ANY source
+        if (query && !hasCategory) {
+          params.set('q', query);
+        } else {
+          params.delete('q'); // Force-remove if category is present
+        }
+
+        // Debug log (remove after fixing)
+        console.log('LISTINGS REQUEST:', `/api/listings?${params.toString()}`);
+        console.log('hasCategory:', hasCategory, '| category:', category, '| aiFilters:', aiFilters?.category_slug, '| detected:', detectedCategory);
 
         const response = await fetch(`/api/listings?${params.toString()}`);
         const data = await response.json();
