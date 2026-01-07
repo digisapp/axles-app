@@ -348,7 +348,7 @@ export async function parseSearchQuery(query: string): Promise<AISearchResult> {
   try {
     console.log('[AI Search] Using xAI (Grok) for query:', query);
     const { object } = await generateObject({
-      model: xai('grok-2-1212'),
+      model: xai('grok-3'),
       schema: searchResultSchema,
       prompt: `You are an AI assistant for AxlesAI, a marketplace for buying and selling trucks, trailers, and heavy equipment.
 
@@ -415,7 +415,7 @@ export async function generateSearchSuggestions(partialQuery: string): Promise<s
 
   try {
     const { object } = await generateObject({
-      model: xai('grok-2-1212'),
+      model: xai('grok-3'),
       schema: z.object({
         suggestions: z.array(z.string()).max(5),
       }),
