@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AISearchBarProps {
@@ -26,11 +25,12 @@ export function AISearchBar({
   const router = useRouter();
   const [query, setQuery] = useState(defaultValue);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Example suggestions for demo
   const exampleSearches = [
@@ -50,10 +50,11 @@ export function AISearchBar({
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(e.target as Node)
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
       ) {
         setShowSuggestions(false);
+        setIsFocused(false);
       }
     };
 
@@ -116,6 +117,7 @@ export function AISearchBar({
   };
 
   const handleFocus = () => {
+    setIsFocused(true);
     if (query.length === 0) {
       setSuggestions(exampleSearches);
       setShowSuggestions(true);
@@ -126,18 +128,24 @@ export function AISearchBar({
   const isSmall = size === 'small';
 
   return (
-    <div className={cn('relative w-full', className)} ref={suggestionsRef}>
+    <div className={cn('relative w-full', className)} ref={containerRef}>
+      {/* Modern search input - clean with subtle brand accent */}
       <div
         className={cn(
-          'search-input-wrapper flex items-center gap-2 bg-white dark:bg-card border border-border rounded-full shadow-sm hover:shadow-md transition-all',
-          isLarge ? 'pl-5 pr-2 py-2' : isSmall ? 'px-3 py-1.5' : 'pl-4 pr-2 py-1.5',
-          showSuggestions && 'rounded-b-none shadow-md'
+          'flex items-center gap-3 bg-white dark:bg-zinc-900 border-2 transition-all shadow-sm',
+          isLarge ? 'rounded-2xl px-5 py-3' : isSmall ? 'rounded-xl px-3 py-2' : 'rounded-xl px-4 py-2.5',
+          isFocused
+            ? 'border-primary/50 shadow-lg shadow-primary/10'
+            : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600',
+          showSuggestions && 'rounded-b-none'
         )}
       >
+        {/* Search icon */}
         <Search
           className={cn(
-            'text-muted-foreground flex-shrink-0',
-            isLarge ? 'w-5 h-5' : isSmall ? 'w-4 h-4' : 'w-5 h-5'
+            'flex-shrink-0 transition-colors',
+            isLarge ? 'w-5 h-5' : 'w-4 h-4',
+            isFocused ? 'text-primary' : 'text-zinc-400'
           )}
         />
 
@@ -148,61 +156,51 @@ export function AISearchBar({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
+          onBlur={() => !showSuggestions && setIsFocused(false)}
           placeholder={placeholder}
           className={cn(
-            'flex-1 bg-transparent outline-none placeholder:text-muted-foreground/70 min-w-0',
-            isLarge ? 'text-base md:text-lg py-2' : isSmall ? 'text-sm' : 'text-base'
+            'flex-1 bg-transparent outline-none placeholder:text-zinc-400 min-w-0 text-zinc-900 dark:text-zinc-100',
+            isLarge ? 'text-base md:text-lg' : isSmall ? 'text-sm' : 'text-base'
           )}
           autoComplete="off"
           spellCheck="false"
         />
 
-        {query && (
-          <button
-            onClick={() => {
-              setQuery('');
-              setSuggestions([]);
-              onTypingChange?.(false);
-              inputRef.current?.focus();
-            }}
-            className="p-1.5 hover:bg-muted rounded-full transition-colors flex-shrink-0"
-          >
-            <X className={cn('text-muted-foreground', isSmall ? 'w-3 h-3' : 'w-4 h-4')} />
-          </button>
-        )}
-
-        {/* Search button - icon style like ChatGPT/Grok */}
-        <Button
+        {/* Submit button - arrow that activates on input */}
+        <button
           onClick={() => handleSearch()}
           disabled={isLoading || !query.trim()}
-          size="icon"
           className={cn(
-            'rounded-full flex-shrink-0 transition-all',
-            isLarge ? 'h-10 w-10 md:h-12 md:w-12' : isSmall ? 'h-7 w-7' : 'h-9 w-9',
-            !query.trim() && 'opacity-50'
+            'flex-shrink-0 flex items-center justify-center rounded-lg transition-all',
+            isLarge ? 'h-9 w-9' : isSmall ? 'h-6 w-6' : 'h-8 w-8',
+            query.trim()
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed'
           )}
         >
-          <Search className={cn(isLarge ? 'w-5 h-5' : 'w-4 h-4')} />
-        </Button>
+          <ArrowRight className={cn(isLarge ? 'w-4 h-4' : 'w-3.5 h-3.5')} strokeWidth={2.5} />
+        </button>
       </div>
 
       {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 bg-white dark:bg-card border border-t-0 border-border rounded-b-2xl shadow-lg z-50 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 bg-white dark:bg-zinc-900 border-2 border-t-0 border-primary/50 rounded-b-2xl shadow-lg shadow-primary/10 z-50 overflow-hidden">
           <div className="p-2">
-            <p className="px-3 py-1 text-xs text-muted-foreground font-medium">
-              {query ? 'Suggestions' : 'Try searching for'}
+            <p className="px-3 py-1.5 text-xs text-zinc-500 font-medium uppercase tracking-wide">
+              {query ? 'Suggestions' : 'Popular searches'}
             </p>
             {suggestions.map((suggestion, index) => (
               <button
                 key={suggestion}
                 onClick={() => handleSearch(suggestion)}
                 className={cn(
-                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left hover:bg-muted transition-colors',
-                  selectedIndex === index && 'bg-muted'
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors',
+                  selectedIndex === index
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                 )}
               >
-                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <Search className="w-4 h-4 flex-shrink-0 opacity-50" />
                 <span className="truncate">{suggestion}</span>
               </button>
             ))}

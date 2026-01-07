@@ -113,26 +113,35 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-let truckpaperDealerId = null;
+// Cache for dealer IDs by company name
+const dealerCache = new Map();
 
-async function getOrCreateTruckPaperDealer() {
-  if (truckpaperDealerId) return truckpaperDealerId;
+async function getOrCreateDealer(dealerInfo) {
+  const dealerName = dealerInfo.name?.trim() || 'TruckPaper Listing';
 
-  // Try to find existing TruckPaper dealer
+  // Check cache first
+  if (dealerCache.has(dealerName)) {
+    return dealerCache.get(dealerName);
+  }
+
+  // Try to find existing dealer by company name
   const { data: existing } = await supabase
     .from('profiles')
     .select('id')
-    .eq('company_name', 'TruckPaper Listings')
+    .eq('company_name', dealerName)
     .single();
 
   if (existing) {
-    truckpaperDealerId = existing.id;
-    return truckpaperDealerId;
+    dealerCache.set(dealerName, existing.id);
+    return existing.id;
   }
 
-  // Create the TruckPaper dealer account
-  const email = 'truckpaper@dealers.axles.ai';
-  const password = 'TruckPaper2024!';
+  // Create a new dealer account
+  // Generate email from dealer name
+  const cleanName = dealerName.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
+  const randomSuffix = Math.random().toString(36).substring(2, 6);
+  const email = `${cleanName}${randomSuffix}@dealers.axles.ai`;
+  const password = `Dealer${Math.random().toString(36).substring(2, 10)}!`;
 
   const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
     email,
@@ -140,8 +149,10 @@ async function getOrCreateTruckPaperDealer() {
     password,
   });
 
-  if (authError && !authError.message.includes('already been registered')) {
-    throw new Error(`Could not create TruckPaper dealer: ${authError.message}`);
+  if (authError) {
+    // If we can't create, fall back to TruckPaper Listings account
+    console.log(`   Note: Using fallback for "${dealerName}"`);
+    return getOrCreateFallbackDealer();
   }
 
   const userId = authUser?.user?.id;
@@ -149,34 +160,62 @@ async function getOrCreateTruckPaperDealer() {
     await supabase
       .from('profiles')
       .update({
-        company_name: 'TruckPaper Listings',
-        phone: '',
-        website: 'https://www.truckpaper.com',
-        city: '',
-        state: '',
+        company_name: dealerName,
+        phone: dealerInfo.phone || '',
+        email: dealerInfo.realEmail || email,
+        website: '',
+        city: dealerInfo.city || '',
+        state: dealerInfo.state || '',
         country: 'USA',
         is_dealer: true,
         is_verified: false,
       })
       .eq('id', userId);
 
-    truckpaperDealerId = userId;
-    return truckpaperDealerId;
+    dealerCache.set(dealerName, userId);
+    console.log(`   ✓ Created dealer: ${dealerName}`);
+    return userId;
   }
 
-  // If user exists but we couldn't get their ID, look them up
-  const { data: existingByEmail } = await supabase
+  return getOrCreateFallbackDealer();
+}
+
+// Fallback dealer for when individual dealer creation fails
+let fallbackDealerId = null;
+async function getOrCreateFallbackDealer() {
+  if (fallbackDealerId) return fallbackDealerId;
+
+  const { data: existing } = await supabase
     .from('profiles')
     .select('id')
-    .eq('email', email)
+    .eq('company_name', 'TruckPaper Listings')
     .single();
 
-  if (existingByEmail) {
-    truckpaperDealerId = existingByEmail.id;
-    return truckpaperDealerId;
+  if (existing) {
+    fallbackDealerId = existing.id;
+    return fallbackDealerId;
   }
 
-  throw new Error('Could not create TruckPaper dealer');
+  const { data: authUser } = await supabase.auth.admin.createUser({
+    email: 'truckpaper@dealers.axles.ai',
+    email_confirm: true,
+    password: 'TruckPaper2024!',
+  });
+
+  if (authUser?.user?.id) {
+    await supabase
+      .from('profiles')
+      .update({
+        company_name: 'TruckPaper Listings',
+        website: 'https://www.truckpaper.com',
+        is_dealer: true,
+      })
+      .eq('id', authUser.user.id);
+
+    fallbackDealerId = authUser.user.id;
+  }
+
+  return fallbackDealerId;
 }
 
 
@@ -229,7 +268,13 @@ async function importListing(product) {
     return { action: 'skipped_no_images' };
   }
 
-  const dealerId = await getOrCreateTruckPaperDealer();
+  const dealerId = await getOrCreateDealer({
+    name: product.dealerName,
+    phone: product.dealerPhone,
+    realEmail: product.dealerEmail,
+    city: product.city,
+    state: product.state,
+  });
 
   // Check for duplicate by title and dealer
   const { data: existing } = await supabase
@@ -417,9 +462,35 @@ async function fetchDealerDetails(page, products) {
       const details = await page.evaluate(() => {
         // Get all images - TruckPaper uses media.sandhills.com for images
         const images = [];
-        document.querySelectorAll('img[src*="sandhills"], img[src*="media."], img[src*="photo"], img[src*="image"], .gallery img, [class*="carousel"] img, [class*="slider"] img, [class*="photo"] img').forEach(img => {
+
+        // Skip these patterns - flags, icons, decorations
+        const skipPatterns = [
+          'flag', 'logo', 'icon', 'placeholder', 'sprite', 'badge',
+          'banner', 'header', 'footer', 'avatar', 'profile', 'social',
+          'facebook', 'twitter', 'linkedin', 'youtube', 'instagram',
+          'pixel', 'tracking', 'analytics', 'ad-', 'advertisement',
+          '/flags/', '/icons/', '/badges/', '/ui/', '/assets/',
+          'data:image', 'svg', '.gif'
+        ];
+
+        document.querySelectorAll('img[src*="sandhills"], img[src*="media."], [class*="gallery"] img, [class*="carousel"] img, [class*="slider"] img, [class*="photo"] img, [class*="listing"] img').forEach(img => {
           const src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-lazy');
-          if (src && !images.includes(src) && !src.includes('logo') && !src.includes('icon') && !src.includes('placeholder') && src.includes('http')) {
+          if (!src || images.includes(src)) return;
+
+          const srcLower = src.toLowerCase();
+
+          // Skip if matches any skip pattern
+          if (skipPatterns.some(pattern => srcLower.includes(pattern))) return;
+
+          // Must be http(s) and look like a product image
+          if (!src.startsWith('http')) return;
+
+          // Only include images from sandhills media CDN (TruckPaper's image host)
+          if (src.includes('sandhills.com') || src.includes('truckpaper.com')) {
+            // Skip small images (likely icons/thumbnails)
+            const width = img.naturalWidth || parseInt(img.getAttribute('width') || '0');
+            if (width > 0 && width < 100) return;
+
             images.push(src);
           }
         });
