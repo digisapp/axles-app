@@ -98,19 +98,40 @@ function SearchPageContent() {
       setIsLoading(true);
 
       try {
+        // Simple category detection for common searches (fallback if AI fails)
+        const categoryKeywords: Record<string, string> = {
+          'trailers': 'trailers',
+          'trailer': 'trailers',
+          'trucks': 'trucks',
+          'truck': 'trucks',
+          'equipment': 'heavy-equipment',
+          'heavy equipment': 'heavy-equipment',
+        };
+        const queryLower = query?.toLowerCase().trim() || '';
+        const detectedCategory = categoryKeywords[queryLower];
+
         // If there's a natural language query, parse it with AI first
         let currentAiFilters = null;
         if (query && !category) {
-          const aiResponse = await fetch('/api/ai/search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query }),
-          });
+          try {
+            const aiResponse = await fetch('/api/ai/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query }),
+            });
 
-          if (aiResponse.ok) {
-            const { data } = await aiResponse.json();
-            setAiInterpretation(data);
-            currentAiFilters = data?.filters; // Use immediately, don't wait for state update
+            if (aiResponse.ok) {
+              const { data } = await aiResponse.json();
+              setAiInterpretation(data);
+              currentAiFilters = data?.filters; // Use immediately, don't wait for state update
+            }
+          } catch (aiError) {
+            console.error('AI search failed:', aiError);
+          }
+
+          // Fallback: if AI didn't return a category but we detected one, use it
+          if (!currentAiFilters?.category_slug && detectedCategory) {
+            currentAiFilters = { ...currentAiFilters, category_slug: detectedCategory };
           }
         }
 
