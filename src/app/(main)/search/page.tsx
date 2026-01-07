@@ -99,6 +99,7 @@ function SearchPageContent() {
 
       try {
         // If there's a natural language query, parse it with AI first
+        let currentAiFilters = null;
         if (query && !category) {
           const aiResponse = await fetch('/api/ai/search', {
             method: 'POST',
@@ -109,6 +110,7 @@ function SearchPageContent() {
           if (aiResponse.ok) {
             const { data } = await aiResponse.json();
             setAiInterpretation(data);
+            currentAiFilters = data?.filters; // Use immediately, don't wait for state update
           }
         }
 
@@ -116,7 +118,6 @@ function SearchPageContent() {
         const params = new URLSearchParams();
         params.set('page', page.toString());
         params.set('sort', sortBy);
-        if (query) params.set('q', query);
         if (category) params.set('category', category);
 
         // Add advanced filters
@@ -130,9 +131,10 @@ function SearchPageContent() {
         if (advancedFilters.states?.length) params.set('state', advancedFilters.states.join(','));
         if (advancedFilters.category) params.set('category', advancedFilters.category);
 
-        // Add AI-extracted filters if available (but don't override user filters)
-        if (aiInterpretation?.filters) {
-          const f = aiInterpretation.filters;
+        // Add AI-extracted filters (use currentAiFilters from this request, not stale state)
+        const aiFilters = currentAiFilters || aiInterpretation?.filters;
+        if (aiFilters) {
+          const f = aiFilters;
           if (!advancedFilters.category && !category && f.category_slug) params.set('category', f.category_slug);
           if (!advancedFilters.priceMin && f.min_price) params.set('min_price', f.min_price.toString());
           if (!advancedFilters.priceMax && f.max_price) params.set('max_price', f.max_price.toString());
@@ -143,6 +145,9 @@ function SearchPageContent() {
           if (!advancedFilters.mileageMax && f.max_mileage) params.set('max_mileage', f.max_mileage.toString());
           if (!advancedFilters.conditions?.length && f.condition) params.set('condition', f.condition.join(','));
         }
+
+        // Only add text search if no category filter was applied
+        if (query && !params.has('category')) params.set('q', query);
 
         const response = await fetch(`/api/listings?${params.toString()}`);
         const data = await response.json();
