@@ -55,6 +55,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'jhtt.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.truckpaper.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.truckpaper.com',
+      },
     ],
   },
 };
