@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense, lazy } from 'react';
+import { useEffect, useState, Suspense, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -77,6 +77,10 @@ function SearchPageContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({});
 
+  // Refs to prevent infinite loops
+  const fetchIdRef = useRef(0);
+  const lastFetchParamsRef = useRef<string>('');
+
   // Fetch categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
@@ -94,6 +98,18 @@ function SearchPageContent() {
   }, []);
 
   useEffect(() => {
+    // Create a stable key for this set of params to prevent duplicate fetches
+    const filterKey = JSON.stringify(advancedFilters);
+    const paramsKey = `${query}|${category}|${page}|${sortBy}|${filterKey}`;
+
+    // Skip if we already fetched with these exact params
+    if (paramsKey === lastFetchParamsRef.current) {
+      return;
+    }
+    lastFetchParamsRef.current = paramsKey;
+
+    const currentFetchId = ++fetchIdRef.current;
+
     const fetchListings = async () => {
       setIsLoading(true);
 
@@ -122,8 +138,11 @@ function SearchPageContent() {
 
             if (aiResponse.ok) {
               const { data } = await aiResponse.json();
-              setAiInterpretation(data);
-              currentAiFilters = data?.filters; // Use immediately, don't wait for state update
+              // Only update state if this is still the current fetch
+              if (currentFetchId === fetchIdRef.current) {
+                setAiInterpretation(data);
+              }
+              currentAiFilters = data?.filters;
             }
           } catch (aiError) {
             console.error('AI search failed:', aiError);
@@ -134,6 +153,9 @@ function SearchPageContent() {
             currentAiFilters = { ...currentAiFilters, category_slug: detectedCategory };
           }
         }
+
+        // Abort if a newer fetch was started
+        if (currentFetchId !== fetchIdRef.current) return;
 
         // Build the API URL with filters
         const params = new URLSearchParams();
@@ -152,7 +174,7 @@ function SearchPageContent() {
         if (advancedFilters.states?.length) params.set('state', advancedFilters.states.join(','));
         if (advancedFilters.category) params.set('category', advancedFilters.category);
 
-        // Add AI-extracted filters (use currentAiFilters from this request only)
+        // Add AI-extracted filters
         const aiFilters = currentAiFilters;
         if (aiFilters) {
           const f = aiFilters;
@@ -167,35 +189,35 @@ function SearchPageContent() {
           if (!advancedFilters.conditions?.length && f.condition) params.set('condition', f.condition.join(','));
         }
 
-        // HARDENING: Check ALL possible category sources
+        // Check ALL possible category sources
         const hasCategory = params.has('category') || !!advancedFilters.category || !!category || !!aiFilters?.category_slug || !!detectedCategory;
 
-        // Only add text search if NO category filter exists from ANY source
+        // Only add text search if NO category filter exists
         if (query && !hasCategory) {
           params.set('q', query);
         } else {
-          params.delete('q'); // Force-remove if category is present
+          params.delete('q');
         }
-
-        // Debug log (remove after fixing)
-        console.log('LISTINGS REQUEST:', `/api/listings?${params.toString()}`);
-        console.log('hasCategory:', hasCategory, '| category:', category, '| aiFilters:', aiFilters?.category_slug, '| detected:', detectedCategory);
 
         const response = await fetch(`/api/listings?${params.toString()}`);
         const data = await response.json();
 
-        setListings(data.data || []);
-        setTotalCount(data.total || 0);
-        setTotalPages(data.total_pages || 1);
+        // Only update state if this is still the current fetch
+        if (currentFetchId === fetchIdRef.current) {
+          setListings(data.data || []);
+          setTotalCount(data.total || 0);
+          setTotalPages(data.total_pages || 1);
+        }
       } catch (error) {
         console.error('Search error:', error);
       } finally {
-        setIsLoading(false);
+        if (currentFetchId === fetchIdRef.current) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchListings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, category, page, sortBy, advancedFilters]);
 
   const handlePageChange = (newPage: number) => {
