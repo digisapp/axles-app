@@ -152,8 +152,8 @@ function SearchPageContent() {
         if (advancedFilters.states?.length) params.set('state', advancedFilters.states.join(','));
         if (advancedFilters.category) params.set('category', advancedFilters.category);
 
-        // Add AI-extracted filters (use currentAiFilters from this request, not stale state)
-        const aiFilters = currentAiFilters || aiInterpretation?.filters;
+        // Add AI-extracted filters (use currentAiFilters from this request only)
+        const aiFilters = currentAiFilters;
         if (aiFilters) {
           const f = aiFilters;
           if (!advancedFilters.category && !category && f.category_slug) params.set('category', f.category_slug);
@@ -195,7 +195,8 @@ function SearchPageContent() {
     };
 
     fetchListings();
-  }, [query, category, page, sortBy, aiInterpretation?.filters, advancedFilters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, category, page, sortBy, advancedFilters]);
 
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
