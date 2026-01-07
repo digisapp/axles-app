@@ -44,13 +44,11 @@ import {
   Map,
   Calendar,
   Gauge,
-  Sparkles,
   Filter,
   SlidersHorizontal,
   Heart,
   ChevronLeft,
   ChevronRight,
-  X,
   TrendingDown,
   Flame,
 } from 'lucide-react';
@@ -275,25 +273,12 @@ function SearchPageContent() {
           <AISearchBar defaultValue={query} />
         </div>
 
-        {/* AI Interpretation Banner */}
-        {aiInterpretation && (
-          <div className="mb-4 md:mb-6 p-3 md:p-4 bg-primary/5 border border-primary/20 rounded-xl">
-            <div className="flex items-start gap-3">
-              <div className="p-1.5 md:p-2 bg-primary/10 rounded-lg flex-shrink-0">
-                <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-medium text-sm md:text-base line-clamp-2">{aiInterpretation.interpretation}</p>
-                <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                  AI confidence: {Math.round(aiInterpretation.confidence * 100)}%
-                </p>
-                {totalWithoutPriceFilter !== null && (
-                  <p className="text-xs md:text-sm text-amber-600 dark:text-amber-400 mt-1">
-                    Note: No listings found with that price range. Showing all {totalWithoutPriceFilter} matching listings (most are &quot;Call for Price&quot;).
-                  </p>
-                )}
-              </div>
-            </div>
+        {/* Price filter fallback notice - only show when relevant */}
+        {totalWithoutPriceFilter !== null && (
+          <div className="mb-4 md:mb-6 p-3 md:p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
+            <p className="text-xs md:text-sm text-amber-700 dark:text-amber-400">
+              No listings found with that price range. Showing all {totalWithoutPriceFilter} matching listings (most are &quot;Call for Price&quot;).
+            </p>
           </div>
         )}
 

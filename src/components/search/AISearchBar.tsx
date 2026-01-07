@@ -19,6 +19,30 @@ interface AISearchBarProps {
   onTypingChange?: (isTyping: boolean) => void;
 }
 
+// Client-side question detection to avoid extra API call
+function isQuestion(query: string): boolean {
+  const q = query.toLowerCase().trim();
+
+  // Ends with question mark
+  if (q.endsWith('?')) return true;
+
+  // Starts with question words
+  const questionStarters = [
+    'what', 'how', 'why', 'when', 'where', 'which', 'who',
+    'should', 'can', 'could', 'would', 'is it', 'are there',
+    'tell me', 'explain', 'help me', 'i need help',
+    'difference between', 'compare'
+  ];
+
+  for (const starter of questionStarters) {
+    if (q.startsWith(starter + ' ') || q.startsWith(starter + ',')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function AISearchBar({
   defaultValue = '',
   placeholder = 'Search or ask anything about trucks & trailers...',
@@ -73,13 +97,20 @@ export function AISearchBar({
     const q = searchQuery || query;
     if (!q.trim()) return;
 
-    setIsLoading(true);
     setShowSuggestions(false);
     setChatResponse(null);
     setShowChat(false);
 
+    // Client-side detection: if not a question, go straight to search (faster!)
+    if (!isQuestion(q)) {
+      router.push(`/search?q=${encodeURIComponent(q.trim())}`);
+      return;
+    }
+
+    // It's a question - call the chat API
+    setIsLoading(true);
+
     try {
-      // First, check if this is a question or search
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,23 +119,20 @@ export function AISearchBar({
 
       if (response.ok) {
         const data = await response.json();
-
-        if (data.type === 'chat') {
-          // It's a question - show the chat response
-          setChatResponse({
-            response: data.response,
-            suggestedCategory: data.suggestedCategory,
-          });
-          setShowChat(true);
-          setIsLoading(false);
-          return;
-        }
+        setChatResponse({
+          response: data.response,
+          suggestedCategory: data.suggestedCategory,
+        });
+        setShowChat(true);
+        setIsLoading(false);
+        return;
       }
     } catch (error) {
       console.error('Chat API error:', error);
     }
 
-    // It's a search query - navigate to search results
+    // Fallback to search if chat fails
+    setIsLoading(false);
     router.push(`/search?q=${encodeURIComponent(q.trim())}`);
   };
 
