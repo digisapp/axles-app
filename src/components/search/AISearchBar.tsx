@@ -17,6 +17,7 @@ interface AISearchBarProps {
   size?: 'small' | 'default' | 'large';
   autoFocus?: boolean;
   onTypingChange?: (isTyping: boolean) => void;
+  animatedPlaceholder?: boolean;
 }
 
 // Client-side question detection to avoid extra API call
@@ -43,6 +44,16 @@ function isQuestion(query: string): boolean {
   return false;
 }
 
+// Animated placeholder examples - mix of searches and questions
+const PLACEHOLDER_EXAMPLES = [
+  'Search "Peterbilt 579 sleeper"',
+  'Ask "What\'s a fair price for a 2020 Freightliner?"',
+  'Search "Reefer trailers under $50k"',
+  'Ask "What should I look for in a used semi?"',
+  'Search "Lowboy trailers in Texas"',
+  'Ask "Difference between day cab and sleeper?"',
+];
+
 export function AISearchBar({
   defaultValue = '',
   placeholder = 'Search or ask anything about trucks & trailers...',
@@ -50,6 +61,7 @@ export function AISearchBar({
   size = 'default',
   autoFocus = false,
   onTypingChange,
+  animatedPlaceholder = false,
 }: AISearchBarProps) {
   const router = useRouter();
   const [query, setQuery] = useState(defaultValue);
@@ -60,10 +72,27 @@ export function AISearchBar({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [chatResponse, setChatResponse] = useState<ChatResponse | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Example suggestions for demo - mix of searches and questions
+  // Cycle through animated placeholders
+  useEffect(() => {
+    if (!animatedPlaceholder || query.length > 0 || isFocused) return;
+
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDER_EXAMPLES.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [animatedPlaceholder, query.length, isFocused]);
+
+  // Get current placeholder
+  const currentPlaceholder = animatedPlaceholder && !isFocused && query.length === 0
+    ? PLACEHOLDER_EXAMPLES[placeholderIndex]
+    : placeholder;
+
+  // Example suggestions for dropdown
   const exampleSearches = [
     '2020 Peterbilt 579 under $100k',
     'Reefer trailer 53ft',
@@ -247,7 +276,7 @@ export function AISearchBar({
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={() => !showSuggestions && !showChat && setIsFocused(false)}
-          placeholder={placeholder}
+          placeholder={currentPlaceholder}
           className={cn(
             'flex-1 bg-transparent outline-none placeholder:text-zinc-400 min-w-0 text-zinc-900 dark:text-zinc-100',
             isLarge ? 'text-base md:text-lg' : isSmall ? 'text-sm' : 'text-base'

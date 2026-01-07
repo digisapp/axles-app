@@ -178,13 +178,41 @@ export default function HomePage() {
         </div>
 
         {/* Search Bar */}
-        <div className="w-full max-w-2xl mb-8 md:mb-10 px-2">
+        <div className="w-full max-w-2xl mb-4 md:mb-5 px-2">
           <AISearchBar
             size="large"
             autoFocus
-            placeholder='Try "2020 Peterbilt 579 under $100k"'
+            animatedPlaceholder
             onTypingChange={setIsTyping}
           />
+        </div>
+
+        {/* Quick Search Chips */}
+        <div className="flex flex-wrap justify-center gap-2 mb-8 md:mb-10 px-4">
+          <Link
+            href="/search?category=lowboy-trailers&sort=price"
+            className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
+          >
+            🔥 Best Priced Lowboys
+          </Link>
+          <Link
+            href="/search?category=sleeper-trucks&sort=price"
+            className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
+          >
+            🚛 Best Priced Sleepers
+          </Link>
+          <Link
+            href="/search?category=reefer-trailers&sort=price"
+            className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
+          >
+            ❄️ Reefer Deals
+          </Link>
+          <Link
+            href="/search?category=flatbed-trailers&sort=price"
+            className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
+          >
+            📦 Flatbed Trailers
+          </Link>
         </div>
 
         {/* Action Buttons */}
