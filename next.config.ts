@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.bigcommerce.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'd17qgzvii7d4wm.cloudfront.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.cloudfront.net',
+      },
     ],
   },
 };
