@@ -47,6 +47,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'midcosales.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.jhtt.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'jhtt.com',
+      },
     ],
   },
 };
