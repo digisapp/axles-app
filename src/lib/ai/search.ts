@@ -328,9 +328,10 @@ Extract the search intent and return structured filters. Be smart about interpre
 export async function generateSearchSuggestions(partialQuery: string): Promise<string[]> {
   if (partialQuery.length < 2) return [];
 
-  try {
-    const xai = getXai();
+  const xai = getXai();
+  if (!xai) return [];
 
+  try {
     const { object } = await generateObject({
       model: xai('grok-2-latest'),
       schema: z.object({
