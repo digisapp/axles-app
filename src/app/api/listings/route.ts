@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { estimatePrice } from '@/lib/price-estimator';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -203,6 +204,34 @@ export async function POST(request: NextRequest) {
       if (industryError) {
         console.error('Industry insert error:', industryError);
         // Don't fail the whole request, just log the error
+      }
+    }
+
+    // Auto-estimate price if listing has a price
+    if (data.price && data.price > 0) {
+      try {
+        const estimate = await estimatePrice({
+          id: data.id,
+          make: data.make,
+          model: data.model,
+          year: data.year,
+          category_id: data.category_id,
+          mileage: data.mileage,
+          condition: data.condition,
+        });
+
+        if (estimate.estimate !== null && estimate.confidence >= 0.3) {
+          await supabase
+            .from('listings')
+            .update({
+              ai_price_estimate: estimate.estimate,
+              ai_price_confidence: estimate.confidence,
+            })
+            .eq('id', data.id);
+        }
+      } catch (estimateError) {
+        console.error('Price estimate error:', estimateError);
+        // Don't fail the request if estimation fails
       }
     }
 

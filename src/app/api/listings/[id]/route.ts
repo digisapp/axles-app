@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { estimatePrice } from '@/lib/price-estimator';
 
 // GET - Fetch a single listing
 export async function GET(
@@ -40,10 +41,10 @@ export async function PUT(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Verify listing ownership
+  // Verify listing ownership and get current data
   const { data: existingListing } = await supabase
     .from('listings')
-    .select('user_id')
+    .select('user_id, price, ai_price_estimate')
     .eq('id', id)
     .single();
 
@@ -90,6 +91,42 @@ export async function PUT(
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Re-estimate price if price changed or no estimate exists
+  const newPrice = body.price ? parseFloat(body.price) : null;
+  const priceChanged = newPrice !== existingListing.price;
+  const needsEstimate = newPrice && newPrice > 0 && (priceChanged || !existingListing.ai_price_estimate);
+
+  if (needsEstimate) {
+    try {
+      const estimate = await estimatePrice({
+        id: listing.id,
+        make: listing.make,
+        model: listing.model,
+        year: listing.year,
+        category_id: listing.category_id,
+        mileage: listing.mileage,
+        condition: listing.condition,
+      });
+
+      if (estimate.estimate !== null && estimate.confidence >= 0.3) {
+        await supabase
+          .from('listings')
+          .update({
+            ai_price_estimate: estimate.estimate,
+            ai_price_confidence: estimate.confidence,
+          })
+          .eq('id', id);
+
+        // Include estimate in response
+        listing.ai_price_estimate = estimate.estimate;
+        listing.ai_price_confidence = estimate.confidence;
+      }
+    } catch (estimateError) {
+      console.error('Price estimate error:', estimateError);
+      // Don't fail the request if estimation fails
+    }
   }
 
   return NextResponse.json({ data: listing });
