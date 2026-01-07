@@ -23,6 +23,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn11.bigcommerce.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.bigcommerce.com',
+      },
     ],
   },
 };
