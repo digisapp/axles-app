@@ -1,15 +1,30 @@
 // @ts-nocheck
 /**
- * TruckPaper Scraper (Puppeteer Stealth)
- * Scrapes trailers from truckpaper.com - major marketplace
+ * TruckPaper Trailer Scraper (Puppeteer Stealth)
+ * Scrapes TRAILERS ONLY from truckpaper.com - major marketplace (~14,000 trailers)
  *
- * Usage: node scripts/scrape-truckpaper.mjs [--limit=500]
+ * Usage:
+ *   node scripts/scrape-truckpaper.mjs [--limit=200] [--start=1] [--delay=3000]
+ *
+ * Options:
+ *   --limit=N    Max listings to scrape (default: 200)
+ *   --start=N    Start from page N (default: 1, or resume from progress file)
+ *   --delay=N    Delay between requests in ms (default: 3000, increase if rate limited)
+ *
+ * Progress is saved to truckpaper-progress.json - run again to continue
+ * Dealer credentials saved to truckpaper-dealers-YYYY-MM-DD.csv
+ *
+ * To scrape all ~14,000 trailers, run in batches:
+ *   Run 1: node scripts/scrape-truckpaper.mjs --limit=500
+ *   (wait 1 hour)
+ *   Run 2: node scripts/scrape-truckpaper.mjs --limit=500
+ *   ... repeat until done
  */
 
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { createClient } from '@supabase/supabase-js';
-import { writeFileSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync } from 'fs';
 import 'dotenv/config';
 
 puppeteer.use(StealthPlugin());
@@ -20,7 +35,27 @@ const supabase = createClient(
 );
 
 const BASE_URL = 'https://www.truckpaper.com';
-const MAX_LISTINGS = parseInt(process.argv.find(a => a.startsWith('--limit='))?.split('=')[1] || '500');
+const MAX_LISTINGS = parseInt(process.argv.find(a => a.startsWith('--limit='))?.split('=')[1] || '200');
+const START_PAGE = parseInt(process.argv.find(a => a.startsWith('--start='))?.split('=')[1] || '1');
+const DELAY_MS = parseInt(process.argv.find(a => a.startsWith('--delay='))?.split('=')[1] || '3000');
+const PROGRESS_FILE = 'truckpaper-progress.json';
+
+// Load existing progress
+function loadProgress() {
+  if (existsSync(PROGRESS_FILE)) {
+    try {
+      return JSON.parse(readFileSync(PROGRESS_FILE, 'utf-8'));
+    } catch (e) {
+      return { lastPage: 0, totalScraped: 0, dealers: [] };
+    }
+  }
+  return { lastPage: 0, totalScraped: 0, dealers: [] };
+}
+
+// Save progress
+function saveProgress(data) {
+  writeFileSync(PROGRESS_FILE, JSON.stringify(data, null, 2));
+}
 
 // Category mapping
 const CATEGORY_MAP = {
@@ -118,8 +153,10 @@ async function getOrCreateDealer(dealerInfo) {
   // Save credentials for outreach
   dealerCredentials.push({
     dealerName: cacheKey,
-    email,
+    contactPerson: dealerInfo.contactPerson || '',
+    loginEmail: email,
     password,
+    realEmail: dealerInfo.realEmail || '',
     phone: dealerInfo.phone || '',
     city: dealerInfo.city || '',
     state: dealerInfo.state || '',
@@ -170,9 +207,11 @@ async function getCategoryId(title) {
 async function importListing(product) {
   const dealerId = await getOrCreateDealer({
     name: product.dealerName || 'TruckPaper Listing',
+    contactPerson: product.contactPerson,
     city: product.city,
     state: product.state,
     phone: product.dealerPhone,
+    realEmail: product.dealerEmail,
   });
 
   // Check for duplicate by title and dealer
@@ -232,21 +271,22 @@ async function importListing(product) {
   return { action: 'imported', id: listing.id };
 }
 
-async function scrapeListings(browser, page) {
+async function scrapeListings(browser, page, startPage = 1) {
   const products = [];
-  let pageNum = 1;
-  const maxPages = Math.ceil(MAX_LISTINGS / 25); // ~25 per page
+  let pageNum = startPage;
+  const maxPages = startPage + Math.ceil(MAX_LISTINGS / 25); // ~25 per page
+
+  console.log(`   Starting from page ${startPage}, delay ${DELAY_MS}ms between pages`);
 
   while (products.length < MAX_LISTINGS && pageNum <= maxPages) {
-    const url = pageNum === 1
-      ? `${BASE_URL}/listings/trailers`
-      : `${BASE_URL}/listings/trailers?page=${pageNum}`;
+    // Use the trailers-only URL
+    const url = `${BASE_URL}/listings/trailers?page=${pageNum}`;
 
     console.log(`   Page ${pageNum}...`);
 
     try {
       await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-      await sleep(2000);
+      await sleep(DELAY_MS); // Use configurable delay
 
       const pageProducts = await page.evaluate((baseUrl) => {
         const items = [];
@@ -336,26 +376,189 @@ async function scrapeListings(browser, page) {
   return products.slice(0, MAX_LISTINGS);
 }
 
+async function fetchDealerDetails(page, products) {
+  console.log('\n   Fetching dealer details from listing pages...');
+
+  for (let i = 0; i < products.length; i++) {
+    const product = products[i];
+    if (!product.detailUrl) continue;
+
+    try {
+      await page.goto(product.detailUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+      await sleep(1500);
+
+      const details = await page.evaluate(() => {
+        // Get all images
+        const images = [];
+        document.querySelectorAll('img[src*="photo"], img[src*="image"], .gallery img, [class*="carousel"] img').forEach(img => {
+          const src = img.getAttribute('src') || img.getAttribute('data-src');
+          if (src && !images.includes(src) && !src.includes('logo') && !src.includes('icon')) {
+            images.push(src);
+          }
+        });
+
+        let dealerName = '';
+        let dealerPhone = '';
+        let dealerEmail = '';
+        let contactPerson = '';
+        let dealerCity = '';
+        let dealerState = '';
+
+        // Get page text as lines for pattern matching
+        const pageText = document.body.innerText || '';
+        const lines = pageText.split('\n').map(l => l.trim()).filter(l => l);
+
+        // Find seller info section - look for pattern:
+        // "Seller Information" -> "View Seller Information" -> "Company Name" -> "Contact:Name"
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i] === 'Seller Information' || lines[i].includes('View Seller Information')) {
+            // Next non-empty lines should have company name and contact
+            for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
+              const line = lines[j];
+
+              // Skip navigation/button text
+              if (line.includes('View Seller') || line === 'Seller Information') continue;
+
+              // Contact person
+              if (line.startsWith('Contact:')) {
+                contactPerson = line.replace('Contact:', '').trim();
+                continue;
+              }
+
+              // Phone line (just "Phone:" text, actual number is in link)
+              if (line === 'Phone:') continue;
+
+              // Company name - should be a short line that looks like a business name
+              if (!dealerName && line.length > 3 && line.length < 100 &&
+                  !line.includes('Phone') && !line.includes('Contact') &&
+                  !line.includes('Email') && !line.includes('View') &&
+                  !line.includes('Location') && !line.includes('USD')) {
+                dealerName = line;
+              }
+            }
+            break;
+          }
+        }
+
+        // Get phone from tel: links
+        const phoneLink = document.querySelector('a[href^="tel:"]');
+        if (phoneLink) {
+          const href = phoneLink.getAttribute('href') || '';
+          const phoneNum = href.replace('tel:', '').replace('+1', '');
+          if (phoneNum.length >= 10) {
+            const digits = phoneNum.replace(/\D/g, '');
+            if (digits.length === 10) {
+              dealerPhone = `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+            } else if (digits.length === 11 && digits.startsWith('1')) {
+              dealerPhone = `(${digits.slice(1,4)}) ${digits.slice(4,7)}-${digits.slice(7)}`;
+            }
+          }
+        }
+
+        // Get email from mailto: links
+        const emailLink = document.querySelector('a[href^="mailto:"]');
+        if (emailLink) {
+          dealerEmail = emailLink.getAttribute('href')?.replace('mailto:', '') || '';
+        }
+
+        // Get location from "Truck Location:" text
+        const locationMatch = pageText.match(/(?:Truck |Equipment )?Location[:\s]*([^,]+),\s*([A-Za-z]+)\s+(\d{5})/);
+        if (locationMatch) {
+          // Extract city from address (last word before comma)
+          const addressPart = locationMatch[1].trim();
+          const addressWords = addressPart.split(/\s+/);
+          dealerCity = addressWords[addressWords.length - 1] || '';
+          dealerState = locationMatch[2].substring(0, 2).toUpperCase();
+        }
+
+        // Get VIN
+        const vinMatch = pageText.match(/VIN[:\s]*([A-HJ-NPR-Z0-9]{17})/i);
+        const vin = vinMatch ? vinMatch[1] : '';
+
+        // Get stock number
+        const stockMatch = pageText.match(/Stock[#:\s]*([A-Z0-9-]+)/i);
+        const stockNumber = stockMatch ? stockMatch[1] : '';
+
+        return {
+          images,
+          dealerName,
+          dealerPhone,
+          dealerEmail,
+          contactPerson,
+          dealerCity,
+          dealerState,
+          vin,
+          stockNumber,
+        };
+      });
+
+      // Update product with details
+      if (details.dealerName) product.dealerName = details.dealerName;
+      if (details.dealerPhone) product.dealerPhone = details.dealerPhone;
+      if (details.dealerEmail) product.dealerEmail = details.dealerEmail;
+      if (details.contactPerson) product.contactPerson = details.contactPerson;
+      if (details.dealerCity) product.city = details.dealerCity;
+      if (details.dealerState) product.state = details.dealerState;
+      if (details.vin) product.vin = details.vin;
+      if (details.stockNumber) product.stockNumber = details.stockNumber;
+      if (details.images.length > 0) product.images = details.images;
+
+      process.stdout.write(`   Details: ${i + 1}/${products.length} - ${product.dealerName || 'Unknown'}                    \r`);
+
+    } catch (e) {
+      // Continue on error
+    }
+  }
+
+  console.log('\n');
+  return products;
+}
+
 async function main() {
-  console.log('🚛 TruckPaper Scraper (Stealth)');
-  console.log(`   Limit: ${MAX_LISTINGS} listings`);
+  console.log('🚛 TruckPaper TRAILER Scraper (Stealth)');
+  console.log(`   Target: ~14,000 trailers on TruckPaper`);
+  console.log(`   Limit: ${MAX_LISTINGS} listings this run`);
   console.log('==================================================\n');
+
+  // Load progress from previous runs
+  const progress = loadProgress();
+  const startPage = START_PAGE > 1 ? START_PAGE : (progress.lastPage + 1) || 1;
+
+  console.log(`📊 Progress: ${progress.totalScraped} listings scraped so far`);
+  console.log(`   ${progress.dealers.length} unique dealers found`);
+  console.log(`   Resuming from page ${startPage}\n`);
 
   console.log('   Launching stealth browser...');
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled']
   });
 
   const page = await browser.newPage();
   await page.setViewport({ width: 1920, height: 1080 });
+  await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-  console.log('   Scraping listings...\n');
-  const products = await scrapeListings(browser, page);
+  console.log('   Scraping trailer listings...\n');
+  let products = await scrapeListings(browser, page, startPage);
+
+  console.log(`\n   Found ${products.length} listings this run`);
+
+  // Check for rate limiting
+  if (products.length === 0) {
+    console.log('\n⚠️  No listings found - may be rate limited. Try again in 1 hour.');
+    console.log('   Or increase delay: --delay=5000');
+    await browser.close();
+    return;
+  }
+
+  // Fetch dealer details from each listing page
+  products = await fetchDealerDetails(page, products);
 
   await browser.close();
 
-  console.log(`\n   Found ${products.length} listings total\n`);
+  // Calculate last page scraped
+  const pagesScraped = Math.ceil(products.length / 28);
+  const lastPageScraped = startPage + pagesScraped - 1;
 
   let totalImported = 0;
   let totalSkipped = 0;
@@ -378,22 +581,60 @@ async function main() {
   }
 
   console.log('\n\n==================================================');
-  console.log(`📊 Summary:`);
+  console.log(`📊 This Run:`);
   console.log(`   Imported: ${totalImported}`);
   console.log(`   Skipped: ${totalSkipped}`);
   console.log(`   Errors: ${totalErrors}`);
+
+  // Update and save progress
+  const newProgress = {
+    lastPage: lastPageScraped,
+    totalScraped: progress.totalScraped + products.length,
+    dealers: [...new Set([...progress.dealers, ...dealerCredentials.map(d => d.dealerName)])],
+    lastRun: new Date().toISOString(),
+  };
+  saveProgress(newProgress);
+
+  console.log('\n📈 Overall Progress:');
+  console.log(`   Total scraped: ${newProgress.totalScraped} / ~14,000 trailers`);
+  console.log(`   Unique dealers: ${newProgress.dealers.length}`);
+  console.log(`   Last page: ${lastPageScraped}`);
+  console.log(`   Progress: ${Math.round((newProgress.totalScraped / 14000) * 100)}%`);
   console.log('==================================================\n');
 
-  // Save dealer credentials to CSV for outreach
+  // Save dealer credentials to CSV for outreach (append mode)
   if (dealerCredentials.length > 0) {
-    const csvHeader = 'Dealer Name,Email,Password,Phone,City,State,Created At\n';
+    const csvHeader = 'Dealer Name,Contact Person,Real Email,Phone,City,State,AxlesAI Login,Password\n';
     const csvRows = dealerCredentials.map(d =>
-      `"${d.dealerName}","${d.email}","${d.password}","${d.phone}","${d.city}","${d.state}","${d.createdAt}"`
+      `"${d.dealerName}","${d.contactPerson}","${d.realEmail}","${d.phone}","${d.city}","${d.state}","${d.loginEmail}","${d.password}"`
     ).join('\n');
 
     const filename = `truckpaper-dealers-${new Date().toISOString().split('T')[0]}.csv`;
-    writeFileSync(filename, csvHeader + csvRows);
-    console.log(`📧 Saved ${dealerCredentials.length} dealer credentials to ${filename}`);
+
+    // Append to existing file or create new
+    let existingContent = '';
+    if (existsSync(filename)) {
+      existingContent = readFileSync(filename, 'utf-8');
+      // Remove header if appending
+      writeFileSync(filename, existingContent + '\n' + csvRows);
+    } else {
+      writeFileSync(filename, csvHeader + csvRows);
+    }
+
+    console.log(`📧 Saved ${dealerCredentials.length} new dealer credentials to ${filename}`);
+
+    // Count stats
+    const withPhone = dealerCredentials.filter(d => d.phone).length;
+    console.log(`   ${withPhone} have phone numbers`);
+  }
+
+  // Estimate remaining
+  const remaining = 14000 - newProgress.totalScraped;
+  const runsNeeded = Math.ceil(remaining / MAX_LISTINGS);
+  if (remaining > 0) {
+    console.log(`\n⏭️  Next: Run again in ~1 hour to continue (${runsNeeded} more runs needed)`);
+  } else {
+    console.log('\n✅ All trailers scraped!');
   }
 }
 
