@@ -1,12 +1,10 @@
 // @ts-nocheck
 /**
- * Midco Sales Scraper
- * Scrapes trailers and tow trucks from midcosales.com (Car Dealer theme)
- *
- * Usage: node scripts/scrape-midco.mjs
+ * Scrape Midco Sales - Trucks & Trailers
+ * WordPress site - straightforward scraping
  */
 
-import * as cheerio from 'cheerio';
+import puppeteer from 'puppeteer';
 import { createClient } from '@supabase/supabase-js';
 import 'dotenv/config';
 
@@ -17,51 +15,47 @@ const supabase = createClient(
 
 const DEALER_INFO = {
   name: 'Midco Sales',
-  email: 'sales@midcosales.com',
-  phone: '(480) 633-9910',
-  website: 'https://midcosales.com',
-  city: 'Mesa',
+  email: 'inventory@midcosales.com',
+  phone: '(480) 999-0607',
+  city: 'Chandler',
   state: 'AZ',
-  country: 'USA',
+  website: 'https://midcosales.com'
 };
 
 const BASE_URL = 'https://midcosales.com';
-const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36';
 
-// Category URLs to scrape
-const CATEGORIES = [
-  { url: `${BASE_URL}/vehicle-category/trailer/`, type: 'trailer' },
-  { url: `${BASE_URL}/vehicle-category/tow-truck/`, type: 'tow-truck' },
+// Category pages to scrape
+const SITE_CATEGORIES = [
+  { path: '/vehicle-category/trailer/', defaultSlug: 'flatbed-trailers' },
+  { path: '/vehicle-category/tow-truck/', defaultSlug: 'wrecker-trucks' },
 ];
 
-// Category mapping
+// Map keywords to our category slugs
 const CATEGORY_MAP = {
-  'flatbed': 'flatbed-trailers',
   'lowboy': 'lowboy-trailers',
-  'dump': 'dump-trailers',
-  'drop deck': 'drop-deck-trailers',
-  'double drop': 'double-drop-trailers',
-  'end dump': 'dump-trailers',
-  'belly dump': 'dump-trailers',
-  'tow truck': 'tow-trucks',
-  'wrecker': 'wreckers',
-  'rollback': 'rollback-trucks',
+  'double drop': 'lowboy-trailers',
+  'rgn': 'lowboy-trailers',
+  'flatbed': 'flatbed-trailers',
+  'step deck': 'step-deck-trailers',
+  'drop deck': 'step-deck-trailers',
+  'end dump': 'end-dump-trailers',
+  'belly dump': 'bottom-dump-trailers',
+  'bottom dump': 'bottom-dump-trailers',
+  'live floor': 'walking-floor-trailers',
+  'walking floor': 'walking-floor-trailers',
   'tag trailer': 'tag-trailers',
   'tilt deck': 'tilt-trailers',
   'traveling axle': 'lowboy-trailers',
+  'traveling tail': 'lowboy-trailers',
+  'gooseneck': 'equipment-trailers',
+  'utility': 'utility-trailers',
+  'rollback': 'rollback-trucks',
+  'wrecker': 'wrecker-trucks',
+  'rotator': 'wrecker-trucks',
+  'carrier': 'rollback-trucks',
 };
 
-async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function fetchPage(url) {
-  const response = await fetch(url, {
-    headers: { 'User-Agent': USER_AGENT }
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.text();
-}
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function getOrCreateDealer() {
   const { data: existing } = await supabase
@@ -70,307 +64,311 @@ async function getOrCreateDealer() {
     .eq('company_name', DEALER_INFO.name)
     .single();
 
-  if (existing) return existing.id;
+  if (existing) {
+    console.log('Dealer exists:', DEALER_INFO.name);
+    return existing.id;
+  }
 
-  const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+  const password = 'Midco2024!';
+  const { data: authUser, error } = await supabase.auth.admin.createUser({
     email: DEALER_INFO.email,
     email_confirm: true,
-    password: Math.random().toString(36).slice(-12) + 'Aa1!',
+    password: password,
   });
 
-  if (authError && !authError.message.includes('already been registered')) {
-    throw authError;
+  if (error) {
+    console.error('Error creating dealer:', error.message);
+    return null;
   }
 
-  const userId = authUser?.user?.id;
-  if (!userId) {
-    const { data: existingUser } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', DEALER_INFO.email)
-      .single();
-    return existingUser?.id;
-  }
+  await supabase.from('profiles').update({
+    company_name: DEALER_INFO.name,
+    phone: DEALER_INFO.phone,
+    city: DEALER_INFO.city,
+    state: DEALER_INFO.state,
+    is_dealer: true,
+    website: DEALER_INFO.website,
+  }).eq('id', authUser.user.id);
 
-  await supabase
-    .from('profiles')
-    .update({
-      company_name: DEALER_INFO.name,
-      phone: DEALER_INFO.phone,
-      website: DEALER_INFO.website,
-      city: DEALER_INFO.city,
-      state: DEALER_INFO.state,
-      country: DEALER_INFO.country,
-      is_dealer: true,
-      is_verified: true,
-    })
-    .eq('id', userId);
-
-  return userId;
+  console.log('Created dealer:', DEALER_INFO.name);
+  console.log('  Email:', DEALER_INFO.email);
+  console.log('  Password:', password);
+  return authUser.user.id;
 }
 
-async function getCategoryId(title, type) {
+async function getCategoryId(title, defaultSlug) {
   const titleLower = title.toLowerCase();
-  let slug = type === 'tow-truck' ? 'tow-trucks' : 'trailers';
+  let categorySlug = defaultSlug;
 
-  for (const [keyword, categorySlug] of Object.entries(CATEGORY_MAP)) {
+  const sortedKeywords = Object.entries(CATEGORY_MAP).sort((a, b) => b[0].length - a[0].length);
+  for (const [keyword, slug] of sortedKeywords) {
     if (titleLower.includes(keyword)) {
-      slug = categorySlug;
+      categorySlug = slug;
       break;
     }
   }
 
-  const { data } = await supabase
+  const { data: cat } = await supabase
     .from('categories')
     .select('id')
-    .eq('slug', slug)
+    .eq('slug', categorySlug)
     .single();
 
-  if (data) return data.id;
-
-  // Fallback
-  const { data: fallback } = await supabase
-    .from('categories')
-    .select('id')
-    .eq('slug', type === 'tow-truck' ? 'trucks' : 'trailers')
-    .single();
-
-  return fallback?.id;
+  return cat?.id;
 }
 
-function parseProductCard($, card) {
-  const $card = $(card);
+async function getAllProductUrls(page) {
+  const allProducts = [];
+  const seenUrls = new Set();
 
-  // Get title and URL
-  const $titleLink = $card.find('.car-content > a').first();
-  const title = $titleLink.text().trim();
-  const detailUrl = $titleLink.attr('href');
+  for (const siteCat of SITE_CATEGORIES) {
+    console.log('\nCategory:', siteCat.path);
+    let pageNum = 1;
+    const maxPages = 10;
 
-  if (!title || !detailUrl) return null;
+    while (pageNum <= maxPages) {
+      const url = pageNum === 1
+        ? BASE_URL + siteCat.path
+        : BASE_URL + siteCat.path + 'page/' + pageNum + '/';
 
-  // Get image
-  const imgSrc = $card.find('.car-image img').attr('src');
+      try {
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+        await sleep(1500);
 
-  // Get price
-  const priceText = $card.find('.car-price .new-price').text().trim() ||
-                    $card.find('.car-price .old-price').text().trim();
-  const price = priceText ? parseFloat(priceText.replace(/[$,]/g, '')) : null;
+        const urls = await page.evaluate(() => {
+          const links = [];
+          document.querySelectorAll('a[href*="/vehicles/"]').forEach(a => {
+            const href = a.getAttribute('href');
+            if (href && href.includes('/vehicles/') && !links.includes(href)) {
+              links.push(href);
+            }
+          });
+          return links;
+        });
 
-  // Get condition
-  const conditionEl = $card.find('.car-condition').text().trim().toLowerCase();
-  const condition = conditionEl.includes('used') ? 'used' : 'new';
+        if (urls.length === 0) {
+          break;
+        }
 
-  // Parse year from title (e.g., "2023 XL Specialized...")
-  const yearMatch = title.match(/^(\d{4})\s/);
-  const year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
+        let newCount = 0;
+        for (const u of urls) {
+          if (!seenUrls.has(u)) {
+            seenUrls.add(u);
+            allProducts.push({ url: u, defaultSlug: siteCat.defaultSlug });
+            newCount++;
+          }
+        }
 
-  // Parse make from title
-  const parts = title.replace(/^\d{4}\s+/, '').split(/\s+/);
-  const make = parts.length > 0 ? parts[0] : '';
+        if (newCount === 0) {
+          break;
+        }
 
-  return {
-    title,
-    detailUrl: detailUrl.startsWith('http') ? detailUrl : `${BASE_URL}${detailUrl}`,
-    imageUrl: imgSrc,
-    price: price > 0 ? price : null,
-    condition,
-    year,
-    make,
-  };
-}
-
-async function scrapeProductDetail(url) {
-  try {
-    const html = await fetchPage(url);
-    const $ = cheerio.load(html);
-
-    const images = [];
-    // Get all gallery images
-    $('.car-details img, .slider-for img, .vehicle-gallery img').each((i, el) => {
-      let src = $(el).attr('data-large_image') || $(el).attr('data-src') || $(el).attr('src');
-      if (src && !images.includes(src) && src.includes('uploads')) {
-        // Get full size image
-        src = src.replace(/-\d+x\d+\./, '.');
-        if (!images.includes(src)) images.push(src);
-      }
-    });
-
-    // Get description
-    const description = $('.vehicle-overview, .car-description, .entry-content').first().text().trim();
-
-    // Try to find stock number
-    const pageText = $('body').text();
-    const stockMatch = pageText.match(/Stock[:\s#]*(\w+)/i);
-    const stockNumber = stockMatch ? stockMatch[1] : null;
-
-    // Try to find VIN
-    const vinMatch = pageText.match(/VIN[:\s]*([A-HJ-NPR-Z0-9]{17})/i);
-    const vin = vinMatch ? vinMatch[1] : null;
-
-    return { images, description, stockNumber, vin };
-  } catch (error) {
-    console.error(`Error fetching detail: ${error.message}`);
-    return { images: [], description: '', stockNumber: null, vin: null };
-  }
-}
-
-async function importListing(dealerId, product, type) {
-  // Skip listings without images - we only want listings where we captured images
-  const images = product.images?.length ? product.images : (product.imageUrl ? [product.imageUrl] : []);
-  if (images.length === 0) {
-    console.log(`  ⏭ Skipping (no images): ${product.title}`);
-    return { action: 'skipped_no_images' };
-  }
-
-  // Check for duplicate
-  const { data: existing } = await supabase
-    .from('listings')
-    .select('id')
-    .eq('user_id', dealerId)
-    .eq('title', product.title)
-    .single();
-
-  if (existing) {
-    return { action: 'skipped', id: existing.id };
-  }
-
-  const categoryId = await getCategoryId(product.title, type);
-
-  const { data: listing, error } = await supabase
-    .from('listings')
-    .insert({
-      user_id: dealerId,
-      category_id: categoryId,
-      title: product.title,
-      description: product.description || product.title,
-      price: product.price,
-      price_type: product.price ? 'fixed' : 'contact',
-      condition: product.condition || 'new',
-      year: product.year,
-      make: product.make || '',
-      model: '',
-      vin: product.vin,
-      stock_number: product.stockNumber,
-      city: DEALER_INFO.city,
-      state: DEALER_INFO.state,
-      country: DEALER_INFO.country,
-      status: 'active',
-      listing_type: 'sale',
-    })
-    .select('id')
-    .single();
-
-  if (error) {
-    console.error(`Error inserting: ${error.message}`);
-    return { action: 'error', error };
-  }
-
-  // Import images
-  const images = product.images?.length ? product.images : (product.imageUrl ? [product.imageUrl] : []);
-  for (let i = 0; i < Math.min(images.length, 10); i++) {
-    await supabase.from('listing_images').insert({
-      listing_id: listing.id,
-      url: images[i],
-      thumbnail_url: images[i],
-      is_primary: i === 0,
-      sort_order: i,
-    });
-  }
-
-  return { action: 'imported', id: listing.id };
-}
-
-async function scrapeCategory(categoryUrl, type) {
-  console.log(`\n   Scraping ${type}s from ${categoryUrl}...`);
-
-  const products = [];
-  let page = 1;
-  let hasMore = true;
-
-  while (hasMore && page <= 20) {
-    const url = page === 1 ? categoryUrl : `${categoryUrl}page/${page}/`;
-
-    try {
-      const html = await fetchPage(url);
-      const $ = cheerio.load(html);
-
-      const cards = $('.car-item');
-
-      if (cards.length === 0) {
-        hasMore = false;
+        console.log('  Page ' + pageNum + ': ' + newCount + ' new (' + allProducts.length + ' total)');
+        pageNum++;
+        await sleep(500);
+      } catch (e) {
+        console.log('  Page ' + pageNum + ' error: ' + e.message.substring(0, 30));
         break;
       }
-
-      console.log(`     Page ${page}: Found ${cards.length} products`);
-
-      cards.each((i, card) => {
-        const product = parseProductCard($, card);
-        if (product) {
-          products.push({ ...product, type });
-        }
-      });
-
-      // Check for next page
-      const nextLink = $('a.next, .pagination a[rel="next"], .pagination li:last-child a').attr('href');
-      hasMore = !!nextLink && page < 20;
-      page++;
-
-      await sleep(1500);
-    } catch (error) {
-      console.error(`     Error on page ${page}: ${error.message}`);
-      hasMore = false;
     }
   }
 
-  return products;
+  return allProducts;
+}
+
+async function scrapeProduct(page, url) {
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  await sleep(1000);
+
+  const data = await page.evaluate(() => {
+    const title = document.querySelector('h1')?.textContent?.trim() || '';
+
+    let price = null;
+    const priceEl = document.querySelector('.car-price, .price, [class*="price"]');
+    if (priceEl) {
+      const priceMatch = priceEl.textContent.match(/[\d,]+/);
+      if (priceMatch) {
+        price = parseFloat(priceMatch[0].replace(/,/g, ''));
+      }
+    }
+
+    const images = [];
+    document.querySelectorAll('img').forEach(img => {
+      const src = img.src || img.getAttribute('data-src');
+      if (src &&
+          src.includes('wp-content/uploads') &&
+          !src.includes('logo') &&
+          !src.includes('icon') &&
+          !src.includes('placeholder') &&
+          !src.includes('-150x') &&
+          !src.includes('-300x') &&
+          !images.includes(src)) {
+        images.push(src);
+      }
+    });
+
+    // Also check gallery thumbnails for full-size versions
+    document.querySelectorAll('[data-src], [data-large]').forEach(el => {
+      const src = el.getAttribute('data-src') || el.getAttribute('data-large');
+      if (src && src.includes('wp-content/uploads') && !images.includes(src)) {
+        images.push(src);
+      }
+    });
+
+    const yearMatch = title.match(/(20\d{2})/);
+    const year = yearMatch ? parseInt(yearMatch[1]) : null;
+
+    const makes = ['PETERBILT', 'INTERNATIONAL', 'MACK', 'KENWORTH', 'FREIGHTLINER', 'XL SPECIALIZED', 
+                   'FONTAINE', 'LANDOLL', 'ALPHA', 'PRESTIGE', 'INTERSTATE', 'ARMOR LITE', 'JERR-DAN'];
+    let make = '';
+    const titleUpper = title.toUpperCase();
+    for (const m of makes) {
+      if (titleUpper.includes(m)) {
+        make = m;
+        break;
+      }
+    }
+
+    // Get condition
+    let condition = 'used';
+    if (document.body.textContent.toLowerCase().includes('new') && 
+        !document.body.textContent.toLowerCase().includes('used')) {
+      condition = 'new';
+    }
+    const conditionEl = document.querySelector('[class*="condition"], .badge');
+    if (conditionEl) {
+      const condText = conditionEl.textContent.toLowerCase();
+      if (condText.includes('new')) condition = 'new';
+      if (condText.includes('used')) condition = 'used';
+    }
+
+    const descEl = document.querySelector('.car-description, .vehicle-description, .entry-content, article');
+    const description = descEl?.textContent?.trim()?.substring(0, 2000) || title;
+
+    return {
+      title,
+      price,
+      images: [...new Set(images)],
+      year,
+      make,
+      condition,
+      description
+    };
+  });
+
+  return data;
 }
 
 async function main() {
-  console.log('🚛 Midco Sales Scraper');
+  console.log('Scraping Midco Sales');
+  console.log('   Direct from: midcosales.com');
   console.log('==================================================\n');
 
-  console.log('👤 Setting up dealer...');
   const dealerId = await getOrCreateDealer();
-  console.log(`   ✓ Dealer ID: ${dealerId}`);
+  if (!dealerId) return;
 
-  let allProducts = [];
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
 
-  for (const category of CATEGORIES) {
-    const products = await scrapeCategory(category.url, category.type);
-    allProducts.push(...products);
-    console.log(`   Found ${products.length} ${category.type}s`);
-  }
+  const page = await browser.newPage();
+  await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+  await page.setViewport({ width: 1920, height: 1080 });
 
-  console.log(`\n   Total: ${allProducts.length} products\n`);
+  console.log('Collecting product URLs...');
+  const products = await getAllProductUrls(page);
+  console.log('\nFound ' + products.length + ' unique products\n');
 
-  let totalImported = 0;
-  let totalSkipped = 0;
+  let imported = 0;
+  let skipped = 0;
+  let errors = 0;
 
-  for (const product of allProducts) {
-    // Get detailed info
-    if (product.detailUrl) {
-      try {
-        const details = await scrapeProductDetail(product.detailUrl);
-        Object.assign(product, details);
-        await sleep(800);
-      } catch (e) {
-        // Continue without details
+  for (let i = 0; i < products.length; i++) {
+    const { url, defaultSlug } = products[i];
+    process.stdout.write('[' + (i + 1) + '/' + products.length + '] ');
+
+    try {
+      const product = await scrapeProduct(page, url);
+      process.stdout.write((product.title?.substring(0, 40) || 'Unknown') + '... ');
+
+      if (!product.title || product.title.length < 5) {
+        console.log('no title');
+        skipped++;
+        continue;
       }
-    }
 
-    const result = await importListing(dealerId, product, product.type);
-    if (result.action === 'imported') {
-      totalImported++;
-      process.stdout.write(`   Imported: ${totalImported}\r`);
-    } else {
-      totalSkipped++;
+      if (product.images.length === 0) {
+        console.log('no images');
+        skipped++;
+        continue;
+      }
+
+      const { data: exists } = await supabase
+        .from('listings')
+        .select('id')
+        .eq('title', product.title)
+        .eq('user_id', dealerId)
+        .single();
+
+      if (exists) {
+        console.log('duplicate');
+        skipped++;
+        continue;
+      }
+
+      const categoryId = await getCategoryId(product.title, defaultSlug);
+
+      const { data: newListing, error } = await supabase.from('listings').insert({
+        user_id: dealerId,
+        category_id: categoryId,
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        price_type: product.price ? 'fixed' : 'contact',
+        condition: product.condition,
+        year: product.year,
+        make: product.make,
+        city: DEALER_INFO.city,
+        state: DEALER_INFO.state,
+        country: 'USA',
+        status: 'active',
+        listing_type: 'sale',
+      }).select('id').single();
+
+      if (error) {
+        console.log('error: ' + error.message);
+        errors++;
+        continue;
+      }
+
+      for (let j = 0; j < Math.min(product.images.length, 10); j++) {
+        await supabase.from('listing_images').insert({
+          listing_id: newListing.id,
+          url: product.images[j],
+          is_primary: j === 0,
+          sort_order: j,
+        });
+      }
+
+      imported++;
+      console.log('OK ' + product.images.length + ' imgs');
+
+      await sleep(300);
+    } catch (e) {
+      console.log('error: ' + (e.message?.substring(0, 40) || 'unknown'));
+      errors++;
     }
   }
 
-  console.log('\n\n==================================================');
-  console.log(`📊 Summary:`);
-  console.log(`   Imported: ${totalImported}`);
-  console.log(`   Skipped: ${totalSkipped}`);
+  await browser.close();
+
+  console.log('\n==================================================');
+  console.log('Summary:');
+  console.log('   Dealer: ' + DEALER_INFO.name);
+  console.log('   Imported: ' + imported);
+  console.log('   Skipped: ' + skipped);
+  console.log('   Errors: ' + errors);
   console.log('==================================================\n');
 }
 

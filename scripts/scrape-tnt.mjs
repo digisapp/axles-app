@@ -1,12 +1,15 @@
 // @ts-nocheck
 /**
- * Scrape Jim Hawk Truck Trailers (JHTT)
- * Custom website - straightforward scraping
+ * Scrape TNT Trailer Sales
+ * Sandhills Global platform - requires stealth mode
  */
 
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { createClient } from '@supabase/supabase-js';
 import 'dotenv/config';
+
+puppeteer.use(StealthPlugin());
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -14,30 +17,30 @@ const supabase = createClient(
 );
 
 const DEALER_INFO = {
-  name: 'Jim Hawk Truck Trailers',
-  email: 'inventory@jhtt.com',
-  phone: '(712) 366-2241',
-  city: 'Council Bluffs',
-  state: 'IA',
-  website: 'https://www.jhtt.com'
+  name: 'TNT Trailer Sales',
+  email: 'inventory@tntsales.biz',
+  phone: '(636) 451-2100',
+  city: 'Villa Ridge',
+  state: 'MO',
+  website: 'https://www.tntsales.biz'
 };
 
-const BASE_URL = 'https://www.jhtt.com';
+const BASE_URL = 'https://www.tntsales.biz';
 
 const CATEGORY_MAP = {
-  'refrigerated': 'reefer-trailers',
-  'reefer': 'reefer-trailers',
-  'dry van': 'dry-van-trailers',
   'flatbed': 'flatbed-trailers',
   'drop deck': 'step-deck-trailers',
   'step deck': 'step-deck-trailers',
   'lowboy': 'lowboy-trailers',
+  'double drop': 'lowboy-trailers',
+  'rgn': 'lowboy-trailers',
+  'stretch': 'extendable-trailers',
+  'extendable': 'extendable-trailers',
+  'dry van': 'dry-van-trailers',
+  'reefer': 'reefer-trailers',
   'dump': 'end-dump-trailers',
-  'tank': 'tank-trailers',
-  'livestock': 'livestock-trailers',
-  'grain': 'hopper-trailers',
-  'hopper': 'hopper-trailers',
   'curtain': 'curtain-side-trailers',
+  'conestoga': 'curtain-side-trailers',
 };
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -54,7 +57,7 @@ async function getOrCreateDealer() {
     return existing.id;
   }
 
-  const password = 'JHTT2024!';
+  const password = 'TNT2024!';
   const { data: authUser, error } = await supabase.auth.admin.createUser({
     email: DEALER_INFO.email,
     email_confirm: true,
@@ -81,13 +84,13 @@ async function getOrCreateDealer() {
   return authUser.user.id;
 }
 
-async function getCategoryId(trailerType, title) {
-  const searchText = (trailerType + ' ' + title).toLowerCase();
-  let categorySlug = 'dry-van-trailers'; // default
+async function getCategoryId(title) {
+  const titleLower = title.toLowerCase();
+  let categorySlug = 'flatbed-trailers';
 
   const sortedKeywords = Object.entries(CATEGORY_MAP).sort((a, b) => b[0].length - a[0].length);
   for (const [keyword, slug] of sortedKeywords) {
-    if (searchText.includes(keyword)) {
+    if (titleLower.includes(keyword)) {
       categorySlug = slug;
       break;
     }
@@ -103,94 +106,61 @@ async function getCategoryId(trailerType, title) {
 }
 
 async function getAllListingUrls(page) {
-  const allUrls = new Set();
-  let pageNum = 1;
-  const maxPages = 20;
-
-  while (pageNum <= maxPages) {
-    const url = pageNum === 1
-      ? BASE_URL + '/inventory'
-      : BASE_URL + '/inventory?page=' + pageNum;
-
-    console.log('  Page', pageNum + '...');
-
-    try {
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-      await sleep(1500);
-
-      const urls = await page.evaluate(() => {
-        const results = [];
-        document.querySelectorAll('a[href*="/inventory/specs/"]').forEach(a => {
-          if (!results.includes(a.href)) {
-            results.push(a.href);
-          }
-        });
-        return results;
-      });
-
-      if (urls.length === 0) {
-        console.log('    No listings found, stopping.');
-        break;
-      }
-
-      const before = allUrls.size;
-      urls.forEach(u => allUrls.add(u));
-      const added = allUrls.size - before;
-
-      console.log('    Found', urls.length, '(' + added + ' new, ' + allUrls.size + ' total)');
-
-      if (added === 0) {
-        break;
-      }
-
-      pageNum++;
-      await sleep(500);
-    } catch (e) {
-      console.log('    Error:', e.message.substring(0, 40));
-      break;
-    }
+  const allUrls = [];
+  
+  console.log('\nCollecting listings from inventory page...');
+  await page.goto(BASE_URL + '/inventory/trailers-for-sale/', { waitUntil: 'networkidle2', timeout: 60000 });
+  await sleep(5000);
+  
+  // Scroll to load more listings
+  for (let i = 0; i < 10; i++) {
+    await page.evaluate(() => window.scrollBy(0, 1000));
+    await sleep(500);
   }
-
-  return [...allUrls];
+  
+  const urls = await page.evaluate(() => {
+    const links = [];
+    document.querySelectorAll('a[href*="/listing/"]').forEach(a => {
+      const href = a.href;
+      if (href && href.includes('/listing/for-retail/') && !links.includes(href)) {
+        links.push(href);
+      }
+    });
+    return links;
+  });
+  
+  console.log('  Found', urls.length, 'listings');
+  return urls;
 }
 
 async function scrapeListing(page, url) {
   await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-  await sleep(1500);
-
+  await sleep(2000);
+  
   const data = await page.evaluate(() => {
-    const title = document.querySelector('h1, h2, .title')?.textContent?.trim() || '';
-
-    // Get images - prefer larger versions
+    const title = document.querySelector('h1')?.textContent?.trim() || '';
+    
+    let price = null;
+    const priceMatch = document.body.textContent.match(/\$[\d,]+/);
+    if (priceMatch) {
+      price = parseFloat(priceMatch[0].replace(/[$,]/g, ''));
+    }
+    
     const images = [];
-    const seen = new Set();
     document.querySelectorAll('img').forEach(img => {
-      let src = img.src || img.getAttribute('data-src');
-      if (src && src.includes('soarr') && !seen.has(src)) {
-        // Get larger version
-        src = src.replace('w=300', 'w=800').replace('w=150', 'w=800');
-        seen.add(src);
+      const src = img.src || img.getAttribute('data-src');
+      if (src && 
+          (src.includes('sandhills') || src.includes('cloudinary')) &&
+          !src.includes('logo') && !src.includes('icon') &&
+          !src.includes('.gif') && !src.includes('flag')) {
         images.push(src);
       }
     });
-
-    // Get specs
-    let trailerType = '';
-    let stockNum = '';
-    const specElements = document.querySelectorAll('dt, dd');
-    for (let i = 0; i < specElements.length; i += 2) {
-      const label = specElements[i]?.textContent?.trim()?.toLowerCase() || '';
-      const value = specElements[i + 1]?.textContent?.trim() || '';
-      if (label.includes('trailer type')) trailerType = value;
-      if (label.includes('stock')) stockNum = value;
-    }
-
-    // Extract year from title
-    const yearMatch = title.match(/(20\d{2})/);
+    
+    const yearMatch = title.match(/^(20\d{2})/);
     const year = yearMatch ? parseInt(yearMatch[1]) : null;
-
-    // Extract make from title
-    const makes = ['GREAT DANE', 'WABASH', 'UTILITY', 'HYUNDAI', 'STOUGHTON', 'VANGUARD', 'KRUZ', 'MAC', 'WILSON'];
+    
+    const makes = ['FONTAINE', 'DORSEY', 'BENSON', 'DOONAN', 'EXTREME', 'WABASH', 'REITNOUER', 'MANAC', 'GREAT DANE'];
     let make = '';
     const titleUpper = title.toUpperCase();
     for (const m of makes) {
@@ -199,40 +169,41 @@ async function scrapeListing(page, url) {
         break;
       }
     }
-
+    
     return {
       title,
+      price,
       images: [...new Set(images)],
-      trailerType,
-      stockNum,
       year,
       make
     };
   });
-
+  
   return data;
 }
 
 async function main() {
-  console.log('Scraping Jim Hawk Truck Trailers');
-  console.log('   Direct from: jhtt.com');
+  console.log('Scraping TNT Trailer Sales');
+  console.log('   Direct from: tntsales.biz');
   console.log('==================================================\n');
 
   const dealerId = await getOrCreateDealer();
   if (!dealerId) return;
 
   const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    headless: false,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080']
   });
 
   const page = await browser.newPage();
-  await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
   await page.setViewport({ width: 1920, height: 1080 });
+  
+  await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+  });
 
-  console.log('Collecting listing URLs...\n');
   const listingUrls = await getAllListingUrls(page);
-  console.log('\nTotal unique listings:', listingUrls.length, '\n');
+  console.log('\nTotal listings to process:', listingUrls.length, '\n');
 
   let imported = 0;
   let skipped = 0;
@@ -243,7 +214,31 @@ async function main() {
     process.stdout.write('[' + (i + 1) + '/' + listingUrls.length + '] ');
 
     try {
+      // Longer delays to avoid bot detection
+      await sleep(3000 + Math.random() * 2000);
+
+      // Every 5 listings, go back to inventory to reset session
+      if (i > 0 && i % 5 === 0) {
+        console.log('(resetting session...)');
+        await page.goto(BASE_URL + '/inventory/trailers-for-sale/', { waitUntil: 'networkidle2', timeout: 60000 });
+        await sleep(3000);
+        process.stdout.write('[' + (i + 1) + '/' + listingUrls.length + '] ');
+      }
+
       const listing = await scrapeListing(page, url);
+
+      // If blocked, wait longer and retry once
+      if (listing.title === 'Pardon Our Interruption' || !listing.title) {
+        console.log('(blocked, waiting 10s and retrying...)');
+        await sleep(10000);
+        await page.goto(BASE_URL + '/inventory/trailers-for-sale/', { waitUntil: 'networkidle2', timeout: 60000 });
+        await sleep(5000);
+        const retryListing = await scrapeListing(page, url);
+        if (retryListing.title && retryListing.title !== 'Pardon Our Interruption') {
+          Object.assign(listing, retryListing);
+        }
+      }
+
       process.stdout.write((listing.title?.substring(0, 35) || 'Unknown') + '... ');
 
       if (!listing.title || listing.title.length < 5) {
@@ -258,7 +253,6 @@ async function main() {
         continue;
       }
 
-      // Check for duplicate by title
       const { data: exists } = await supabase
         .from('listings')
         .select('id')
@@ -272,15 +266,15 @@ async function main() {
         continue;
       }
 
-      const categoryId = await getCategoryId(listing.trailerType, listing.title);
+      const categoryId = await getCategoryId(listing.title);
 
       const { data: newListing, error } = await supabase.from('listings').insert({
         user_id: dealerId,
         category_id: categoryId,
         title: listing.title,
-        description: listing.trailerType + ' - Stock #' + listing.stockNum,
-        price: null,
-        price_type: 'contact',
+        description: listing.title,
+        price: listing.price,
+        price_type: listing.price ? 'fixed' : 'contact',
         condition: listing.year >= 2024 ? 'new' : 'used',
         year: listing.year,
         make: listing.make,
@@ -308,8 +302,6 @@ async function main() {
 
       imported++;
       console.log('OK ' + listing.images.length + ' imgs');
-
-      await sleep(300);
     } catch (e) {
       console.log('error: ' + (e.message?.substring(0, 40) || 'unknown'));
       errors++;

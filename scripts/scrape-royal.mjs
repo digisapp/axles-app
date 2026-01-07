@@ -1,12 +1,10 @@
 // @ts-nocheck
 /**
- * Royal Truck & Utility Trailer Scraper
- * Scrapes trailers from royaltrailersales.com (WooCommerce)
- *
- * Usage: node scripts/scrape-royal.mjs
+ * Scrape Royal Truck & Utility Trailer Sales
+ * WordPress/WooCommerce site - straightforward scraping
  */
 
-import * as cheerio from 'cheerio';
+import puppeteer from 'puppeteer';
 import { createClient } from '@supabase/supabase-js';
 import 'dotenv/config';
 
@@ -17,40 +15,64 @@ const supabase = createClient(
 
 const DEALER_INFO = {
   name: 'Royal Truck & Utility Trailer',
-  email: 'sales@royaltrailersales.com',
-  phone: '(313) 584-4600',
-  website: 'https://royaltrailersales.com',
-  city: 'Dearborn',
+  email: 'inventory@royaltrailersales.com',
+  phone: '(313) 524-2529',
+  city: 'Northville',
   state: 'MI',
-  country: 'USA',
+  website: 'https://royaltrailersales.com'
 };
 
 const BASE_URL = 'https://royaltrailersales.com';
-const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36';
 
-// Category mapping
+// Website product categories mapped to our category slugs
+const SITE_CATEGORIES = [
+  { cat: 'dump-trailer', slug: 'end-dump-trailers' },
+  { cat: 'flatbed-trailer', slug: 'flatbed-trailers' },
+  { cat: 'dry-van-trailer', slug: 'dry-van-trailers' },
+  { cat: 'reefer-trailer', slug: 'reefer-trailers' },
+  { cat: 'hopper-trailer', slug: 'hopper-trailers' },
+  { cat: 'lowboy-trailer', slug: 'lowboy-trailers' },
+  { cat: 'step-deck-trailer', slug: 'step-deck-trailers' },
+  { cat: 'tank-trailer', slug: 'tank-trailers' },
+  { cat: 'livestock-trailer', slug: 'livestock-trailers' },
+  { cat: 'curtain-side-trailer', slug: 'curtain-side-trailers' },
+];
+
 const CATEGORY_MAP = {
   'flatbed': 'flatbed-trailers',
-  'dump': 'dump-trailers',
-  'reefer': 'reefer-trailers',
   'dry van': 'dry-van-trailers',
+  'reefer': 'reefer-trailers',
+  'refrigerated': 'reefer-trailers',
+  'dump': 'end-dump-trailers',
   'lowboy': 'lowboy-trailers',
+  'drop deck': 'step-deck-trailers',
+  'step deck': 'step-deck-trailers',
   'hopper': 'hopper-trailers',
+  'grain': 'hopper-trailers',
   'tank': 'tank-trailers',
+  'tanker': 'tank-trailers',
+  'curtain': 'curtain-side-trailers',
+  'curtainside': 'curtain-side-trailers',
   'livestock': 'livestock-trailers',
+  'car hauler': 'car-hauler-trailers',
+  'auto transport': 'car-hauler-trailers',
+  'log': 'logging-trailers',
+  'logging': 'logging-trailers',
+  'container': 'container-trailers',
+  'chassis': 'container-trailers',
+  'dolly': 'converter-dollies',
+  'converter': 'converter-dollies',
+  'bottom dump': 'bottom-dump-trailers',
+  'belly dump': 'bottom-dump-trailers',
+  'side dump': 'side-dump-trailers',
+  'pneumatic': 'pneumatic-trailers',
+  'walking floor': 'walking-floor-trailers',
+  'moving floor': 'walking-floor-trailers',
+  'tag': 'tag-trailers',
+  'equipment': 'equipment-trailers',
 };
 
-async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function fetchPage(url) {
-  const response = await fetch(url, {
-    headers: { 'User-Agent': USER_AGENT }
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.text();
-}
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function getOrCreateDealer() {
   const { data: existing } = await supabase
@@ -59,309 +81,316 @@ async function getOrCreateDealer() {
     .eq('company_name', DEALER_INFO.name)
     .single();
 
-  if (existing) return existing.id;
+  if (existing) {
+    console.log('Dealer exists:', DEALER_INFO.name);
+    return existing.id;
+  }
 
-  const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+  const password = 'Royal2024!';
+  const { data: authUser, error } = await supabase.auth.admin.createUser({
     email: DEALER_INFO.email,
     email_confirm: true,
-    password: Math.random().toString(36).slice(-12) + 'Aa1!',
+    password: password,
   });
 
-  if (authError && !authError.message.includes('already been registered')) {
-    throw authError;
+  if (error) {
+    console.error('Error creating dealer:', error.message);
+    return null;
   }
 
-  const userId = authUser?.user?.id;
-  if (!userId) {
-    const { data: existingUser } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', DEALER_INFO.email)
-      .single();
-    return existingUser?.id;
-  }
+  await supabase.from('profiles').update({
+    company_name: DEALER_INFO.name,
+    phone: DEALER_INFO.phone,
+    city: DEALER_INFO.city,
+    state: DEALER_INFO.state,
+    is_dealer: true,
+    website: DEALER_INFO.website,
+  }).eq('id', authUser.user.id);
 
-  await supabase
-    .from('profiles')
-    .update({
-      company_name: DEALER_INFO.name,
-      phone: DEALER_INFO.phone,
-      website: DEALER_INFO.website,
-      city: DEALER_INFO.city,
-      state: DEALER_INFO.state,
-      country: DEALER_INFO.country,
-      is_dealer: true,
-      is_verified: true,
-    })
-    .eq('id', userId);
-
-  return userId;
+  console.log('Created dealer:', DEALER_INFO.name);
+  console.log('  Email:', DEALER_INFO.email);
+  console.log('  Password:', password);
+  return authUser.user.id;
 }
 
 async function getCategoryId(title) {
   const titleLower = title.toLowerCase();
-  let slug = 'trailers';
+  let categorySlug = 'flatbed-trailers';
 
-  for (const [keyword, categorySlug] of Object.entries(CATEGORY_MAP)) {
+  const sortedKeywords = Object.entries(CATEGORY_MAP).sort((a, b) => b[0].length - a[0].length);
+  for (const [keyword, slug] of sortedKeywords) {
     if (titleLower.includes(keyword)) {
-      slug = categorySlug;
+      categorySlug = slug;
       break;
     }
   }
 
-  const { data } = await supabase
+  const { data: cat } = await supabase
     .from('categories')
     .select('id')
-    .eq('slug', slug)
+    .eq('slug', categorySlug)
     .single();
 
-  if (data) return data.id;
-
-  // Fallback
-  const { data: fallback } = await supabase
-    .from('categories')
-    .select('id')
-    .eq('slug', 'trailers')
-    .single();
-
-  return fallback?.id;
+  return cat?.id;
 }
 
-function parseProductFromPage($) {
-  const products = [];
+async function getAllProductUrls(page) {
+  const allProducts = []; // { url, categorySlug }
+  const seenUrls = new Set();
 
-  // Find all product links in the listing
-  $('h2 a[href*="/product/"]').each((i, el) => {
-    const $el = $(el);
-    const title = $el.text().trim();
-    const detailUrl = $el.attr('href');
+  for (const siteCat of SITE_CATEGORIES) {
+    console.log('\n  Category: ' + siteCat.cat);
+    let pageNum = 1;
+    const maxPages = 20;
 
-    if (!title || !detailUrl) return;
+    while (pageNum <= maxPages) {
+      const url = BASE_URL + '/inventory/page/' + pageNum + '/?product_cat=' + siteCat.cat;
 
-    // Parse year from title (e.g., "2025 MAC Flatbed...")
-    const yearMatch = title.match(/^(\d{4})\s/);
-    const year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
+      try {
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+        await sleep(1500);
 
-    // Parse make from title (second word usually)
-    const parts = title.split(/\s+/);
-    const make = parts.length > 1 ? parts[1] : '';
+        const urls = await page.evaluate(() => {
+          const links = [];
+          document.querySelectorAll('a[href*="/product/"]').forEach(a => {
+            const href = a.getAttribute('href');
+            if (href && !links.includes(href)) {
+              links.push(href);
+            }
+          });
+          return links;
+        });
 
-    // Get location from nearby element
-    const $parent = $el.closest('.product-main, .product-item, div');
-    const location = $parent.find('.product-location, .product-main__info__details__location').text().trim();
+        if (urls.length === 0) {
+          break;
+        }
 
-    // Parse city/state from location
-    let city = DEALER_INFO.city;
-    let state = DEALER_INFO.state;
-    const locationMatch = location.match(/([^,]+),\s*(\w{2})/);
-    if (locationMatch) {
-      city = locationMatch[1].trim();
-      state = locationMatch[2].trim();
+        let newCount = 0;
+        for (const u of urls) {
+          if (!seenUrls.has(u)) {
+            seenUrls.add(u);
+            allProducts.push({ url: u, categorySlug: siteCat.slug });
+            newCount++;
+          }
+        }
+
+        if (newCount === 0) {
+          break; // No new products, stop pagination
+        }
+
+        console.log('    Page ' + pageNum + ': ' + newCount + ' new (' + allProducts.length + ' total)');
+        pageNum++;
+        await sleep(500);
+      } catch (e) {
+        console.log('    Page ' + pageNum + ' error: ' + e.message.substring(0, 30));
+        break;
+      }
+    }
+  }
+
+  return allProducts;
+}
+
+async function scrapeProduct(page, url) {
+  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+  await sleep(1000);
+
+  const data = await page.evaluate(() => {
+    const title = document.querySelector('h1')?.textContent?.trim() ||
+                  document.querySelector('.product_title')?.textContent?.trim() || '';
+
+    let price = null;
+    const priceEl = document.querySelector('.price, .woocommerce-Price-amount');
+    if (priceEl) {
+      const priceMatch = priceEl.textContent.match(/[\d,]+/);
+      if (priceMatch) {
+        price = parseFloat(priceMatch[0].replace(/,/g, ''));
+      }
     }
 
-    products.push({
-      title,
-      detailUrl: detailUrl.startsWith('http') ? detailUrl : `${BASE_URL}${detailUrl}`,
-      year,
-      make,
-      city,
-      state,
-    });
-  });
-
-  return products;
-}
-
-async function scrapeProductDetail(url) {
-  try {
-    const html = await fetchPage(url);
-    const $ = cheerio.load(html);
-
     const images = [];
-    // WooCommerce product gallery images
-    $('img[src*="uploads"], .woocommerce-product-gallery img, .product-gallery img').each((i, el) => {
-      let src = $(el).attr('data-large_image') || $(el).attr('data-src') || $(el).attr('src');
-      if (src && !images.includes(src) && src.includes('uploads')) {
-        // Get full size image
-        src = src.replace(/-\d+x\d+\./, '.');
+    document.querySelectorAll('img').forEach(img => {
+      const src = img.src || img.getAttribute('data-src') || img.getAttribute('data-large_image');
+      if (src &&
+          src.includes('wp-content/uploads') &&
+          !src.includes('logo') &&
+          !src.includes('icon') &&
+          !src.includes('placeholder') &&
+          !images.includes(src)) {
         images.push(src);
       }
     });
 
-    // Get description
-    const description = $('.woocommerce-product-details__short-description, .product-description, .entry-content').first().text().trim();
-
-    // Try to extract price
-    const priceText = $('.price, .woocommerce-Price-amount').first().text().trim();
-    const price = priceText ? parseFloat(priceText.replace(/[$,]/g, '')) : null;
-
-    // Try to find stock number in title or content
-    const pageText = $('body').text();
-    const stockMatch = pageText.match(/Stock[:\s#]*(\d+)/i) ||
-                       url.match(/(\d{6})(?:\/)?$/);
-    const stockNumber = stockMatch ? stockMatch[1] : null;
-
-    // Try to find VIN
-    const vinMatch = pageText.match(/VIN[:\s]*([A-HJ-NPR-Z0-9]{17})/i);
-    const vin = vinMatch ? vinMatch[1] : null;
-
-    // Condition - check for "used" or "pre-owned"
-    const condition = pageText.toLowerCase().includes('used') || pageText.toLowerCase().includes('pre-owned')
-      ? 'used' : 'new';
-
-    return { images, description, price, stockNumber, vin, condition };
-  } catch (error) {
-    console.error(`Error fetching detail: ${error.message}`);
-    return { images: [], description: '', price: null, stockNumber: null, vin: null, condition: 'new' };
-  }
-}
-
-async function importListing(dealerId, product) {
-  // Skip listings without images - we only want listings where we captured images
-  const images = product.images || [];
-  if (images.length === 0) {
-    console.log(`  ⏭ Skipping (no images): ${product.title}`);
-    return { action: 'skipped_no_images' };
-  }
-
-  // Check for duplicate
-  const { data: existing } = await supabase
-    .from('listings')
-    .select('id')
-    .eq('user_id', dealerId)
-    .eq('title', product.title)
-    .single();
-
-  if (existing) {
-    return { action: 'skipped', id: existing.id };
-  }
-
-  const categoryId = await getCategoryId(product.title);
-
-  const { data: listing, error } = await supabase
-    .from('listings')
-    .insert({
-      user_id: dealerId,
-      category_id: categoryId,
-      title: product.title,
-      description: product.description || product.title,
-      price: product.price,
-      price_type: product.price ? 'fixed' : 'contact',
-      condition: product.condition || 'new',
-      year: product.year,
-      make: product.make || '',
-      model: '',
-      vin: product.vin,
-      stock_number: product.stockNumber,
-      city: product.city,
-      state: product.state,
-      country: DEALER_INFO.country,
-      status: 'active',
-      listing_type: 'sale',
-    })
-    .select('id')
-    .single();
-
-  if (error) {
-    console.error(`Error inserting: ${error.message}`);
-    return { action: 'error', error };
-  }
-
-  // Import images
-  const images = product.images || [];
-  for (let i = 0; i < Math.min(images.length, 10); i++) {
-    await supabase.from('listing_images').insert({
-      listing_id: listing.id,
-      url: images[i],
-      thumbnail_url: images[i],
-      is_primary: i === 0,
-      sort_order: i,
+    document.querySelectorAll('[data-large_image]').forEach(el => {
+      const src = el.getAttribute('data-large_image');
+      if (src && !images.includes(src)) {
+        images.push(src);
+      }
     });
-  }
 
-  return { action: 'imported', id: listing.id };
-}
+    const yearMatch = title.match(/^(20\d{2})/);
+    const year = yearMatch ? parseInt(yearMatch[1]) : null;
 
-async function scrapeInventory() {
-  console.log('\n   Scraping inventory...');
-
-  const products = [];
-  let page = 1;
-  let hasMore = true;
-
-  while (hasMore && page <= 30) {
-    const url = page === 1
-      ? `${BASE_URL}/inventory/`
-      : `${BASE_URL}/inventory/page/${page}/`;
-
-    try {
-      const html = await fetchPage(url);
-      const $ = cheerio.load(html);
-
-      const pageProducts = parseProductFromPage($);
-
-      if (pageProducts.length === 0) {
-        hasMore = false;
+    const makes = ['MAC', 'UTILITY', 'TITAN', 'GREAT DANE', 'WABASH', 'VANGUARD', 'HYUNDAI', 'STOUGHTON'];
+    let make = '';
+    for (const m of makes) {
+      if (title.toUpperCase().includes(m)) {
+        make = m;
         break;
       }
-
-      products.push(...pageProducts);
-      console.log(`     Page ${page}: Found ${pageProducts.length} products`);
-
-      // Check for next page link
-      const nextLink = $('a.next, a[rel="next"], .pagination a:contains("Next")').attr('href');
-      hasMore = !!nextLink && page < 30;
-      page++;
-
-      await sleep(1500);
-    } catch (error) {
-      console.error(`     Error on page ${page}: ${error.message}`);
-      hasMore = false;
     }
-  }
 
-  return products;
+    const descEl = document.querySelector('.woocommerce-product-details__short-description, .product-description, .entry-content');
+    const description = descEl?.textContent?.trim()?.substring(0, 2000) || title;
+
+    let location = '';
+    const bodyText = document.body.textContent || '';
+    const locMatch = bodyText.match(/Location[:\s]+([^,\n]+,?\s*[A-Z]{2})/i);
+    if (locMatch) {
+      location = locMatch[1].trim();
+    }
+
+    return {
+      title,
+      price,
+      images: [...new Set(images)],
+      year,
+      make,
+      description,
+      location
+    };
+  });
+
+  return data;
 }
 
 async function main() {
-  console.log('🚛 Royal Truck & Utility Trailer Scraper');
+  console.log('Scraping Royal Truck & Utility Trailer');
+  console.log('   Direct from: royaltrailersales.com');
   console.log('==================================================\n');
 
-  console.log('👤 Setting up dealer...');
   const dealerId = await getOrCreateDealer();
-  console.log(`   ✓ Dealer ID: ${dealerId}`);
+  if (!dealerId) return;
 
-  const products = await scrapeInventory();
-  console.log(`   Found ${products.length} products total\n`);
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
 
-  let totalImported = 0;
-  let totalSkipped = 0;
+  const page = await browser.newPage();
+  await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+  await page.setViewport({ width: 1920, height: 1080 });
 
-  for (const product of products) {
-    // Get detailed info
-    if (product.detailUrl) {
-      try {
-        const details = await scrapeProductDetail(product.detailUrl);
-        Object.assign(product, details);
-        await sleep(800);
-      } catch (e) {
-        // Continue without details
+  console.log('Collecting product URLs...\n');
+  const products = await getAllProductUrls(page);
+  console.log('\nFound ' + products.length + ' unique products\n');
+
+  let imported = 0;
+  let skipped = 0;
+  let errors = 0;
+
+  for (let i = 0; i < products.length; i++) {
+    const { url, categorySlug } = products[i];
+    process.stdout.write('[' + (i + 1) + '/' + products.length + '] ');
+
+    try {
+      const product = await scrapeProduct(page, url);
+      process.stdout.write((product.title?.substring(0, 40) || 'Unknown') + '... ');
+
+      if (!product.title || product.title.length < 5) {
+        console.log('no title');
+        skipped++;
+        continue;
       }
-    }
 
-    const result = await importListing(dealerId, product);
-    if (result.action === 'imported') {
-      totalImported++;
-      process.stdout.write(`   Imported: ${totalImported}\r`);
-    } else {
-      totalSkipped++;
+      if (product.images.length === 0) {
+        console.log('no images');
+        skipped++;
+        continue;
+      }
+
+      const { data: exists } = await supabase
+        .from('listings')
+        .select('id')
+        .eq('title', product.title)
+        .eq('user_id', dealerId)
+        .single();
+
+      if (exists) {
+        console.log('duplicate');
+        skipped++;
+        continue;
+      }
+
+      // Use category from site navigation, fallback to title detection
+      let categoryId;
+      const { data: cat } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('slug', categorySlug)
+        .single();
+      categoryId = cat?.id || await getCategoryId(product.title);
+
+      let city = DEALER_INFO.city;
+      let state = DEALER_INFO.state;
+      if (product.location) {
+        const locMatch = product.location.match(/([^,]+),?\s*([A-Z]{2})/i);
+        if (locMatch) {
+          city = locMatch[1].trim();
+          state = locMatch[2].toUpperCase();
+        }
+      }
+
+      const { data: newListing, error } = await supabase.from('listings').insert({
+        user_id: dealerId,
+        category_id: categoryId,
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        price_type: product.price ? 'fixed' : 'contact',
+        condition: product.year >= 2024 ? 'new' : 'used',
+        year: product.year,
+        make: product.make,
+        city: city,
+        state: state,
+        country: 'USA',
+        status: 'active',
+        listing_type: 'sale',
+      }).select('id').single();
+
+      if (error) {
+        console.log('error: ' + error.message);
+        errors++;
+        continue;
+      }
+
+      for (let j = 0; j < Math.min(product.images.length, 10); j++) {
+        await supabase.from('listing_images').insert({
+          listing_id: newListing.id,
+          url: product.images[j],
+          is_primary: j === 0,
+          sort_order: j,
+        });
+      }
+
+      imported++;
+      console.log('OK ' + product.images.length + ' imgs');
+
+      await sleep(300);
+    } catch (e) {
+      console.log('error: ' + (e.message?.substring(0, 40) || 'unknown'));
+      errors++;
     }
   }
 
-  console.log('\n\n==================================================');
-  console.log(`📊 Summary:`);
-  console.log(`   Imported: ${totalImported}`);
-  console.log(`   Skipped: ${totalSkipped}`);
+  await browser.close();
+
+  console.log('\n==================================================');
+  console.log('Summary:');
+  console.log('   Dealer: ' + DEALER_INFO.name);
+  console.log('   Imported: ' + imported);
+  console.log('   Skipped: ' + skipped);
+  console.log('   Errors: ' + errors);
   console.log('==================================================\n');
 }
 
