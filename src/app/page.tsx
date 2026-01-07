@@ -227,22 +227,22 @@ export default function HomePage() {
             href="/search?category=lowboy-trailers&sort=price"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
-            🔥 Best Priced Lowboys
+            🔥 Lowboy Deals
           </Link>
           <Link
             href="/search?category=sleeper-trucks&sort=price"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
-            🚛 Best Priced Sleepers
+            🚛 Sleeper Deals
           </Link>
           <Link
-            href="/search?location=near"
+            href="/search?category=flatbed-trailers&sort=price"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
-            📍 Near Me
+            📦 Flatbed Deals
           </Link>
           <Link
-            href="/search?sort=deal"
+            href="/deals"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
             💰 View All Deals
@@ -306,7 +306,7 @@ export default function HomePage() {
                 Hot Deals
               </h2>
               <Link
-                href="/search?sort=deal"
+                href="/deals"
                 className="text-sm text-primary hover:underline"
               >
                 View All →
