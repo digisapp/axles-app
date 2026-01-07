@@ -133,6 +133,7 @@ function SearchPageContent() {
         // Add AI-extracted filters if available (but don't override user filters)
         if (aiInterpretation?.filters) {
           const f = aiInterpretation.filters;
+          if (!advancedFilters.category && !category && f.category_slug) params.set('category', f.category_slug);
           if (!advancedFilters.priceMin && f.min_price) params.set('min_price', f.min_price.toString());
           if (!advancedFilters.priceMax && f.max_price) params.set('max_price', f.max_price.toString());
           if (!advancedFilters.yearMin && f.min_year) params.set('min_year', f.min_year.toString());
@@ -140,6 +141,7 @@ function SearchPageContent() {
           if (!advancedFilters.makes?.length && f.make) params.set('make', f.make);
           if (!advancedFilters.states?.length && f.state) params.set('state', f.state);
           if (!advancedFilters.mileageMax && f.max_mileage) params.set('max_mileage', f.max_mileage.toString());
+          if (!advancedFilters.conditions?.length && f.condition) params.set('condition', f.condition.join(','));
         }
 
         const response = await fetch(`/api/listings?${params.toString()}`);
