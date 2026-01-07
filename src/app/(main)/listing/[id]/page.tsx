@@ -46,7 +46,7 @@ export default async function ListingPage({ params }: PageProps) {
       *,
       category:categories!left(id, name, slug),
       images:listing_images!left(id, url, thumbnail_url, is_primary, sort_order, ai_analysis),
-      user:profiles!left(id, company_name, phone, email, avatar_url, is_dealer, created_at)
+      user:profiles!listings_user_id_fkey(id, company_name, phone, email, avatar_url, is_dealer, created_at)
     `)
     .eq('id', id)
     .single();

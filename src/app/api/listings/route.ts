@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       *,
       category:categories!left(id, name, slug),
       images:listing_images!left(id, url, thumbnail_url, is_primary, sort_order),
-      user:profiles!left(id, company_name, avatar_url, is_dealer)
+      user:profiles!listings_user_id_fkey(id, company_name, avatar_url, is_dealer)
     `, { count: 'exact' })
     .eq('status', 'active');
 
