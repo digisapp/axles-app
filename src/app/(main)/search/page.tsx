@@ -194,6 +194,70 @@ function SearchPageContent() {
           </div>
         )}
 
+        {/* Quick Filter Chips */}
+        <div className="flex flex-wrap gap-2 mb-4 md:mb-6">
+          <QuickFilterChip
+            label="New Trailers"
+            isActive={advancedFilters.category === 'trailers' && (advancedFilters.conditions?.includes('new') || false)}
+            onClick={() => {
+              const isActive = advancedFilters.category === 'trailers' && advancedFilters.conditions?.includes('new');
+              if (isActive) {
+                setAdvancedFilters({});
+              } else {
+                setAdvancedFilters({ category: 'trailers', conditions: ['new'] });
+              }
+            }}
+          />
+          <QuickFilterChip
+            label="Used Trailers"
+            isActive={advancedFilters.category === 'trailers' && (advancedFilters.conditions?.includes('used') || false)}
+            onClick={() => {
+              const isActive = advancedFilters.category === 'trailers' && advancedFilters.conditions?.includes('used');
+              if (isActive) {
+                setAdvancedFilters({});
+              } else {
+                setAdvancedFilters({ category: 'trailers', conditions: ['used'] });
+              }
+            }}
+          />
+          <QuickFilterChip
+            label="New Trucks"
+            isActive={advancedFilters.category === 'trucks' && (advancedFilters.conditions?.includes('new') || false)}
+            onClick={() => {
+              const isActive = advancedFilters.category === 'trucks' && advancedFilters.conditions?.includes('new');
+              if (isActive) {
+                setAdvancedFilters({});
+              } else {
+                setAdvancedFilters({ category: 'trucks', conditions: ['new'] });
+              }
+            }}
+          />
+          <QuickFilterChip
+            label="Used Trucks"
+            isActive={advancedFilters.category === 'trucks' && (advancedFilters.conditions?.includes('used') || false)}
+            onClick={() => {
+              const isActive = advancedFilters.category === 'trucks' && advancedFilters.conditions?.includes('used');
+              if (isActive) {
+                setAdvancedFilters({});
+              } else {
+                setAdvancedFilters({ category: 'trucks', conditions: ['used'] });
+              }
+            }}
+          />
+          <QuickFilterChip
+            label="Heavy Equipment"
+            isActive={advancedFilters.category === 'heavy-equipment'}
+            onClick={() => {
+              const isActive = advancedFilters.category === 'heavy-equipment';
+              if (isActive) {
+                setAdvancedFilters({});
+              } else {
+                setAdvancedFilters({ category: 'heavy-equipment' });
+              }
+            }}
+          />
+        </div>
+
         {/* Results Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6">
           <div>
@@ -630,6 +694,29 @@ function ListingCardSkeleton({ viewMode }: { viewMode: 'grid' | 'list' | 'map' }
         <Skeleton className="h-3 md:h-4 w-1/2" />
       </div>
     </Card>
+  );
+}
+
+function QuickFilterChip({
+  label,
+  isActive,
+  onClick,
+}: {
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 text-xs md:text-sm rounded-full border transition-colors ${
+        isActive
+          ? 'bg-primary text-primary-foreground border-primary'
+          : 'bg-background hover:bg-muted border-border'
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 

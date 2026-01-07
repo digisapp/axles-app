@@ -44,9 +44,9 @@ export default async function ListingPage({ params }: PageProps) {
     .from('listings')
     .select(`
       *,
-      category:categories(id, name, slug),
-      images:listing_images(id, url, thumbnail_url, is_primary, sort_order, ai_analysis),
-      user:profiles(id, company_name, phone, email, avatar_url, is_dealer, created_at)
+      category:categories!left(id, name, slug),
+      images:listing_images!left(id, url, thumbnail_url, is_primary, sort_order, ai_analysis),
+      user:profiles!left(id, company_name, phone, email, avatar_url, is_dealer, created_at)
     `)
     .eq('id', id)
     .single();
@@ -66,7 +66,7 @@ export default async function ListingPage({ params }: PageProps) {
     .from('listings')
     .select(`
       id, title, price, year, make, model, city, state,
-      images:listing_images(url, is_primary)
+      images:listing_images!left(url, is_primary)
     `)
     .eq('status', 'active')
     .neq('id', id)

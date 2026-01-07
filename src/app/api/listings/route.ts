@@ -30,23 +30,41 @@ export async function GET(request: NextRequest) {
     .from('listings')
     .select(`
       *,
-      category:categories(id, name, slug),
-      images:listing_images(id, url, thumbnail_url, is_primary, sort_order),
-      user:profiles!listings_user_id_fkey(id, company_name, avatar_url, is_dealer)
+      category:categories!left(id, name, slug),
+      images:listing_images!left(id, url, thumbnail_url, is_primary, sort_order),
+      user:profiles!left(id, company_name, avatar_url, is_dealer)
     `, { count: 'exact' })
     .eq('status', 'active');
 
   // Apply filters
   if (category) {
-    // Get category by slug
+    // Get category by slug and check if it's a parent category
     const { data: categoryData } = await supabase
       .from('categories')
-      .select('id')
+      .select('id, parent_id')
       .eq('slug', category)
       .single();
 
     if (categoryData) {
-      query = query.eq('category_id', categoryData.id);
+      // If this is a parent category (has no parent_id), also include all child categories
+      if (!categoryData.parent_id) {
+        // Get all child category IDs
+        const { data: childCategories } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('parent_id', categoryData.id);
+
+        if (childCategories && childCategories.length > 0) {
+          // Include parent and all children
+          const categoryIds = [categoryData.id, ...childCategories.map(c => c.id)];
+          query = query.in('category_id', categoryIds);
+        } else {
+          query = query.eq('category_id', categoryData.id);
+        }
+      } else {
+        // It's a child category, match exactly
+        query = query.eq('category_id', categoryData.id);
+      }
     }
   }
 
@@ -54,10 +72,35 @@ export async function GET(request: NextRequest) {
   if (maxPrice) query = query.lte('price', parseFloat(maxPrice));
   if (minYear) query = query.gte('year', parseInt(minYear));
   if (maxYear) query = query.lte('year', parseInt(maxYear));
-  if (make) query = query.ilike('make', `%${make}%`);
+  if (make) {
+    // Support multiple makes (comma-separated)
+    const makes = make.split(',').map(m => m.trim()).filter(Boolean);
+    if (makes.length === 1) {
+      query = query.ilike('make', `%${makes[0]}%`);
+    } else if (makes.length > 1) {
+      // Use OR filter for multiple makes
+      query = query.or(makes.map(m => `make.ilike.%${m}%`).join(','));
+    }
+  }
   if (model) query = query.ilike('model', `%${model}%`);
-  if (condition) query = query.eq('condition', condition);
-  if (state) query = query.eq('state', state);
+  if (condition) {
+    // Support multiple conditions (comma-separated)
+    const conditions = condition.split(',').map(c => c.trim()).filter(Boolean);
+    if (conditions.length === 1) {
+      query = query.eq('condition', conditions[0]);
+    } else if (conditions.length > 1) {
+      query = query.in('condition', conditions);
+    }
+  }
+  if (state) {
+    // Support multiple states (comma-separated)
+    const states = state.split(',').map(s => s.trim()).filter(Boolean);
+    if (states.length === 1) {
+      query = query.eq('state', states[0]);
+    } else if (states.length > 1) {
+      query = query.in('state', states);
+    }
+  }
   if (city) query = query.ilike('city', `%${city}%`);
   if (maxMileage) query = query.lte('mileage', parseInt(maxMileage));
   if (featured === 'true') query = query.eq('is_featured', true);

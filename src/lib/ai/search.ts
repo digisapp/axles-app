@@ -57,9 +57,17 @@ User Query: "${query}"
 Extract the search intent and return structured filters. Be smart about interpreting:
 - "semi" or "18-wheeler" = heavy-duty-trucks or sleeper-trucks
 - "rig" = heavy-duty-trucks
-- "under 100k" = max_price: 100000
+- "trailers" alone = use category_slug "trailers" (parent category for all trailer types)
+- "trucks" alone = use category_slug "trucks" (parent category for all truck types)
+- IMPORTANT: Price parsing with "k" suffix:
+  - "$100k" or "100k" = 100000 (k = thousand, so multiply by 1000)
+  - "under $100k" = max_price: 100000
+  - "$50k-$80k" = min_price: 50000, max_price: 80000
+  - "under 100k" = max_price: 100000
+- Price parsing with full numbers:
+  - "$50,000-$80,000" = min_price: 50000, max_price: 80000
+  - "under $100,000" = max_price: 100000
 - "in Texas" or "TX" = state: "TX"
-- Price ranges like "$50,000-$80,000" = min_price: 50000, max_price: 80000
 - Year ranges like "2018-2022" = min_year: 2018, max_year: 2022
 - "low miles" or "under 500k miles" = max_mileage: 500000`,
   });
