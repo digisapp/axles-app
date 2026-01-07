@@ -40,6 +40,58 @@ const START_PAGE = parseInt(process.argv.find(a => a.startsWith('--start='))?.sp
 const DELAY_MS = parseInt(process.argv.find(a => a.startsWith('--delay='))?.split('=')[1] || '3000');
 const PROGRESS_FILE = 'truckpaper-progress.json';
 
+// TruckPaper category URLs mapped to our category slugs
+const TRUCKPAPER_CATEGORIES = [
+  // Semi-Trailers (commercial)
+  { url: '/listings/trailers/semi-trailers/dump-trailers', slug: 'dump-trailers', name: 'Dump Semi-Trailers' },
+  { url: '/listings/trailers/semi-trailers/dry-van-trailers', slug: 'dry-van-trailers', name: 'Dry Van Trailers' },
+  { url: '/listings/trailers/semi-trailers/reefer-trailers', slug: 'reefer-trailers', name: 'Reefer Trailers' },
+  { url: '/listings/trailers/semi-trailers/flatbed-trailers', slug: 'flatbed-trailers', name: 'Flatbed Trailers' },
+  { url: '/listings/trailers/semi-trailers/lowboy-trailers', slug: 'lowboy-trailers', name: 'Lowboy Trailers' },
+  { url: '/listings/trailers/semi-trailers/drop-deck-trailers', slug: 'drop-deck-trailers', name: 'Drop Deck Trailers' },
+  { url: '/listings/trailers/semi-trailers/tank-trailers', slug: 'tank-trailers', name: 'Tank Trailers' },
+  { url: '/listings/trailers/semi-trailers/hopper-grain-trailers', slug: 'hopper-trailers', name: 'Hopper/Grain Trailers' },
+  { url: '/listings/trailers/semi-trailers/livestock-trailers', slug: 'livestock-trailers', name: 'Livestock Trailers' },
+  { url: '/listings/trailers/semi-trailers/car-carrier-trailers', slug: 'car-hauler-trailers', name: 'Car Carrier Trailers' },
+  { url: '/listings/trailers/semi-trailers/curtain-side-roll-tarp-trailers', slug: 'curtain-side-trailers', name: 'Curtain Side Trailers' },
+  { url: '/listings/trailers/semi-trailers/double-drop-trailers', slug: 'double-drop-trailers', name: 'Double Drop Trailers' },
+  { url: '/listings/trailers/semi-trailers/live-floor-trailers', slug: 'live-floor-trailers', name: 'Live Floor Trailers' },
+  { url: '/listings/trailers/semi-trailers/log-trailers', slug: 'log-trailers', name: 'Log Trailers' },
+  { url: '/listings/trailers/semi-trailers/belt-trailers', slug: 'belt-trailers', name: 'Belt Trailers' },
+  { url: '/listings/trailers/semi-trailers/chipper-trailers', slug: 'chip-trailers', name: 'Chipper Trailers' },
+  { url: '/listings/trailers/semi-trailers/tag-trailers', slug: 'tag-trailers', name: 'Tag Trailers' },
+  { url: '/listings/trailers/semi-trailers/traveling-axle-trailers', slug: 'traveling-axle-trailers', name: 'Traveling Axle Trailers' },
+  { url: '/listings/trailers/semi-trailers/intermodal-container-chassis-only', slug: 'container-chassis', name: 'Container Chassis' },
+  { url: '/listings/trailers/semi-trailers/storage-trailers', slug: 'storage-trailers', name: 'Storage Trailers' },
+  { url: '/listings/trailers/semi-trailers/oil-field-trailers', slug: 'oilfield-trailers', name: 'Oil Field Trailers' },
+
+  // Light Trailers
+  { url: '/listings/trailers/trailers/flatbed-tag-trailers', slug: 'tag-trailers', name: 'Flatbed/Tag Trailers' },
+  { url: '/listings/trailers/trailers/utility-trailers', slug: 'utility-trailers', name: 'Utility Trailers' },
+  { url: '/listings/trailers/trailers/cargo-enclosed-trailers', slug: 'enclosed-trailers', name: 'Enclosed Trailers' },
+  { url: '/listings/trailers/trailers/dump-trailers', slug: 'dump-trailers', name: 'Dump Trailers' },
+  { url: '/listings/trailers/trailers/car-hauler-trailers', slug: 'car-hauler-trailers', name: 'Car Hauler Trailers' },
+  { url: '/listings/trailers/trailers/horse-trailers', slug: 'horse-trailers', name: 'Horse Trailers' },
+  { url: '/listings/trailers/trailers/tilt-trailers', slug: 'tilt-trailers', name: 'Tilt Trailers' },
+  { url: '/listings/trailers/trailers/landscaping-trailers', slug: 'landscape-trailers', name: 'Landscape Trailers' },
+
+  // Trucks
+  { url: '/listings/trucks/sleeper-trucks', slug: 'sleeper-trucks', name: 'Sleeper Trucks' },
+  { url: '/listings/trucks/day-cab-trucks', slug: 'day-cab-trucks', name: 'Day Cab Trucks' },
+  { url: '/listings/trucks/dump-trucks', slug: 'dump-trucks', name: 'Dump Trucks' },
+  { url: '/listings/trucks/box-trucks', slug: 'box-trucks', name: 'Box Trucks' },
+  { url: '/listings/trucks/tow-trucks', slug: 'tow-trucks', name: 'Tow Trucks' },
+  { url: '/listings/trucks/cab-chassis-trucks', slug: 'cab-chassis', name: 'Cab & Chassis' },
+  { url: '/listings/trucks/service-trucks-utility-trucks-mechanic-trucks', slug: 'service-trucks', name: 'Service/Utility Trucks' },
+  { url: '/listings/trucks/flatbed-trucks', slug: 'flatbed-trucks', name: 'Flatbed Trucks' },
+  { url: '/listings/trucks/tanker-trucks', slug: 'tanker-trucks', name: 'Tanker Trucks' },
+  { url: '/listings/trucks/garbage-trucks', slug: 'garbage-trucks', name: 'Garbage Trucks' },
+  { url: '/listings/trucks/concrete-mixer-trucks', slug: 'concrete-trucks', name: 'Mixer Trucks' },
+  { url: '/listings/trucks/bucket-trucks-service-trucks', slug: 'bucket-trucks', name: 'Bucket Trucks' },
+  { url: '/listings/trucks/yard-spotter-trucks', slug: 'yard-spotter-trucks', name: 'Yard Spotter Trucks' },
+  { url: '/listings/trucks/winch-oil-field-trucks', slug: 'winch-trucks', name: 'Winch/Oil Field Trucks' },
+];
+
 // Load existing progress
 function loadProgress() {
   if (existsSync(PROGRESS_FILE)) {
@@ -57,58 +109,30 @@ function saveProgress(data) {
   writeFileSync(PROGRESS_FILE, JSON.stringify(data, null, 2));
 }
 
-// Category mapping
-const CATEGORY_MAP = {
-  'flatbed': 'flatbed-trailers',
-  'lowboy': 'lowboy-trailers',
-  'dump': 'dump-trailers',
-  'drop deck': 'drop-deck-trailers',
-  'stepdeck': 'drop-deck-trailers',
-  'reefer': 'reefer-trailers',
-  'refrigerated': 'reefer-trailers',
-  'dry van': 'dry-van-trailers',
-  'van': 'dry-van-trailers',
-  'grain': 'grain-trailers',
-  'livestock': 'livestock-trailers',
-  'tank': 'tank-trailers',
-  'hopper': 'hopper-trailers',
-  'curtain': 'curtain-side-trailers',
-  'car hauler': 'car-carriers',
-  'auto transport': 'car-carriers',
-};
-
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const dealerCache = new Map();
-const dealerCredentials = []; // Store credentials for outreach
+let truckpaperDealerId = null;
 
-async function getOrCreateDealer(dealerInfo) {
-  const cacheKey = dealerInfo.name || 'TruckPaper Listing';
+async function getOrCreateTruckPaperDealer() {
+  if (truckpaperDealerId) return truckpaperDealerId;
 
-  if (dealerCache.has(cacheKey)) {
-    return dealerCache.get(cacheKey);
-  }
-
-  // Try to find existing dealer
+  // Try to find existing TruckPaper dealer
   const { data: existing } = await supabase
     .from('profiles')
-    .select('id, email')
-    .eq('company_name', cacheKey)
+    .select('id')
+    .eq('company_name', 'TruckPaper Listings')
     .single();
 
   if (existing) {
-    dealerCache.set(cacheKey, existing.id);
-    return existing.id;
+    truckpaperDealerId = existing.id;
+    return truckpaperDealerId;
   }
 
-  // Create a real email-style login based on dealer name
-  const cleanName = cacheKey.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
-  const email = `${cleanName}@dealers.axles.ai`;
-
-  // Generate a memorable password
-  const password = generatePassword();
+  // Create the TruckPaper dealer account
+  const email = 'truckpaper@dealers.axles.ai';
+  const password = 'TruckPaper2024!';
 
   const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
     email,
@@ -117,74 +141,51 @@ async function getOrCreateDealer(dealerInfo) {
   });
 
   if (authError && !authError.message.includes('already been registered')) {
-    // Use a default dealer for TruckPaper listings
-    const { data: defaultDealer } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('company_name', 'TruckPaper Listings')
-      .single();
-
-    if (defaultDealer) {
-      dealerCache.set(cacheKey, defaultDealer.id);
-      return defaultDealer.id;
-    }
-    throw authError;
+    throw new Error(`Could not create TruckPaper dealer: ${authError.message}`);
   }
 
   const userId = authUser?.user?.id;
-  if (!userId) {
-    throw new Error('Could not create dealer');
+  if (userId) {
+    await supabase
+      .from('profiles')
+      .update({
+        company_name: 'TruckPaper Listings',
+        phone: '',
+        website: 'https://www.truckpaper.com',
+        city: '',
+        state: '',
+        country: 'USA',
+        is_dealer: true,
+        is_verified: false,
+      })
+      .eq('id', userId);
+
+    truckpaperDealerId = userId;
+    return truckpaperDealerId;
   }
 
-  await supabase
+  // If user exists but we couldn't get their ID, look them up
+  const { data: existingByEmail } = await supabase
     .from('profiles')
-    .update({
-      company_name: cacheKey,
-      phone: dealerInfo.phone || '',
-      website: dealerInfo.website || '',
-      city: dealerInfo.city || '',
-      state: dealerInfo.state || '',
-      country: 'USA',
-      is_dealer: true,
-      is_verified: false,
-    })
-    .eq('id', userId);
+    .select('id')
+    .eq('email', email)
+    .single();
 
-  // Save credentials for outreach
-  dealerCredentials.push({
-    dealerName: cacheKey,
-    contactPerson: dealerInfo.contactPerson || '',
-    loginEmail: email,
-    password,
-    realEmail: dealerInfo.realEmail || '',
-    phone: dealerInfo.phone || '',
-    city: dealerInfo.city || '',
-    state: dealerInfo.state || '',
-    createdAt: new Date().toISOString(),
-  });
+  if (existingByEmail) {
+    truckpaperDealerId = existingByEmail.id;
+    return truckpaperDealerId;
+  }
 
-  dealerCache.set(cacheKey, userId);
-  return userId;
+  throw new Error('Could not create TruckPaper dealer');
 }
 
-function generatePassword() {
-  const adjectives = ['Fast', 'Strong', 'Blue', 'Red', 'Big', 'Smart', 'Cool', 'Pro'];
-  const nouns = ['Truck', 'Trailer', 'Haul', 'Road', 'Fleet', 'Rig', 'Axle', 'Load'];
-  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const num = Math.floor(Math.random() * 900) + 100;
-  return `${adj}${noun}${num}!`;
-}
 
-async function getCategoryId(title) {
-  const titleLower = title.toLowerCase();
-  let slug = 'trailers';
+// Cache for category IDs
+const categoryIdCache = new Map();
 
-  for (const [keyword, categorySlug] of Object.entries(CATEGORY_MAP)) {
-    if (titleLower.includes(keyword)) {
-      slug = categorySlug;
-      break;
-    }
+async function getCategoryId(slug) {
+  if (categoryIdCache.has(slug)) {
+    return categoryIdCache.get(slug);
   }
 
   const { data } = await supabase
@@ -193,26 +194,42 @@ async function getCategoryId(title) {
     .eq('slug', slug)
     .single();
 
-  if (data) return data.id;
+  if (data) {
+    categoryIdCache.set(slug, data.id);
+    return data.id;
+  }
 
+  // Fallback to trailers or specialty-trailers
   const { data: fallback } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('slug', 'specialty-trailers')
+    .single();
+
+  if (fallback) {
+    categoryIdCache.set(slug, fallback.id);
+    return fallback.id;
+  }
+
+  const { data: trailers } = await supabase
     .from('categories')
     .select('id')
     .eq('slug', 'trailers')
     .single();
 
-  return fallback?.id;
+  categoryIdCache.set(slug, trailers?.id);
+  return trailers?.id;
 }
 
 async function importListing(product) {
-  const dealerId = await getOrCreateDealer({
-    name: product.dealerName || 'TruckPaper Listing',
-    contactPerson: product.contactPerson,
-    city: product.city,
-    state: product.state,
-    phone: product.dealerPhone,
-    realEmail: product.dealerEmail,
-  });
+  // Skip listings without images - we only want listings where we captured images
+  const hasImages = (product.images && product.images.length > 0) || product.imageUrl;
+  if (!hasImages) {
+    console.log(`  ⏭ Skipping (no images): ${product.title}`);
+    return { action: 'skipped_no_images' };
+  }
+
+  const dealerId = await getOrCreateTruckPaperDealer();
 
   // Check for duplicate by title and dealer
   const { data: existing } = await supabase
@@ -226,7 +243,7 @@ async function importListing(product) {
     return { action: 'skipped', id: existing.id };
   }
 
-  const categoryId = await getCategoryId(product.title);
+  const categoryId = await getCategoryId(product.categorySlug || 'specialty-trailers');
 
   const { data: listing, error } = await supabase
     .from('listings')
@@ -278,18 +295,17 @@ async function importListing(product) {
   return { action: 'imported', id: listing.id };
 }
 
-async function scrapeListings(browser, page, startPage = 1) {
+async function scrapeListings(browser, page, categoryUrl, categorySlug, categoryName) {
   const products = [];
-  let pageNum = startPage;
-  const maxPages = startPage + Math.ceil(MAX_LISTINGS / 25); // ~25 per page
+  let pageNum = 1;
+  const maxPages = 5; // Limit pages per category to avoid rate limiting
 
-  console.log(`   Starting from page ${startPage}, delay ${DELAY_MS}ms between pages`);
+  console.log(`\n   📦 ${categoryName}...`);
 
-  while (products.length < MAX_LISTINGS && pageNum <= maxPages) {
-    // Use the trailers-only URL
-    const url = `${BASE_URL}/listings/trailers?page=${pageNum}`;
+  while (products.length < 50 && pageNum <= maxPages) { // Max 50 per category
+    const url = `${BASE_URL}${categoryUrl}?page=${pageNum}`;
 
-    console.log(`   Page ${pageNum}...`);
+    console.log(`      Page ${pageNum}...`);
 
     try {
       await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
@@ -365,22 +381,26 @@ async function scrapeListings(browser, page, startPage = 1) {
       }, BASE_URL);
 
       if (pageProducts.length === 0) {
-        console.log('     No more listings found');
+        console.log('        No more listings found');
         break;
       }
 
-      console.log(`     Found ${pageProducts.length} listings`);
+      // Add category slug to each product
+      pageProducts.forEach(p => p.categorySlug = categorySlug);
+
+      console.log(`        Found ${pageProducts.length} listings`);
       products.push(...pageProducts);
       pageNum++;
 
       await sleep(1500);
     } catch (error) {
-      console.error(`     Error: ${error.message}`);
+      console.error(`        Error: ${error.message}`);
       break;
     }
   }
 
-  return products.slice(0, MAX_LISTINGS);
+  console.log(`      ✓ ${products.length} listings from ${categoryName}`);
+  return products;
 }
 
 async function fetchDealerDetails(page, products) {
@@ -522,18 +542,16 @@ async function fetchDealerDetails(page, products) {
 }
 
 async function main() {
-  console.log('🚛 TruckPaper TRAILER Scraper (Stealth)');
-  console.log(`   Target: ~14,000 trailers on TruckPaper`);
-  console.log(`   Limit: ${MAX_LISTINGS} listings this run`);
+  console.log('🚛 TruckPaper Category Scraper (Stealth)');
+  console.log(`   Categories: ${TRUCKPAPER_CATEGORIES.length} categories to scrape`);
+  console.log(`   Max per category: 50 listings, ${MAX_LISTINGS} total`);
   console.log('==================================================\n');
 
   // Load progress from previous runs
   const progress = loadProgress();
-  const startPage = START_PAGE > 1 ? START_PAGE : (progress.lastPage + 1) || 1;
 
-  console.log(`📊 Progress: ${progress.totalScraped} listings scraped so far`);
-  console.log(`   ${progress.dealers.length} unique dealers found`);
-  console.log(`   Resuming from page ${startPage}\n`);
+  console.log(`📊 Progress: ${progress.totalScraped || 0} listings scraped so far`);
+  console.log(`   ${progress.dealers?.length || 0} unique dealers found\n`);
 
   console.log('   Launching stealth browser...');
   const browser = await puppeteer.launch({
@@ -545,32 +563,60 @@ async function main() {
   await page.setViewport({ width: 1920, height: 1080 });
   await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-  console.log('   Scraping trailer listings...\n');
-  let products = await scrapeListings(browser, page, startPage);
+  let allProducts = [];
+  const completedCategories = progress.completedCategories || [];
 
-  console.log(`\n   Found ${products.length} listings this run`);
+  console.log('\n   Scraping by category...');
+
+  for (const category of TRUCKPAPER_CATEGORIES) {
+    // Skip already completed categories
+    if (completedCategories.includes(category.slug)) {
+      console.log(`   ⏭ Skipping ${category.name} (already done)`);
+      continue;
+    }
+
+    // Stop if we have enough
+    if (allProducts.length >= MAX_LISTINGS) {
+      console.log(`\n   ⏸ Reached limit of ${MAX_LISTINGS} listings`);
+      break;
+    }
+
+    try {
+      const categoryProducts = await scrapeListings(browser, page, category.url, category.slug, category.name);
+      allProducts.push(...categoryProducts);
+
+      // Mark category as completed
+      completedCategories.push(category.slug);
+
+      // Wait between categories to avoid rate limiting
+      await sleep(2000);
+    } catch (error) {
+      console.error(`   ✗ Error scraping ${category.name}: ${error.message}`);
+    }
+  }
+
+  console.log(`\n   Found ${allProducts.length} total listings across categories`);
 
   // Check for rate limiting
-  if (products.length === 0) {
+  if (allProducts.length === 0) {
     console.log('\n⚠️  No listings found - may be rate limited. Try again in 1 hour.');
     console.log('   Or increase delay: --delay=5000');
     await browser.close();
     return;
   }
 
-  // Fetch dealer details from each listing page
-  products = await fetchDealerDetails(page, products);
+  // Fetch dealer details (limit to first 100 to avoid rate limiting)
+  const productsToFetch = allProducts.slice(0, 100);
+  let products = await fetchDealerDetails(page, productsToFetch);
 
   await browser.close();
 
-  // Calculate last page scraped
-  const pagesScraped = Math.ceil(products.length / 28);
-  const lastPageScraped = startPage + pagesScraped - 1;
-
   let totalImported = 0;
   let totalSkipped = 0;
+  let totalSkippedNoImages = 0;
   let totalErrors = 0;
 
+  console.log('\n   Importing listings...');
   for (const product of products) {
     try {
       const result = await importListing(product);
@@ -579,69 +625,48 @@ async function main() {
         process.stdout.write(`   Imported: ${totalImported}\r`);
       } else if (result.action === 'skipped') {
         totalSkipped++;
+      } else if (result.action === 'skipped_no_images') {
+        totalSkippedNoImages++;
+      } else if (result.action === 'error') {
+        totalErrors++;
+        console.error(`   ✗ Error: ${result.error?.message || 'Unknown'}`);
       } else {
         totalErrors++;
       }
     } catch (e) {
       totalErrors++;
+      console.error(`   ✗ Exception: ${e.message}`);
     }
   }
 
   console.log('\n\n==================================================');
   console.log(`📊 This Run:`);
   console.log(`   Imported: ${totalImported}`);
-  console.log(`   Skipped: ${totalSkipped}`);
+  console.log(`   Skipped (duplicates): ${totalSkipped}`);
+  console.log(`   Skipped (no images): ${totalSkippedNoImages}`);
   console.log(`   Errors: ${totalErrors}`);
 
   // Update and save progress
   const newProgress = {
-    lastPage: lastPageScraped,
-    totalScraped: progress.totalScraped + products.length,
-    dealers: [...new Set([...progress.dealers, ...dealerCredentials.map(d => d.dealerName)])],
+    completedCategories,
+    totalScraped: (progress.totalScraped || 0) + products.length,
+    totalImported: (progress.totalImported || 0) + totalImported,
     lastRun: new Date().toISOString(),
   };
   saveProgress(newProgress);
 
   console.log('\n📈 Overall Progress:');
-  console.log(`   Total scraped: ${newProgress.totalScraped} / ~14,000 trailers`);
-  console.log(`   Unique dealers: ${newProgress.dealers.length}`);
-  console.log(`   Last page: ${lastPageScraped}`);
-  console.log(`   Progress: ${Math.round((newProgress.totalScraped / 14000) * 100)}%`);
+  console.log(`   Categories completed: ${completedCategories.length}/${TRUCKPAPER_CATEGORIES.length}`);
+  console.log(`   Total scraped: ${newProgress.totalScraped}`);
+  console.log(`   Total imported: ${newProgress.totalImported}`);
   console.log('==================================================\n');
 
-  // Save dealer credentials to CSV for outreach (append mode)
-  if (dealerCredentials.length > 0) {
-    const csvHeader = 'Dealer Name,Contact Person,Real Email,Phone,City,State,AxlesAI Login,Password\n';
-    const csvRows = dealerCredentials.map(d =>
-      `"${d.dealerName}","${d.contactPerson}","${d.realEmail}","${d.phone}","${d.city}","${d.state}","${d.loginEmail}","${d.password}"`
-    ).join('\n');
-
-    const filename = `truckpaper-dealers-${new Date().toISOString().split('T')[0]}.csv`;
-
-    // Append to existing file or create new
-    let existingContent = '';
-    if (existsSync(filename)) {
-      existingContent = readFileSync(filename, 'utf-8');
-      // Remove header if appending
-      writeFileSync(filename, existingContent + '\n' + csvRows);
-    } else {
-      writeFileSync(filename, csvHeader + csvRows);
-    }
-
-    console.log(`📧 Saved ${dealerCredentials.length} new dealer credentials to ${filename}`);
-
-    // Count stats
-    const withPhone = dealerCredentials.filter(d => d.phone).length;
-    console.log(`   ${withPhone} have phone numbers`);
-  }
-
-  // Estimate remaining
-  const remaining = 14000 - newProgress.totalScraped;
-  const runsNeeded = Math.ceil(remaining / MAX_LISTINGS);
-  if (remaining > 0) {
-    console.log(`\n⏭️  Next: Run again in ~1 hour to continue (${runsNeeded} more runs needed)`);
+  // Show remaining categories
+  const remainingCategories = TRUCKPAPER_CATEGORIES.length - completedCategories.length;
+  if (remainingCategories > 0) {
+    console.log(`\n⏭️  ${remainingCategories} categories remaining. Run again to continue.`);
   } else {
-    console.log('\n✅ All trailers scraped!');
+    console.log('\n✅ All categories scraped!');
   }
 }
 

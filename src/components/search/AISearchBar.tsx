@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Mic, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -130,14 +130,14 @@ export function AISearchBar({
       <div
         className={cn(
           'search-input-wrapper flex items-center gap-2 bg-white dark:bg-card border border-border rounded-full shadow-sm hover:shadow-md transition-all',
-          isLarge ? 'px-6 py-4' : isSmall ? 'px-3 py-1.5' : 'px-4 py-2',
+          isLarge ? 'pl-5 pr-2 py-2' : isSmall ? 'px-3 py-1.5' : 'pl-4 pr-2 py-1.5',
           showSuggestions && 'rounded-b-none shadow-md'
         )}
       >
         <Search
           className={cn(
             'text-muted-foreground flex-shrink-0',
-            isLarge ? 'w-6 h-6' : isSmall ? 'w-4 h-4' : 'w-5 h-5'
+            isLarge ? 'w-5 h-5' : isSmall ? 'w-4 h-4' : 'w-5 h-5'
           )}
         />
 
@@ -150,8 +150,8 @@ export function AISearchBar({
           onFocus={handleFocus}
           placeholder={placeholder}
           className={cn(
-            'flex-1 bg-transparent outline-none placeholder:text-muted-foreground/70',
-            isLarge ? 'text-lg' : isSmall ? 'text-sm' : 'text-base'
+            'flex-1 bg-transparent outline-none placeholder:text-muted-foreground/70 min-w-0',
+            isLarge ? 'text-base md:text-lg py-2' : isSmall ? 'text-sm' : 'text-base'
           )}
           autoComplete="off"
           spellCheck="false"
@@ -162,36 +162,27 @@ export function AISearchBar({
             onClick={() => {
               setQuery('');
               setSuggestions([]);
+              onTypingChange?.(false);
               inputRef.current?.focus();
             }}
-            className="p-1 hover:bg-muted rounded-full transition-colors"
+            className="p-1.5 hover:bg-muted rounded-full transition-colors flex-shrink-0"
           >
             <X className={cn('text-muted-foreground', isSmall ? 'w-3 h-3' : 'w-4 h-4')} />
           </button>
         )}
 
-        {!isSmall && <div className="h-6 w-px bg-border" />}
-
-        {!isSmall && (
-          <button
-            className="p-2 hover:bg-muted rounded-full transition-colors"
-            title="Voice search"
-          >
-            <Mic className="w-5 h-5 text-muted-foreground" />
-          </button>
-        )}
-
+        {/* Search button - icon style like ChatGPT/Grok */}
         <Button
           onClick={() => handleSearch()}
           disabled={isLoading || !query.trim()}
-          size={isLarge ? 'lg' : isSmall ? 'sm' : 'default'}
+          size="icon"
           className={cn(
-            'rounded-full',
-            isLarge && 'px-8',
-            isSmall && 'px-3'
+            'rounded-full flex-shrink-0 transition-all',
+            isLarge ? 'h-10 w-10 md:h-12 md:w-12' : isSmall ? 'h-7 w-7' : 'h-9 w-9',
+            !query.trim() && 'opacity-50'
           )}
         >
-          {isSmall ? <Search className="w-4 h-4" /> : 'Search'}
+          <Search className={cn(isLarge ? 'w-5 h-5' : 'w-4 h-4')} />
         </Button>
       </div>
 

@@ -24,40 +24,129 @@ const supabase = createClient(
 const PROGRESS_FILE = join(__dirname, '.scrape-progress.json');
 const RATE_LIMIT_MS = 300;
 
-// Category mapping
+// Category mapping - comprehensive list matching TruckPaper categories
 const CATEGORY_MAP = {
-  'chipper-trailers': 'chip-trailers',
-  'chip trailers': 'chip-trailers',
+  // Flatbed types
+  'flatbed': 'flatbed-trailers',
   'flatbed-trailers': 'flatbed-trailers',
   'flatbed trailers': 'flatbed-trailers',
-  'live-floor-trailers': 'live-floor-trailers',
-  'live floor trailers': 'live-floor-trailers',
-  'dump-trailers-end': 'end-dump-trailers',
-  'end dump': 'end-dump-trailers',
-  'dump-trailers-side': 'side-dump-trailers',
-  'side dump': 'side-dump-trailers',
-  'lowboy-trailers': 'lowboy-trailers',
-  'lowboy': 'lowboy-trailers',
-  'drop-deck': 'step-deck-trailers',
+
+  // Drop deck / step deck
+  'drop-deck': 'drop-deck-trailers',
+  'drop deck': 'drop-deck-trailers',
+  'step-deck': 'step-deck-trailers',
   'step deck': 'step-deck-trailers',
+  'stepdeck': 'step-deck-trailers',
+  'double drop': 'double-drop-trailers',
+  'double-drop': 'double-drop-trailers',
+
+  // Lowboy
+  'lowboy': 'lowboy-trailers',
+  'lowboy-trailers': 'lowboy-trailers',
+  'low boy': 'lowboy-trailers',
+  'traveling axle': 'traveling-axle-trailers',
+
+  // Dry van / enclosed
   'dry-van': 'dry-van-trailers',
   'dry van': 'dry-van-trailers',
+  'enclosed': 'enclosed-trailers',
+  'cargo trailer': 'cargo-trailers',
+  'drop frame': 'drop-frame-trailers',
+
+  // Reefer
   'reefer': 'reefer-trailers',
   'refrigerated': 'reefer-trailers',
-  'flatbed': 'flatbed-trailers',
+
+  // Dump types
+  'end dump': 'end-dump-trailers',
+  'end-dump': 'end-dump-trailers',
+  'side dump': 'side-dump-trailers',
+  'side-dump': 'side-dump-trailers',
+  'bottom dump': 'bottom-dump-trailers',
+  'dump-trailers-end': 'end-dump-trailers',
+  'dump-trailers-side': 'side-dump-trailers',
+  'dump trailer': 'dump-trailers',
   'dump': 'dump-trailers',
-  'hopper': 'dump-trailers',
+  'belt trailer': 'belt-trailers',
+
+  // Tank types
   'tank': 'tank-trailers',
   'tanker': 'tank-trailers',
+  'pneumatic': 'pneumatic-trailers',
+  'dry bulk': 'pneumatic-trailers',
+  'fuel tank': 'fuel-tank-trailers',
+  'petroleum': 'fuel-tank-trailers',
+  'gasoline': 'fuel-tank-trailers',
+  'food grade': 'food-tank-trailers',
+  'sanitary': 'food-tank-trailers',
+  'chemical': 'chemical-tank-trailers',
+  'acid': 'chemical-tank-trailers',
+  'water tank': 'water-tank-trailers',
+  'vacuum': 'vacuum-tank-trailers',
+
+  // Hopper / grain
+  'hopper': 'hopper-trailers',
+  'grain': 'grain-trailers',
+
+  // Live floor / chip
+  'live-floor': 'live-floor-trailers',
+  'live floor': 'live-floor-trailers',
   'moving-floor': 'live-floor-trailers',
   'moving floor': 'live-floor-trailers',
-  'tipper': 'tipper-trailers',
-  'yard-tractor': 'yard-tractors',
-  'yard tractor': 'yard-tractors',
+  'chipper': 'chip-trailers',
+  'chip': 'chip-trailers',
+  'chipper-trailers': 'chip-trailers',
+
+  // Livestock
+  'livestock': 'livestock-trailers',
+  'cattle': 'livestock-trailers',
+  'horse': 'horse-trailers',
+
+  // Car haulers
+  'car hauler': 'car-hauler-trailers',
+  'car carrier': 'car-hauler-trailers',
+  'auto transport': 'car-hauler-trailers',
+
+  // Curtain side
+  'curtain': 'curtain-side-trailers',
+  'curtain side': 'curtain-side-trailers',
+  'tautliner': 'curtain-side-trailers',
+
+  // Utility / light
+  'utility': 'utility-trailers',
+  'landscape': 'landscape-trailers',
+  'tilt': 'tilt-trailers',
+  'tilt deck': 'tilt-trailers',
+  'gooseneck': 'gooseneck-trailers',
+  'atv': 'atv-trailers',
+  'motorcycle': 'atv-trailers',
+  'boat': 'boat-trailers',
+
+  // Logging / pole
+  'log': 'log-trailers',
+  'logging': 'log-trailers',
+  'pole': 'pole-trailers',
+  'tag': 'tag-trailers',
+
+  // Other commercial
+  'roll off': 'roll-off-trailers',
+  'roll-off': 'roll-off-trailers',
+  'refuse': 'refuse-trailers',
+  'storage': 'storage-trailers',
+  'intermodal': 'intermodal-containers',
   'container chassis': 'container-chassis',
   'chassis': 'container-chassis',
-  'storage': 'storage-containers',
-  'office': 'office-trailers',
+  'oilfield': 'oilfield-trailers',
+  'oil field': 'oilfield-trailers',
+  'frac': 'oilfield-trailers',
+
+  // Yard tractors / spotters
+  'yard-tractor': 'yard-spotter-trucks',
+  'yard tractor': 'yard-spotter-trucks',
+  'yard spotter': 'yard-spotter-trucks',
+  'spotter': 'yard-spotter-trucks',
+
+  // Default
   'default': 'specialty-trailers',
 };
 
@@ -144,20 +233,38 @@ async function scrapePinnacleDetail(url) {
     const categoryFromUrl = url.split('/').find(p => p.includes('-trailers')) || 'trailers';
 
     const images = [];
+    // Look for product images - Pinnacle uses various patterns
     $('img').each((_, el) => {
-      const src = $(el).attr('src') || $(el).attr('data-src');
-      if (src && src.toLowerCase().includes('pt') && src.includes('.jpg')) {
+      const src = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-lazy-src');
+      if (!src) return;
+
+      // Skip common non-product images
+      if (src.includes('logo') || src.includes('icon') || src.includes('avatar') ||
+          src.includes('placeholder') || src.includes('loading') || src.includes('spinner')) {
+        return;
+      }
+
+      // Accept images from uploads folder or with product-like patterns
+      if (src.includes('uploads/') || src.includes('wp-content/') ||
+          src.toLowerCase().includes('pt') || src.includes('product') ||
+          src.includes('gallery') || src.includes('trailer')) {
         const fullSrc = src.startsWith('http') ? src : `https://www.pinnacletrailers.com${src}`;
-        if (!images.includes(fullSrc)) images.push(fullSrc);
+        if (!images.includes(fullSrc) && (src.includes('.jpg') || src.includes('.jpeg') || src.includes('.png') || src.includes('.webp'))) {
+          images.push(fullSrc);
+        }
       }
     });
 
-    // Try default pattern if no images found
-    if (images.length === 0 && stockNumber) {
-      for (let i = 1; i <= 5; i++) {
-        images.push(`https://www.pinnacletrailers.com/wp-content/uploads/${stockNumber}-${i}.jpg`);
+    // Also check for gallery/slider images
+    $('.gallery img, .slider img, .carousel img, .swiper img, .product-image img, [class*="gallery"] img').each((_, el) => {
+      const src = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-large_image');
+      if (src && !images.includes(src)) {
+        const fullSrc = src.startsWith('http') ? src : `https://www.pinnacletrailers.com${src}`;
+        images.push(fullSrc);
       }
-    }
+    });
+
+    // No fallback - we only want real images we can verify exist
 
     return {
       source: 'pinnacle',
@@ -233,9 +340,7 @@ async function scrapeHaleDetail(url, listingType) {
       }
     });
 
-    if (images.length === 0 && sourceId) {
-      images.push(`https://trailerimages.haletrailer.com/inv/imgs/trailer/${sourceId}-1.jpg`);
-    }
+    // No fallback - we only want real images we can verify exist
 
     return {
       source: 'hale',
@@ -301,6 +406,12 @@ async function getCategoryId(slug) {
 }
 
 async function importListing(listing, dealerId) {
+  // Skip listings without images - we only want listings where we captured images
+  if (!listing.images || listing.images.length === 0) {
+    console.log(`  ⏭ Skipping (no images): ${listing.title}`);
+    return false;
+  }
+
   // Check duplicate
   const { data: existing } = await supabase
     .from('listings')

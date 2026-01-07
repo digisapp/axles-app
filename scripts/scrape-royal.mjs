@@ -217,6 +217,13 @@ async function scrapeProductDetail(url) {
 }
 
 async function importListing(dealerId, product) {
+  // Skip listings without images - we only want listings where we captured images
+  const images = product.images || [];
+  if (images.length === 0) {
+    console.log(`  ⏭ Skipping (no images): ${product.title}`);
+    return { action: 'skipped_no_images' };
+  }
+
   // Check for duplicate
   const { data: existing } = await supabase
     .from('listings')
