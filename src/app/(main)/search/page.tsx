@@ -76,6 +76,7 @@ function SearchPageContent() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({});
+  const [totalWithoutPriceFilter, setTotalWithoutPriceFilter] = useState<number | null>(null);
 
   // Refs to prevent infinite loops
   const fetchIdRef = useRef(0);
@@ -130,6 +131,7 @@ function SearchPageContent() {
         let currentAiFilters = null;
         if (query && !category) {
           try {
+            console.log('[Search Page] Calling AI search for:', query);
             const aiResponse = await fetch('/api/ai/search', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -138,14 +140,17 @@ function SearchPageContent() {
 
             if (aiResponse.ok) {
               const { data } = await aiResponse.json();
+              console.log('[Search Page] AI response:', data);
               // Only update state if this is still the current fetch
               if (currentFetchId === fetchIdRef.current) {
                 setAiInterpretation(data);
               }
               currentAiFilters = data?.filters;
+            } else {
+              console.error('[Search Page] AI search returned error:', aiResponse.status);
             }
           } catch (aiError) {
-            console.error('AI search failed:', aiError);
+            console.error('[Search Page] AI search failed:', aiError);
           }
 
           // Fallback: if AI didn't return a category but we detected one, use it
@@ -202,11 +207,42 @@ function SearchPageContent() {
         const response = await fetch(`/api/listings?${params.toString()}`);
         const data = await response.json();
 
-        // Only update state if this is still the current fetch
-        if (currentFetchId === fetchIdRef.current) {
-          setListings(data.data || []);
-          setTotalCount(data.total || 0);
-          setTotalPages(data.total_pages || 1);
+        // If we got 0 results but had AI filters (especially price), retry without strict filters
+        const hasPriceFilter = params.has('min_price') || params.has('max_price');
+        const hasAIFilters = aiFilters && Object.keys(aiFilters).length > 0;
+
+        if ((data.data?.length === 0 || data.total === 0) && hasAIFilters && hasPriceFilter) {
+          // Retry without price filter to see if there are results
+          const fallbackParams = new URLSearchParams(params);
+          fallbackParams.delete('min_price');
+          fallbackParams.delete('max_price');
+
+          const fallbackResponse = await fetch(`/api/listings?${fallbackParams.toString()}`);
+          const fallbackData = await fallbackResponse.json();
+
+          if (currentFetchId === fetchIdRef.current) {
+            if (fallbackData.total > 0) {
+              // Show results without price filter, with a note
+              setListings(fallbackData.data || []);
+              setTotalCount(fallbackData.total || 0);
+              setTotalPages(fallbackData.total_pages || 1);
+              setTotalWithoutPriceFilter(fallbackData.total);
+            } else {
+              // No results either way
+              setListings([]);
+              setTotalCount(0);
+              setTotalPages(1);
+              setTotalWithoutPriceFilter(null);
+            }
+          }
+        } else {
+          // Only update state if this is still the current fetch
+          if (currentFetchId === fetchIdRef.current) {
+            setListings(data.data || []);
+            setTotalCount(data.total || 0);
+            setTotalPages(data.total_pages || 1);
+            setTotalWithoutPriceFilter(null);
+          }
         }
       } catch (error) {
         console.error('Search error:', error);
@@ -251,6 +287,11 @@ function SearchPageContent() {
                 <p className="text-xs md:text-sm text-muted-foreground mt-1">
                   AI confidence: {Math.round(aiInterpretation.confidence * 100)}%
                 </p>
+                {totalWithoutPriceFilter !== null && (
+                  <p className="text-xs md:text-sm text-amber-600 dark:text-amber-400 mt-1">
+                    Note: No listings found with that price range. Showing all {totalWithoutPriceFilter} matching listings (most are &quot;Call for Price&quot;).
+                  </p>
+                )}
               </div>
             </div>
           </div>

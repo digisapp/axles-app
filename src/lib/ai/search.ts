@@ -3,7 +3,7 @@ import { generateObject } from 'ai';
 import { z } from 'zod';
 import type { AISearchResult, SearchFilters } from '@/types';
 
-// Known makes for trucks and trailers
+// Known makes for trucks and trailers with common variations
 const TRUCK_MAKES = [
   'peterbilt', 'freightliner', 'kenworth', 'volvo', 'mack', 'international',
   'western star', 'navistar', 'hino', 'isuzu', 'ford', 'chevrolet', 'gmc'
@@ -16,8 +16,81 @@ const TRAILER_MAKES = [
   'dorsey', 'eager beaver', 'smithco', 'ranco'
 ];
 
+// Map of common typos/variations to canonical make names
+const MAKE_ALIASES: Record<string, string> = {
+  // Trail King variations
+  'trailking': 'trail king',
+  'trail-king': 'trail king',
+  'trailkings': 'trail king',
+  // Great Dane variations
+  'greatdane': 'great dane',
+  'great-dane': 'great dane',
+  // Western Star variations
+  'westernstar': 'western star',
+  'western-star': 'western star',
+  // Eager Beaver variations
+  'eagerbeaver': 'eager beaver',
+  'eager-beaver': 'eager beaver',
+  // XL Specialized variations
+  'xlspecialized': 'xl specialized',
+  'xl-specialized': 'xl specialized',
+  // Freightliner variations
+  'freight liner': 'freightliner',
+  'freight-liner': 'freightliner',
+  // Peterbilt variations
+  'peter bilt': 'peterbilt',
+  'peter-bilt': 'peterbilt',
+  'peterbuilt': 'peterbilt',
+  'pete': 'peterbilt',
+};
+
+/**
+ * Find a make in the query using fuzzy matching
+ * Handles: no spaces, hyphens, common typos
+ */
+function findMakeInQuery(queryLower: string, makes: string[]): string | null {
+  // First check for exact matches
+  for (const make of makes) {
+    if (queryLower.includes(make)) {
+      return make;
+    }
+  }
+
+  // Check aliases
+  for (const [alias, canonical] of Object.entries(MAKE_ALIASES)) {
+    if (queryLower.includes(alias)) {
+      return canonical;
+    }
+  }
+
+  // Check for no-space versions (e.g., "trailking" for "trail king")
+  for (const make of makes) {
+    const noSpaceMake = make.replace(/\s+/g, '');
+    if (queryLower.includes(noSpaceMake)) {
+      return make;
+    }
+  }
+
+  // Check for hyphenated versions
+  for (const make of makes) {
+    const hyphenatedMake = make.replace(/\s+/g, '-');
+    if (queryLower.includes(hyphenatedMake)) {
+      return make;
+    }
+  }
+
+  return null;
+}
+
 // Category keywords mapping
 const CATEGORY_KEYWORDS: Record<string, string> = {
+  // Parent categories (must come first for priority)
+  'trailers': 'trailers',
+  'trailer': 'trailers',
+  'trucks': 'trucks',
+  'truck': 'trucks',
+  'heavy equipment': 'heavy-equipment',
+  'equipment': 'heavy-equipment',
   // Trucks
   'semi': 'heavy-duty-trucks',
   'semi truck': 'heavy-duty-trucks',
@@ -137,29 +210,25 @@ function parseSearchQueryFallback(query: string): AISearchResult {
     }
   }
 
-  // Parse truck makes
-  for (const make of TRUCK_MAKES) {
-    if (queryLower.includes(make)) {
-      filters.make = make.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      interpretationParts.unshift(filters.make);
-      // If a truck make is found, default to trucks category
-      if (!filters.category_slug) {
-        filters.category_slug = 'trucks';
-      }
-      break;
+  // Parse truck makes with fuzzy matching
+  const truckMake = findMakeInQuery(queryLower, TRUCK_MAKES);
+  if (truckMake) {
+    filters.make = truckMake.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    interpretationParts.unshift(filters.make);
+    // If a truck make is found, default to trucks category
+    if (!filters.category_slug) {
+      filters.category_slug = 'trucks';
     }
   }
 
-  // Parse trailer makes
+  // Parse trailer makes with fuzzy matching
   if (!filters.make) {
-    for (const make of TRAILER_MAKES) {
-      if (queryLower.includes(make)) {
-        filters.make = make.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        interpretationParts.unshift(filters.make);
-        if (!filters.category_slug) {
-          filters.category_slug = 'trailers';
-        }
-        break;
+    const trailerMake = findMakeInQuery(queryLower, TRAILER_MAKES);
+    if (trailerMake) {
+      filters.make = trailerMake.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      interpretationParts.unshift(filters.make);
+      if (!filters.category_slug) {
+        filters.category_slug = 'trailers';
       }
     }
   }
@@ -272,13 +341,14 @@ export async function parseSearchQuery(query: string): Promise<AISearchResult> {
 
   // Use fallback parser if XAI is not configured
   if (!xai) {
-    console.log('XAI not configured, using fallback parser');
+    console.log('[AI Search] XAI not configured, using fallback parser');
     return parseSearchQueryFallback(query);
   }
 
   try {
+    console.log('[AI Search] Using xAI (Grok) for query:', query);
     const { object } = await generateObject({
-      model: xai('grok-2-latest'),
+      model: xai('grok-2-1212'),
       schema: searchResultSchema,
       prompt: `You are an AI assistant for AxlesAI, a marketplace for buying and selling trucks, trailers, and heavy equipment.
 
@@ -286,15 +356,26 @@ Parse the following natural language search query and extract structured search 
 
 Available categories:
 - Trucks: heavy-duty-trucks, medium-duty-trucks, light-duty-trucks, day-cab-trucks, sleeper-trucks, dump-trucks, box-trucks, flatbed-trucks, tow-trucks, tanker-trucks, garbage-trucks, fire-trucks
-- Trailers: dry-van-trailers, reefer-trailers, flatbed-trailers, lowboy-trailers, drop-deck-trailers, tank-trailers, dump-trailers, livestock-trailers, car-hauler-trailers, utility-trailers
+- Trailers: dry-van-trailers, reefer-trailers, flatbed-trailers, lowboy-trailers, drop-deck-trailers, tank-trailers, dump-trailers, livestock-trailers, car-hauler-trailers, utility-trailers, tag-trailers
 - Heavy Equipment: excavators, bulldozers, loaders, cranes, forklifts, backhoes
 - Components: engines, transmissions, axles, tires-wheels
 
-Common truck manufacturers: Peterbilt, Freightliner, Kenworth, Volvo, Mack, International, Western Star, Navistar
+IMPORTANT - Common trailer manufacturers (with fuzzy matching):
+- Trail King (also: trailking, trail-king)
+- Great Dane (also: greatdane)
+- Wabash, Utility, Vanguard, Hyundai, Stoughton, Fontaine
+- Wilson, Kentucky, Reitnouer, East, Manac, MAC, Talbert
+- Felling, Landoll, XL Specialized, Dorsey, Eager Beaver
+
+IMPORTANT - Common truck manufacturers (with fuzzy matching):
+- Peterbilt (also: pete, peterbuilt)
+- Freightliner (also: freight liner)
+- Kenworth, Volvo, Mack, International, Western Star, Navistar
 
 User Query: "${query}"
 
-Extract the search intent and return structured filters. Be smart about interpreting:
+Extract the search intent and return structured filters. Be SMART and FLEXIBLE about interpreting:
+- Handle typos and misspellings (e.g., "trailking" = "Trail King", "peterbuilt" = "Peterbilt")
 - "semi" or "18-wheeler" = heavy-duty-trucks or sleeper-trucks
 - "rig" = heavy-duty-trucks
 - "trailers" alone = use category_slug "trailers" (parent category for all trailer types)
@@ -312,6 +393,7 @@ Extract the search intent and return structured filters. Be smart about interpre
 - "low miles" or "under 500k miles" = max_mileage: 500000`,
     });
 
+    console.log('[AI Search] xAI result:', JSON.stringify(object, null, 2));
     return {
       query,
       interpretation: object.interpretation,
@@ -320,7 +402,7 @@ Extract the search intent and return structured filters. Be smart about interpre
       confidence: object.confidence,
     };
   } catch (error) {
-    console.error('XAI search failed, using fallback:', error);
+    console.error('[AI Search] xAI failed, using fallback:', error);
     return parseSearchQueryFallback(query);
   }
 }
@@ -333,7 +415,7 @@ export async function generateSearchSuggestions(partialQuery: string): Promise<s
 
   try {
     const { object } = await generateObject({
-      model: xai('grok-2-latest'),
+      model: xai('grok-2-1212'),
       schema: z.object({
         suggestions: z.array(z.string()).max(5),
       }),
