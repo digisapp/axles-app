@@ -256,9 +256,16 @@ async function importListing(product) {
     return { action: 'error', error };
   }
 
-  // Import images
-  const images = product.images || [];
+  // Import images - use detail page images, fall back to listing page thumbnail
+  let images = product.images || [];
+  if (images.length === 0 && product.imageUrl) {
+    images = [product.imageUrl];
+  }
+
   for (let i = 0; i < Math.min(images.length, 10); i++) {
+    // Skip invalid URLs
+    if (!images[i] || !images[i].startsWith('http')) continue;
+
     await supabase.from('listing_images').insert({
       listing_id: listing.id,
       url: images[i],
@@ -304,9 +311,9 @@ async function scrapeListings(browser, page, startPage = 1) {
             // URL
             const detailUrl = titleEl?.getAttribute('href') || '';
 
-            // Image
-            const imgEl = listing.querySelector('img');
-            const imageUrl = imgEl?.getAttribute('src') || imgEl?.getAttribute('data-src') || '';
+            // Image - TruckPaper uses media.sandhills.com
+            const imgEl = listing.querySelector('img[src*="sandhills"], img[src*="media."], img');
+            const imageUrl = imgEl?.getAttribute('src') || imgEl?.getAttribute('data-src') || imgEl?.getAttribute('data-lazy') || '';
 
             // Price
             const priceEl = listing.querySelector('[class*="price"], .price');
@@ -388,11 +395,11 @@ async function fetchDealerDetails(page, products) {
       await sleep(1500);
 
       const details = await page.evaluate(() => {
-        // Get all images
+        // Get all images - TruckPaper uses media.sandhills.com for images
         const images = [];
-        document.querySelectorAll('img[src*="photo"], img[src*="image"], .gallery img, [class*="carousel"] img').forEach(img => {
-          const src = img.getAttribute('src') || img.getAttribute('data-src');
-          if (src && !images.includes(src) && !src.includes('logo') && !src.includes('icon')) {
+        document.querySelectorAll('img[src*="sandhills"], img[src*="media."], img[src*="photo"], img[src*="image"], .gallery img, [class*="carousel"] img, [class*="slider"] img, [class*="photo"] img').forEach(img => {
+          const src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-lazy');
+          if (src && !images.includes(src) && !src.includes('logo') && !src.includes('icon') && !src.includes('placeholder') && src.includes('http')) {
             images.push(src);
           }
         });
