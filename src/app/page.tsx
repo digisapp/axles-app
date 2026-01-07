@@ -159,13 +159,13 @@ export default function HomePage() {
 
       {/* Main Content - Google-style centered */}
       <main className="relative z-10 flex-1 flex flex-col items-center pt-8 md:pt-16 px-4">
-        {/* Logo with glow effect */}
+        {/* Logo with glow effect - eyes version for light shine-through */}
         <div className={cn(
           "mb-6 md:mb-8 transition-all duration-500",
           isTyping && "logo-glow scale-105"
         )}>
           <Image
-            src="/images/axlesai-logo.png"
+            src="/images/axlesai-logo-eyes.png"
             alt="AxlesAI"
             width={200}
             height={80}
