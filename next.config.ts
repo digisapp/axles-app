@@ -43,6 +43,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'royaltrailersales.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'midcosales.com',
+      },
     ],
   },
 };
