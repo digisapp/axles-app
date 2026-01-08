@@ -13,8 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, RefreshCw, CalendarDays, Flame, TrendingDown, Calculator } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { TrendingUp, Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, RefreshCw, CalendarDays, Flame, TrendingDown, Calculator, Building2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
@@ -103,40 +102,48 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col gradient-bg relative overflow-hidden">
-      {/* Subtle noise texture */}
-      <div className="noise-overlay" />
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-100 via-gray-50 to-white relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-slate-300/20 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/3 left-0 w-[500px] h-[500px] bg-amber-200/10 rounded-full blur-[150px]" />
+      </div>
 
       {/* Top Banner */}
-      <div className="relative z-10 w-full bg-primary/10 border-b border-primary/20 py-2 px-4">
-        <p className="text-center text-sm text-foreground/80">
-          The <span className="font-semibold text-primary">AI-powered</span> marketplace for trucks, trailers & heavy equipment
+      <div className="relative z-10 w-full bg-slate-900 py-2.5 px-4">
+        <p className="text-center text-sm text-slate-300">
+          The <span className="font-semibold text-amber-400">AI-powered</span> marketplace for trucks, trailers & heavy equipment
         </p>
       </div>
 
       {/* Header */}
-      <header className="relative z-10 w-full px-4 py-3 md:py-4">
+      <header className="relative z-10 w-full px-4 py-4 border-b border-slate-200/60 bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2.5">
             <Image
               src="/images/axlesai-logo.png"
               alt="AxlesAI"
-              width={28}
-              height={28}
-              className="w-7 h-7"
+              width={32}
+              height={32}
+              className="w-8 h-8"
             />
-            <span className="font-semibold text-sm">AxlesAI</span>
+            <span className="font-bold text-slate-900">AxlesAI</span>
           </Link>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-3 items-center">
+            <Link href="/dealers" className="hidden md:flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 transition-colors">
+              <Building2 className="w-4 h-4" />
+              Dealers
+            </Link>
             {isLoading ? (
               <div className="w-20 h-8" />
             ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                    <Avatar className="h-9 w-9">
+                    <Avatar className="h-9 w-9 border-2 border-slate-200">
                       <AvatarImage src={user.avatar_url || undefined} />
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-slate-900 text-white">
                         {(user.company_name || user.email)?.[0]?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -176,12 +183,12 @@ export default function HomePage() {
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="ghost" size="sm" className="glass-button rounded-full">
+                  <Button variant="ghost" size="sm" className="text-slate-600 hover:text-slate-900">
                     Sign In
                   </Button>
                 </Link>
                 <Link href="/signup">
-                  <Button size="sm" className="rounded-full shadow-lg shadow-primary/25">
+                  <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-md">
                     Get Started
                   </Button>
                 </Link>
@@ -191,28 +198,33 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Main Content - Google-style centered */}
-      <main className="relative z-10 flex-1 flex flex-col items-center pt-8 md:pt-16 px-4">
-        {/* Logo with glow effect - eyes version for light shine-through */}
+      {/* Main Content */}
+      <main className="relative z-10 flex-1 flex flex-col items-center pt-12 md:pt-20 px-4">
+        {/* Logo with glow effect */}
         <div className={cn(
-          "mb-6 md:mb-8 transition-all duration-500",
-          isTyping && "logo-glow scale-105"
+          "mb-8 md:mb-10 transition-all duration-500",
+          isTyping && "scale-105"
         )}>
-          <Image
-            src="/images/axlesai-logo-eyes.png"
-            alt="AxlesAI"
-            width={200}
-            height={80}
-            priority
-            className={cn(
-              "dark:brightness-110 w-36 md:w-44 transition-all duration-500",
-              isTyping && "brightness-110"
+          <div className="relative">
+            {isTyping && (
+              <div className="absolute inset-0 bg-amber-400/20 blur-3xl rounded-full scale-150" />
             )}
-          />
+            <Image
+              src="/images/axlesai-logo-eyes.png"
+              alt="AxlesAI"
+              width={200}
+              height={80}
+              priority
+              className={cn(
+                "relative w-40 md:w-48 transition-all duration-500",
+                isTyping && "brightness-110"
+              )}
+            />
+          </div>
         </div>
 
         {/* Search Bar */}
-        <div className="w-full max-w-2xl mb-4 md:mb-5 px-2">
+        <div className="w-full max-w-2xl mb-5 md:mb-6 px-2">
           <AISearchBar
             size="large"
             autoFocus
@@ -225,35 +237,35 @@ export default function HomePage() {
         <div className="flex flex-wrap justify-center gap-2 mb-8 md:mb-10 px-4">
           <Link
             href="/search?category=lowboy-trailers&sort=price"
-            className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md rounded-lg transition-all text-slate-700"
           >
-            🔥 Lowboy Deals
+            <span className="mr-1.5">🔥</span>Lowboy Deals
           </Link>
           <Link
             href="/search?category=sleeper-trucks&sort=price"
-            className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md rounded-lg transition-all text-slate-700"
           >
-            🚛 Sleeper Deals
+            <span className="mr-1.5">🚛</span>Sleeper Deals
           </Link>
           <Link
             href="/search?category=flatbed-trailers&sort=price"
-            className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md rounded-lg transition-all text-slate-700"
           >
-            📦 Flatbed Deals
+            <span className="mr-1.5">📦</span>Flatbed Deals
           </Link>
           <Link
             href="/deals"
-            className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 rounded-lg transition-all shadow-md"
           >
-            💰 View All Deals
+            <span className="mr-1.5">💰</span>View All Deals
           </Link>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-10 md:mb-12 w-full sm:w-auto px-4">
+        <div className="flex flex-col sm:flex-row gap-3 mb-12 md:mb-14 w-full sm:w-auto px-4">
           <Button
             size="lg"
-            className="gap-2 w-full sm:w-auto rounded-full shadow-lg shadow-primary/20 group"
+            className="gap-2 w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-lg shadow-amber-500/25 group"
             asChild
           >
             <Link href="/search">
@@ -265,7 +277,7 @@ export default function HomePage() {
           <Button
             variant="outline"
             size="lg"
-            className="gap-2 w-full sm:w-auto rounded-full glass-button !bg-white/80 dark:!bg-white/10"
+            className="gap-2 w-full sm:w-auto bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 rounded-xl"
             asChild
           >
             <Link href="/dashboard/listings/new">
@@ -276,7 +288,7 @@ export default function HomePage() {
           <Button
             variant="outline"
             size="lg"
-            className="gap-2 w-full sm:w-auto rounded-full glass-button !bg-white/80 dark:!bg-white/10"
+            className="gap-2 w-full sm:w-auto bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 rounded-xl"
             asChild
           >
             <Link href="/finance">
@@ -287,7 +299,7 @@ export default function HomePage() {
           <Button
             variant="outline"
             size="lg"
-            className="gap-2 w-full sm:w-auto rounded-full glass-button !bg-white/80 dark:!bg-white/10"
+            className="gap-2 w-full sm:w-auto bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 rounded-xl"
             asChild
           >
             <Link href="/trade-in">
@@ -298,7 +310,7 @@ export default function HomePage() {
           <Button
             variant="outline"
             size="lg"
-            className="gap-2 w-full sm:w-auto rounded-full glass-button !bg-white/80 dark:!bg-white/10"
+            className="gap-2 w-full sm:w-auto bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 rounded-xl"
             asChild
           >
             <Link href="/search?listing_type=rent">
@@ -310,20 +322,23 @@ export default function HomePage() {
 
         {/* Hot Deals Section */}
         {deals.length > 0 && (
-          <div className="w-full max-w-4xl px-4 mb-8 md:mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
-                <Flame className="w-5 h-5 text-orange-500" />
+          <div className="w-full max-w-4xl px-4 mb-10">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                  <Flame className="w-4 h-4 text-white" />
+                </div>
                 Hot Deals
               </h2>
               <Link
                 href="/deals"
-                className="text-sm text-primary hover:underline"
+                className="text-sm font-medium text-slate-500 hover:text-amber-600 transition-colors flex items-center gap-1"
               >
-                View All →
+                View All
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {deals.map((deal) => (
                 <DealCard key={deal.id} deal={deal} />
               ))}
@@ -334,21 +349,21 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 py-8 md:py-10 px-4 border-t border-white/10 mt-auto">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <footer className="relative z-10 py-10 px-4 border-t border-slate-200 bg-white mt-auto">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <Image
               src="/images/axlesai-logo.png"
               alt="AxlesAI"
-              width={20}
-              height={20}
-              className="w-5 h-5"
+              width={24}
+              height={24}
+              className="w-6 h-6"
             />
-            <p className="text-xs md:text-sm text-muted-foreground">
+            <p className="text-sm text-slate-500">
               &copy; {new Date().getFullYear()} AxlesAI. All rights reserved.
             </p>
           </div>
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
             <FooterLink href="/trade-in">Trade-In</FooterLink>
             <FooterLink href="/tools/axle-weight-calculator">Weight Calculator</FooterLink>
             <FooterLink href="/dealers">Dealers</FooterLink>
@@ -367,7 +382,7 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
   return (
     <Link
       href={href}
-      className="text-xs md:text-sm text-muted-foreground hover:text-foreground transition-colors"
+      className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
     >
       {children}
     </Link>
@@ -378,42 +393,42 @@ function DealCard({ deal }: { deal: DealListing }) {
   const primaryImage = deal.images?.find((img) => img.is_primary) || deal.images?.[0];
 
   return (
-    <Link href={`/listing/${deal.id}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur">
-        <div className="relative aspect-[4/3]">
+    <Link href={`/listing/${deal.id}`} className="group">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-slate-300 transition-all duration-300 h-full">
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
           {primaryImage ? (
             <Image
               src={primaryImage.thumbnail_url || primaryImage.url}
               alt={deal.title}
               fill
-              className="object-cover"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
               unoptimized
             />
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground text-xs">No Image</span>
+            <div className="w-full h-full flex items-center justify-center">
+              <Package className="w-8 h-8 text-slate-300" />
             </div>
           )}
-          <Badge className="absolute top-2 left-2 bg-red-500 text-white text-[10px] md:text-xs">
+          <Badge className="absolute top-2 left-2 bg-red-500 text-white text-xs shadow-md">
             <TrendingDown className="w-3 h-3 mr-1" />
             {deal.discount_percent}% Off
           </Badge>
         </div>
-        <div className="p-2 md:p-3">
-          <h3 className="font-semibold text-xs md:text-sm line-clamp-1">{deal.title}</h3>
-          <div className="flex items-center gap-1.5 mt-1">
-            <span className="text-sm md:text-base font-bold text-primary">
+        <div className="p-3">
+          <h3 className="font-semibold text-sm text-slate-900 line-clamp-1 group-hover:text-amber-600 transition-colors">{deal.title}</h3>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="text-base font-bold text-slate-900">
               ${deal.price.toLocaleString()}
             </span>
-            <span className="text-[10px] md:text-xs text-muted-foreground line-through">
+            <span className="text-xs text-slate-400 line-through">
               ${deal.ai_price_estimate.toLocaleString()}
             </span>
           </div>
-          <p className="text-[10px] md:text-xs text-green-600 dark:text-green-400 mt-0.5">
+          <p className="text-xs text-emerald-600 font-medium mt-1">
             Save ${deal.savings.toLocaleString()}
           </p>
         </div>
-      </Card>
+      </div>
     </Link>
   );
 }
