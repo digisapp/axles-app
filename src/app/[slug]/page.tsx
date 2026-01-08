@@ -224,7 +224,6 @@ export default async function DealerStorefrontPage({ params, searchParams }: Pag
             {/* Social Links */}
             {(socialLinks.facebook || socialLinks.instagram) && (
               <div className="flex items-center gap-3 mt-6 pt-6 border-t border-slate-200">
-                <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">Follow</span>
                 {socialLinks.facebook && (
                   <a
                     href={socialLinks.facebook}
