@@ -18,7 +18,15 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status, priority, notes, last_contacted_at } = body;
+    const {
+      status,
+      priority,
+      notes,
+      last_contacted_at,
+      follow_up_date,
+      follow_up_note,
+      assigned_to,
+    } = body;
 
     // Build update object with only provided fields
     const updates: Record<string, unknown> = {};
@@ -26,6 +34,9 @@ export async function PATCH(
     if (priority !== undefined) updates.priority = priority;
     if (notes !== undefined) updates.notes = notes;
     if (last_contacted_at !== undefined) updates.last_contacted_at = last_contacted_at;
+    if (follow_up_date !== undefined) updates.follow_up_date = follow_up_date;
+    if (follow_up_note !== undefined) updates.follow_up_note = follow_up_note;
+    if (assigned_to !== undefined) updates.assigned_to = assigned_to;
 
     // Update the lead
     const { data, error } = await supabase

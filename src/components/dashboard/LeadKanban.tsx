@@ -19,6 +19,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Mail,
   Phone,
@@ -29,10 +38,15 @@ import {
   ArrowRight,
   Clock,
   User,
+  UserCircle,
   Package,
   Flame,
   TrendingUp,
+  CalendarClock,
+  Bell,
+  Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Lead {
   id: string;
@@ -53,6 +67,9 @@ interface Lead {
   };
   notes?: string;
   last_contacted_at?: string;
+  follow_up_date?: string;
+  follow_up_note?: string;
+  assigned_to?: string;
   created_at: string;
   listing?: {
     id: string;
@@ -61,8 +78,16 @@ interface Lead {
   } | null;
 }
 
+interface TeamMember {
+  id: string;
+  email: string;
+  company_name?: string;
+}
+
 interface LeadKanbanProps {
   leads: Lead[];
+  teamMembers?: TeamMember[];
+  currentUserId?: string;
 }
 
 const columns = [
@@ -72,10 +97,61 @@ const columns = [
   { id: 'won', label: 'Won', color: 'bg-green-500' },
 ];
 
-export function LeadKanban({ leads: initialLeads }: LeadKanbanProps) {
+export function LeadKanban({ leads: initialLeads, teamMembers = [], currentUserId }: LeadKanbanProps) {
   const [leads, setLeads] = useState(initialLeads);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [followUpDate, setFollowUpDate] = useState('');
+  const [followUpNote, setFollowUpNote] = useState('');
+  const [notes, setNotes] = useState('');
+  const [assignedTo, setAssignedTo] = useState<string | null>(null);
+
+  // Reset form when selected lead changes
+  const handleOpenDetail = (lead: Lead) => {
+    setSelectedLead(lead);
+    setFollowUpDate(lead.follow_up_date ? lead.follow_up_date.split('T')[0] : '');
+    setFollowUpNote(lead.follow_up_note || '');
+    setNotes(lead.notes || '');
+    setAssignedTo(lead.assigned_to || null);
+    setIsDetailOpen(true);
+  };
+
+  const saveLeadDetails = async () => {
+    if (!selectedLead) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/dashboard/leads/${selectedLead.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          notes,
+          follow_up_date: followUpDate ? new Date(followUpDate).toISOString() : null,
+          follow_up_note: followUpNote || null,
+          assigned_to: assignedTo || null,
+        }),
+      });
+
+      if (response.ok) {
+        // Update local state
+        setLeads(prev =>
+          prev.map(lead =>
+            lead.id === selectedLead.id
+              ? { ...lead, notes, follow_up_date: followUpDate, follow_up_note: followUpNote, assigned_to: assignedTo || undefined }
+              : lead
+          )
+        );
+        toast.success('Lead updated successfully');
+      } else {
+        throw new Error('Failed to update');
+      }
+    } catch (error) {
+      toast.error('Failed to save changes');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     // Optimistic update
@@ -126,10 +202,8 @@ export function LeadKanban({ leads: initialLeads }: LeadKanbanProps) {
                   key={lead.id}
                   lead={lead}
                   onStatusChange={updateLeadStatus}
-                  onViewDetails={() => {
-                    setSelectedLead(lead);
-                    setIsDetailOpen(true);
-                  }}
+                  onViewDetails={() => handleOpenDetail(lead)}
+                  teamMembers={teamMembers}
                 />
               ))}
 
@@ -254,19 +328,103 @@ export function LeadKanban({ leads: initialLeads }: LeadKanbanProps) {
                   </div>
                 )}
 
+                {/* Assignment */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <UserCircle className="w-4 h-4" />
+                    Assigned To
+                  </Label>
+                  <Select
+                    value={assignedTo || 'unassigned'}
+                    onValueChange={(value) => setAssignedTo(value === 'unassigned' ? null : value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Unassigned" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {currentUserId && (
+                        <SelectItem value={currentUserId}>
+                          Me {teamMembers.find(m => m.id === currentUserId)?.company_name ? `(${teamMembers.find(m => m.id === currentUserId)?.company_name})` : ''}
+                        </SelectItem>
+                      )}
+                      {teamMembers
+                        .filter(m => m.id !== currentUserId)
+                        .map(member => (
+                          <SelectItem key={member.id} value={member.id}>
+                            {member.company_name || member.email}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Follow-up Reminder */}
+                <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <CalendarClock className="w-4 h-4" />
+                    Follow-up Reminder
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="follow-up-date" className="text-xs">Date</Label>
+                      <Input
+                        id="follow-up-date"
+                        type="date"
+                        value={followUpDate}
+                        onChange={(e) => setFollowUpDate(e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="follow-up-note" className="text-xs">Note</Label>
+                      <Input
+                        id="follow-up-note"
+                        placeholder="Call back..."
+                        value={followUpNote}
+                        onChange={(e) => setFollowUpNote(e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
+                  </div>
+                  {followUpDate && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Bell className="w-3 h-3" />
+                      Reminder set for {new Date(followUpDate).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+
                 {/* Notes */}
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium">Notes</h4>
                   <Textarea
                     placeholder="Add notes about this lead..."
-                    defaultValue={selectedLead.notes || ''}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
                     className="min-h-[100px]"
                   />
                 </div>
 
+                {/* Save Button */}
+                <Button
+                  onClick={saveLeadDetails}
+                  disabled={isSaving}
+                  className="w-full"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+
                 {/* Actions */}
-                <div className="flex gap-2 pt-4">
-                  <Button className="flex-1" asChild>
+                <div className="flex gap-2 pt-2">
+                  <Button variant="outline" className="flex-1" asChild>
                     <a href={`mailto:${selectedLead.buyer_email}`}>
                       <Mail className="w-4 h-4 mr-2" />
                       Email
@@ -294,10 +452,12 @@ function LeadCard({
   lead,
   onStatusChange,
   onViewDetails,
+  teamMembers = [],
 }: {
   lead: Lead;
   onStatusChange: (id: string, status: string) => void;
   onViewDetails: () => void;
+  teamMembers?: TeamMember[];
 }) {
   const priorityColors = {
     low: 'bg-gray-100 text-gray-700',
@@ -413,6 +573,30 @@ function LeadCard({
             <Package className="w-3 h-3" />
             {lead.listing.title}
           </p>
+        )}
+
+        {/* Follow-up indicator */}
+        {lead.follow_up_date && (
+          <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded">
+            <Bell className="w-3 h-3" />
+            <span>
+              {new Date(lead.follow_up_date) <= new Date()
+                ? 'Follow-up due!'
+                : `Follow-up: ${new Date(lead.follow_up_date).toLocaleDateString()}`}
+            </span>
+          </div>
+        )}
+
+        {/* Assignment indicator */}
+        {lead.assigned_to && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <UserCircle className="w-3 h-3" />
+            <span>
+              {teamMembers.find(m => m.id === lead.assigned_to)?.company_name ||
+                teamMembers.find(m => m.id === lead.assigned_to)?.email ||
+                'Assigned'}
+            </span>
+          </div>
         )}
 
         {/* Footer */}

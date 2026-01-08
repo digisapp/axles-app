@@ -74,6 +74,8 @@ export async function PUT(
     status: body.status,
     ai_price_estimate: body.ai_price_estimate || null,
     ai_price_confidence: body.ai_price_confidence || null,
+    publish_at: body.publish_at || null,
+    unpublish_at: body.unpublish_at || null,
     updated_at: new Date().toISOString(),
   };
 

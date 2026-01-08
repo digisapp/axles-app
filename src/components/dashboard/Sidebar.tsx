@@ -27,6 +27,7 @@ import {
   Store,
   Bot,
   Bell,
+  Search,
 } from 'lucide-react';
 
 interface NavItem {
@@ -83,9 +84,14 @@ const navItems: NavItem[] = [
     icon: <MessageSquare className="w-5 h-5" />,
   },
   {
-    href: '/dashboard/saved',
-    label: 'Saved',
+    href: '/dashboard/favorites',
+    label: 'Favorites',
     icon: <Heart className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/saved',
+    label: 'Saved Searches',
+    icon: <Search className="w-5 h-5" />,
   },
   {
     href: '/dashboard/alerts',

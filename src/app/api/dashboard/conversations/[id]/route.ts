@@ -7,6 +7,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = parseInt(searchParams.get('offset') || '0');
+
     const supabase = await createClient();
 
     // Get current user
@@ -16,13 +20,12 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch conversation with all messages
+    // Fetch conversation metadata and lead info
     const { data: conversation, error } = await supabase
       .from('chat_conversations')
       .select(`
         *,
-        lead:leads(id, status, buyer_name, buyer_email, buyer_phone),
-        messages:chat_messages(id, role, content, metadata, created_at)
+        lead:leads(id, status, buyer_name, buyer_email, buyer_phone)
       `)
       .eq('id', id)
       .eq('dealer_id', user.id)
@@ -32,14 +35,35 @@ export async function GET(
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
 
-    // Sort messages by created_at
-    if (conversation.messages) {
-      conversation.messages.sort((a: { created_at: string }, b: { created_at: string }) =>
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      );
-    }
+    // Get total message count
+    const { count: totalMessages } = await supabase
+      .from('chat_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('conversation_id', id);
 
-    return NextResponse.json({ conversation });
+    // Fetch messages with pagination - get most recent first, then reverse
+    const { data: messages } = await supabase
+      .from('chat_messages')
+      .select('id, role, content, metadata, created_at')
+      .eq('conversation_id', id)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // Reverse to get chronological order (oldest to newest)
+    const sortedMessages = messages?.reverse() || [];
+
+    return NextResponse.json({
+      conversation: {
+        ...conversation,
+        messages: sortedMessages,
+      },
+      pagination: {
+        total: totalMessages || 0,
+        limit,
+        offset,
+        hasMore: (totalMessages || 0) > offset + limit,
+      },
+    });
   } catch (error) {
     console.error('Conversation detail API error:', error);
     return NextResponse.json(

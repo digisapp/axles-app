@@ -38,6 +38,8 @@ import {
   CheckCircle,
   Wand2,
   Video,
+  Copy,
+  CalendarClock,
 } from 'lucide-react';
 import { ImageUpload } from '@/components/listings/ImageUpload';
 import type { Category, AIPriceEstimate } from '@/types';
@@ -65,6 +67,7 @@ export default function EditListingPage({ params }: PageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCloning, setIsCloning] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [priceEstimate, setPriceEstimate] = useState<AIPriceEstimate | null>(null);
@@ -91,6 +94,8 @@ export default function EditListingPage({ params }: PageProps) {
     video_url: '',
     status: 'draft',
     specs: {} as Record<string, string>,
+    publish_at: '',
+    unpublish_at: '',
   });
 
   useEffect(() => {
@@ -147,6 +152,8 @@ export default function EditListingPage({ params }: PageProps) {
           video_url: listing.video_url || '',
           status: listing.status || 'draft',
           specs: listing.specs || {},
+          publish_at: listing.publish_at ? listing.publish_at.split('T')[0] : '',
+          unpublish_at: listing.unpublish_at ? listing.unpublish_at.split('T')[0] : '',
         });
 
         if (listing.images) {
@@ -281,6 +288,8 @@ export default function EditListingPage({ params }: PageProps) {
           status,
           ai_price_estimate: priceEstimate?.estimated_price || null,
           ai_price_confidence: priceEstimate?.confidence || null,
+          publish_at: formData.publish_at ? new Date(formData.publish_at).toISOString() : null,
+          unpublish_at: formData.unpublish_at ? new Date(formData.unpublish_at).toISOString() : null,
         }),
       });
 
@@ -341,6 +350,27 @@ export default function EditListingPage({ params }: PageProps) {
     }
   };
 
+  const handleClone = async () => {
+    setIsCloning(true);
+
+    try {
+      const response = await fetch(`/api/listings/${id}/clone`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const { data } = await response.json();
+        router.push(`/dashboard/listings/${data.id}/edit?cloned=true`);
+      } else {
+        throw new Error('Failed to clone');
+      }
+    } catch (error) {
+      console.error('Clone error:', error);
+      alert('Failed to clone listing');
+      setIsCloning(false);
+    }
+  };
+
   const US_STATES = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
     'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
@@ -398,6 +428,19 @@ export default function EditListingPage({ params }: PageProps) {
                 <Eye className="w-4 h-4 mr-2" />
                 Preview
               </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClone}
+              disabled={isCloning}
+            >
+              {isCloning ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Copy className="w-4 h-4 mr-2" />
+              )}
+              Clone
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -808,6 +851,84 @@ export default function EditListingPage({ params }: PageProps) {
                   Supports YouTube and Vimeo links
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Scheduling */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarClock className="w-5 h-5" />
+                Scheduling
+              </CardTitle>
+              <CardDescription>
+                Schedule when your listing goes live and expires automatically
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="publish_at">Publish Date</Label>
+                  <Input
+                    id="publish_at"
+                    type="date"
+                    value={formData.publish_at}
+                    onChange={(e) => setFormData({ ...formData, publish_at: e.target.value })}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Schedule listing to go live on this date
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="unpublish_at">Expiration Date</Label>
+                  <Input
+                    id="unpublish_at"
+                    type="date"
+                    value={formData.unpublish_at}
+                    onChange={(e) => setFormData({ ...formData, unpublish_at: e.target.value })}
+                    min={formData.publish_at || new Date().toISOString().split('T')[0]}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Automatically unpublish after this date
+                  </p>
+                </div>
+              </div>
+              {(formData.publish_at || formData.unpublish_at) && (
+                <div className="p-3 bg-muted/50 rounded-lg text-sm">
+                  {formData.publish_at && (
+                    <p>
+                      <span className="font-medium">Publishes:</span>{' '}
+                      {new Date(formData.publish_at).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  )}
+                  {formData.unpublish_at && (
+                    <p className="mt-1">
+                      <span className="font-medium">Expires:</span>{' '}
+                      {new Date(formData.unpublish_at).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  )}
+                </div>
+              )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setFormData({ ...formData, publish_at: '', unpublish_at: '' })}
+                className="text-muted-foreground"
+              >
+                Clear Schedule
+              </Button>
             </CardContent>
           </Card>
 

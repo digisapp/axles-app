@@ -33,6 +33,17 @@ export default async function LeadsPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
+  // Get current user profile for team member display
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, email, company_name')
+    .eq('id', user.id)
+    .single();
+
+  // For now, team members is just the current user
+  // Future: fetch actual team members from a team/organization table
+  const teamMembers = profile ? [profile] : [];
+
   // Get lead stats
   const stats = {
     total: leads?.length || 0,
@@ -73,7 +84,11 @@ export default async function LeadsPage() {
 
       {/* Kanban Board */}
       {leads && leads.length > 0 ? (
-        <LeadKanban leads={leads} />
+        <LeadKanban
+          leads={leads}
+          teamMembers={teamMembers}
+          currentUserId={user.id}
+        />
       ) : (
         <Card>
           <CardContent className="py-16">
