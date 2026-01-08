@@ -66,6 +66,7 @@ export async function POST(
     }
 
     // Try to insert view (unique constraint will prevent duplicates)
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     const { error: viewError } = await supabase
       .from('listing_views')
       .insert({
@@ -75,6 +76,7 @@ export async function POST(
         ip_hash: ipHash,
         user_agent: userAgent?.substring(0, 500), // Limit length
         referrer: referrer?.substring(0, 500),
+        view_date: today,
       });
 
     if (viewError) {

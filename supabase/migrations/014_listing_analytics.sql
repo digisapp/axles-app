@@ -10,12 +10,13 @@ CREATE TABLE IF NOT EXISTS listing_views (
   ip_hash TEXT, -- Hashed IP for deduplication (privacy-safe)
   user_agent TEXT,
   referrer TEXT,
-  viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  view_date DATE NOT NULL DEFAULT CURRENT_DATE -- For deduplication
 );
 
--- Prevent duplicate views from same session on same day (unique index with expression)
+-- Prevent duplicate views from same session on same day
 CREATE UNIQUE INDEX idx_unique_view_session
-  ON listing_views(listing_id, session_id, (viewed_at::date))
+  ON listing_views(listing_id, session_id, view_date)
   WHERE session_id IS NOT NULL;
 
 -- Indexes for efficient queries
