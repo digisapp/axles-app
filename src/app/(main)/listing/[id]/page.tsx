@@ -34,6 +34,7 @@ import { FinancingCalculator } from '@/components/listings/FinancingCalculator';
 import { VideoPlayer } from '@/components/listings/VideoPlayer';
 import { TranslatableTitle, TranslatableDescription } from '@/components/listings/TranslatableContent';
 import { LiveChat } from '@/components/listings/LiveChat';
+import { DealerAIChat } from '@/components/listings/DealerAIChat';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -202,6 +203,20 @@ export default async function ListingPage({ params }: PageProps) {
     .neq('id', id)
     .or(`make.eq.${listing.make},category_id.eq.${listing.category_id}`)
     .limit(4);
+
+  // Check if dealer has AI assistant enabled
+  let dealerAIEnabled = false;
+  if (listing.user?.id) {
+    const { data: aiSettings } = await supabase
+      .from('dealer_ai_settings')
+      .select('is_enabled, show_on_listings')
+      .eq('dealer_id', listing.user.id)
+      .eq('is_enabled', true)
+      .eq('show_on_listings', true)
+      .single();
+
+    dealerAIEnabled = !!aiSettings;
+  }
 
   // Sort images by sort_order, primary first
   const sortedImages = [...(listing.images || [])]
@@ -565,22 +580,40 @@ export default async function ListingPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            {/* Live Chat */}
+            {/* Dealer AI Chat or Live Chat */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Quick Contact</CardTitle>
+                <CardTitle className="text-lg">
+                  {dealerAIEnabled ? 'Ask AI Assistant' : 'Quick Contact'}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <LiveChat
-                  listingId={id}
-                  sellerId={listing.user?.id || ''}
-                  sellerName={listing.user?.company_name || 'Seller'}
-                  sellerAvatar={listing.user?.avatar_url}
-                  listingTitle={listing.title}
-                />
-                <p className="text-xs text-muted-foreground text-center">
-                  Get instant responses from the dealer
-                </p>
+                {dealerAIEnabled ? (
+                  <>
+                    <DealerAIChat
+                      dealerId={listing.user?.id || ''}
+                      dealerName={listing.user?.company_name || 'Dealer'}
+                      listingId={id}
+                      listingTitle={listing.title}
+                    />
+                    <p className="text-xs text-muted-foreground text-center">
+                      AI-powered sales assistant available 24/7
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <LiveChat
+                      listingId={id}
+                      sellerId={listing.user?.id || ''}
+                      sellerName={listing.user?.company_name || 'Seller'}
+                      sellerAvatar={listing.user?.avatar_url}
+                      listingTitle={listing.title}
+                    />
+                    <p className="text-xs text-muted-foreground text-center">
+                      Get instant responses from the dealer
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -680,22 +713,40 @@ export default async function ListingPage({ params }: PageProps) {
 
         {/* Mobile Contact Form & Financing */}
         <div className="lg:hidden mt-8 space-y-6">
-          {/* Mobile Live Chat */}
+          {/* Mobile Dealer AI Chat or Live Chat */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Quick Contact</CardTitle>
+              <CardTitle className="text-lg">
+                {dealerAIEnabled ? 'Ask AI Assistant' : 'Quick Contact'}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <LiveChat
-                listingId={id}
-                sellerId={listing.user?.id || ''}
-                sellerName={listing.user?.company_name || 'Seller'}
-                sellerAvatar={listing.user?.avatar_url}
-                listingTitle={listing.title}
-              />
-              <p className="text-xs text-muted-foreground text-center">
-                Get instant responses from the dealer
-              </p>
+              {dealerAIEnabled ? (
+                <>
+                  <DealerAIChat
+                    dealerId={listing.user?.id || ''}
+                    dealerName={listing.user?.company_name || 'Dealer'}
+                    listingId={id}
+                    listingTitle={listing.title}
+                  />
+                  <p className="text-xs text-muted-foreground text-center">
+                    AI-powered sales assistant available 24/7
+                  </p>
+                </>
+              ) : (
+                <>
+                  <LiveChat
+                    listingId={id}
+                    sellerId={listing.user?.id || ''}
+                    sellerName={listing.user?.company_name || 'Seller'}
+                    sellerAvatar={listing.user?.avatar_url}
+                    listingTitle={listing.title}
+                  />
+                  <p className="text-xs text-muted-foreground text-center">
+                    Get instant responses from the dealer
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
 
