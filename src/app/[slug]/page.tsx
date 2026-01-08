@@ -219,17 +219,6 @@ export default async function DealerStorefrontPage({ params, searchParams }: Pag
                 </div>
               </div>
 
-              {/* Stats */}
-              <div className="flex md:flex-col gap-3">
-                <div className="text-center px-5 py-3 rounded-xl bg-slate-900 text-white min-w-[90px]">
-                  <p className="text-2xl font-bold">{listings?.length || 0}</p>
-                  <p className="text-xs text-slate-400 uppercase tracking-wider">Listings</p>
-                </div>
-                <div className="text-center px-5 py-3 rounded-xl bg-amber-500 text-white min-w-[90px]">
-                  <p className="text-2xl font-bold">{dealer.storefront_views || 0}</p>
-                  <p className="text-xs text-amber-100 uppercase tracking-wider">Views</p>
-                </div>
-              </div>
             </div>
 
             {/* Social Links */}
