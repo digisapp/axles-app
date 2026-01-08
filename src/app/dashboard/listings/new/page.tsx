@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { VINDecoder } from '@/components/listings/VINDecoder';
+import { VideoUpload } from '@/components/listings/VideoUpload';
 import type { Category, AIPriceEstimate } from '@/types';
 
 export default function NewListingPage() {
@@ -621,22 +622,14 @@ export default function NewListingPage() {
                   Video Walkaround
                 </CardTitle>
                 <CardDescription>
-                  Add a YouTube or Vimeo video URL to showcase your equipment
+                  Add a video walk-around to help buyers see your equipment in action
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div>
-                  <Label htmlFor="video_url">Video URL</Label>
-                  <Input
-                    id="video_url"
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    value={formData.video_url}
-                    onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Supports YouTube and Vimeo links
-                  </p>
-                </div>
+                <VideoUpload
+                  value={formData.video_url}
+                  onChange={(url) => setFormData({ ...formData, video_url: url })}
+                />
               </CardContent>
             </Card>
 

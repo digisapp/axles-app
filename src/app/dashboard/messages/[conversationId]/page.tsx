@@ -86,6 +86,42 @@ export default function ConversationPage({ params }: PageProps) {
     fetchData();
   }, [conversationId, supabase]);
 
+  // Real-time subscription for live chat
+  useEffect(() => {
+    if (!userId || !listing || !otherUser) return;
+
+    const channel = supabase
+      .channel(`conversation-${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `listing_id=eq.${listing.id}`,
+        },
+        (payload) => {
+          const newMsg = payload.new as Message;
+          // Only add if it's for this conversation
+          if (
+            (newMsg.sender_id === userId && newMsg.recipient_id === otherUser.id) ||
+            (newMsg.sender_id === otherUser.id && newMsg.recipient_id === userId)
+          ) {
+            setMessages((prev) => {
+              // Avoid duplicates
+              if (prev.some((m) => m.id === newMsg.id)) return prev;
+              return [...prev, newMsg];
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, listing, otherUser, conversationId, supabase]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);

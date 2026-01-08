@@ -33,6 +33,7 @@ import { CompareButton } from '@/components/listings/CompareButton';
 import { FinancingCalculator } from '@/components/listings/FinancingCalculator';
 import { VideoPlayer } from '@/components/listings/VideoPlayer';
 import { TranslatableTitle, TranslatableDescription } from '@/components/listings/TranslatableContent';
+import { LiveChat } from '@/components/listings/LiveChat';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -564,6 +565,25 @@ export default async function ListingPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
+            {/* Live Chat */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Quick Contact</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <LiveChat
+                  listingId={id}
+                  sellerId={listing.user?.id || ''}
+                  sellerName={listing.user?.company_name || 'Seller'}
+                  sellerAvatar={listing.user?.avatar_url}
+                  listingTitle={listing.title}
+                />
+                <p className="text-xs text-muted-foreground text-center">
+                  Get instant responses from the dealer
+                </p>
+              </CardContent>
+            </Card>
+
             {/* Contact Form */}
             <ContactSeller
               listingId={id}
@@ -660,6 +680,25 @@ export default async function ListingPage({ params }: PageProps) {
 
         {/* Mobile Contact Form & Financing */}
         <div className="lg:hidden mt-8 space-y-6">
+          {/* Mobile Live Chat */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Quick Contact</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <LiveChat
+                listingId={id}
+                sellerId={listing.user?.id || ''}
+                sellerName={listing.user?.company_name || 'Seller'}
+                sellerAvatar={listing.user?.avatar_url}
+                listingTitle={listing.title}
+              />
+              <p className="text-xs text-muted-foreground text-center">
+                Get instant responses from the dealer
+              </p>
+            </CardContent>
+          </Card>
+
           <ContactSeller
             listingId={id}
             sellerId={listing.user?.id || ''}
