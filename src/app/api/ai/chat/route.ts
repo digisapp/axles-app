@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
+import { createClient } from '@/lib/supabase/server';
+
+// Listing type for database queries
+interface ListingResult {
+  id: string;
+  title: string;
+  price: number | null;
+  year: number | null;
+  make: string | null;
+  model: string | null;
+  condition: string | null;
+  city: string | null;
+  state: string | null;
+  mileage: number | null;
+  hours: number | null;
+  ai_price_estimate: number | null;
+  category: { name: string; slug: string }[] | null;
+}
 
 function getXai() {
   if (!process.env.XAI_API_KEY) {
@@ -101,6 +119,239 @@ function isWeightQuestion(query: string): boolean {
   ];
 
   return weightKeywords.some(keyword => q.includes(keyword));
+}
+
+// Detect if question needs listing data from database
+function needsListingData(query: string): boolean {
+  const q = query.toLowerCase();
+  const listingKeywords = [
+    'cheapest', 'best price', 'lowest price', 'best deal', 'good deal',
+    'how much', 'average price', 'price range', 'what do you have',
+    'do you have', 'show me', 'find me', 'looking for', 'available',
+    'in stock', 'for sale', 'inventory', 'listings', 'compare',
+    'newest', 'oldest', 'most expensive', 'under $', 'less than',
+    'between', 'near me', 'in my area', 'best value', 'recommend',
+    'suggestion', 'what should i buy', 'which one', 'top rated'
+  ];
+
+  return listingKeywords.some(keyword => q.includes(keyword));
+}
+
+// Extract equipment type/category from query for database search
+function extractEquipmentType(query: string): { category?: string; make?: string; condition?: string; maxPrice?: number; minYear?: number } {
+  const q = query.toLowerCase();
+  const filters: { category?: string; make?: string; condition?: string; maxPrice?: number; minYear?: number } = {};
+
+  // Category mapping
+  const categoryPatterns: Record<string, string> = {
+    'lowboy': 'lowboy-trailers',
+    'flatbed trailer': 'flatbed-trailers',
+    'flatbed': 'flatbed-trailers',
+    'reefer': 'reefer-trailers',
+    'refrigerated': 'reefer-trailers',
+    'dry van': 'dry-van-trailers',
+    'step deck': 'step-deck-trailers',
+    'drop deck': 'drop-deck-trailers',
+    'dump trailer': 'dump-trailers',
+    'tank trailer': 'tank-trailers',
+    'livestock': 'livestock-trailers',
+    'car hauler': 'car-hauler-trailers',
+    'enclosed': 'enclosed-trailers',
+    'utility trailer': 'utility-trailers',
+    'trailer': 'trailers',
+    'semi truck': 'heavy-duty-trucks',
+    'semi': 'heavy-duty-trucks',
+    'sleeper': 'sleeper-trucks',
+    'day cab': 'day-cab-trucks',
+    'dump truck': 'dump-trucks',
+    'box truck': 'box-trucks',
+    'truck': 'trucks',
+    'excavator': 'excavators',
+    'bulldozer': 'bulldozers',
+    'loader': 'loaders',
+    'forklift': 'forklifts',
+    'crane': 'cranes',
+  };
+
+  for (const [keyword, slug] of Object.entries(categoryPatterns)) {
+    if (q.includes(keyword)) {
+      filters.category = slug;
+      break;
+    }
+  }
+
+  // Make/brand detection
+  const makes = ['peterbilt', 'kenworth', 'freightliner', 'volvo', 'mack', 'international',
+                 'western star', 'great dane', 'wabash', 'utility', 'hyundai', 'stoughton',
+                 'fontaine', 'mac', 'travis', 'manac', 'vanguard', 'polar'];
+  for (const make of makes) {
+    if (q.includes(make)) {
+      filters.make = make.charAt(0).toUpperCase() + make.slice(1);
+      break;
+    }
+  }
+
+  // Condition detection
+  if (q.includes('new') && !q.includes('newest')) {
+    filters.condition = 'new';
+  } else if (q.includes('used')) {
+    filters.condition = 'used';
+  }
+
+  // Price extraction (e.g., "under $50,000" or "under 50k")
+  const priceMatch = q.match(/under\s*\$?\s*([\d,]+)\s*k?/i) || q.match(/less than\s*\$?\s*([\d,]+)\s*k?/i);
+  if (priceMatch) {
+    let price = parseInt(priceMatch[1].replace(/,/g, ''));
+    if (q.includes(priceMatch[1] + 'k')) {
+      price *= 1000;
+    } else if (price < 1000) {
+      price *= 1000; // Assume thousands
+    }
+    filters.maxPrice = price;
+  }
+
+  // Year extraction (e.g., "2020 or newer")
+  const yearMatch = q.match(/(\d{4})\s*(or newer|and newer|\+|up)/i);
+  if (yearMatch) {
+    filters.minYear = parseInt(yearMatch[1]);
+  }
+
+  return filters;
+}
+
+// Query database for relevant listings
+async function queryListings(query: string): Promise<{ listings: ListingResult[]; stats: { total: number; avgPrice: number; minPrice: number; maxPrice: number } | null }> {
+  const supabase = await createClient();
+  const filters = extractEquipmentType(query);
+  const q = query.toLowerCase();
+
+  let dbQuery = supabase
+    .from('listings')
+    .select(`
+      id, title, price, year, make, model, condition, city, state, mileage, hours, ai_price_estimate,
+      category:categories!left(name, slug)
+    `)
+    .eq('status', 'active')
+    .not('price', 'is', null);
+
+  // Apply filters
+  if (filters.category) {
+    dbQuery = dbQuery.eq('category.slug', filters.category);
+  }
+  if (filters.make) {
+    dbQuery = dbQuery.ilike('make', `%${filters.make}%`);
+  }
+  if (filters.condition) {
+    dbQuery = dbQuery.eq('condition', filters.condition);
+  }
+  if (filters.maxPrice) {
+    dbQuery = dbQuery.lte('price', filters.maxPrice);
+  }
+  if (filters.minYear) {
+    dbQuery = dbQuery.gte('year', filters.minYear);
+  }
+
+  // Determine sort order based on query
+  if (q.includes('cheapest') || q.includes('lowest price') || q.includes('best price')) {
+    dbQuery = dbQuery.order('price', { ascending: true });
+  } else if (q.includes('newest')) {
+    dbQuery = dbQuery.order('year', { ascending: false });
+  } else if (q.includes('best deal') || q.includes('good deal')) {
+    // Best deals = lowest price relative to AI estimate
+    dbQuery = dbQuery.not('ai_price_estimate', 'is', null).order('price', { ascending: true });
+  } else if (q.includes('most expensive')) {
+    dbQuery = dbQuery.order('price', { ascending: false });
+  } else {
+    dbQuery = dbQuery.order('created_at', { ascending: false });
+  }
+
+  dbQuery = dbQuery.limit(5);
+
+  const { data: listings, error } = await dbQuery;
+
+  if (error || !listings) {
+    console.error('Listing query error:', error);
+    return { listings: [], stats: null };
+  }
+
+  // Calculate stats for the category/filters
+  let statsQuery = supabase
+    .from('listings')
+    .select('price')
+    .eq('status', 'active')
+    .not('price', 'is', null);
+
+  if (filters.category) {
+    // Need to join for category filter in stats
+    const { data: categoryData } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('slug', filters.category)
+      .single();
+
+    if (categoryData) {
+      statsQuery = statsQuery.eq('category_id', categoryData.id);
+    }
+  }
+
+  const { data: priceData } = await statsQuery;
+
+  let stats = null;
+  if (priceData && priceData.length > 0) {
+    const prices = priceData.map(p => p.price).filter((p): p is number => p !== null);
+    if (prices.length > 0) {
+      stats = {
+        total: prices.length,
+        avgPrice: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
+        minPrice: Math.min(...prices),
+        maxPrice: Math.max(...prices),
+      };
+    }
+  }
+
+  return { listings: listings as ListingResult[], stats };
+}
+
+// Format listings for AI context
+function formatListingsForAI(listings: ListingResult[], stats: { total: number; avgPrice: number; minPrice: number; maxPrice: number } | null): string {
+  if (listings.length === 0) {
+    return 'No matching listings found in the database.';
+  }
+
+  let context = '';
+
+  if (stats) {
+    context += `INVENTORY STATS: ${stats.total} listings available. Price range: $${stats.minPrice.toLocaleString()} - $${stats.maxPrice.toLocaleString()}. Average price: $${stats.avgPrice.toLocaleString()}.\n\n`;
+  }
+
+  context += 'TOP MATCHING LISTINGS:\n';
+  listings.forEach((listing, i) => {
+    const dealIndicator = listing.price && listing.ai_price_estimate && listing.price < listing.ai_price_estimate * 0.9
+      ? ' [GREAT DEAL - below market value]'
+      : '';
+
+    context += `${i + 1}. ${listing.title}${dealIndicator}\n`;
+    context += `   Price: ${listing.price ? '$' + listing.price.toLocaleString() : 'Call for price'}`;
+    if (listing.ai_price_estimate) {
+      context += ` (Market value: ~$${listing.ai_price_estimate.toLocaleString()})`;
+    }
+    context += '\n';
+    if (listing.year || listing.make || listing.model) {
+      context += `   ${[listing.year, listing.make, listing.model].filter(Boolean).join(' ')}\n`;
+    }
+    if (listing.condition) {
+      context += `   Condition: ${listing.condition}\n`;
+    }
+    if (listing.city || listing.state) {
+      context += `   Location: ${[listing.city, listing.state].filter(Boolean).join(', ')}\n`;
+    }
+    if (listing.mileage) {
+      context += `   Mileage: ${listing.mileage.toLocaleString()} miles\n`;
+    }
+    context += `   Link: axles.ai/listing/${listing.id}\n\n`;
+  });
+
+  return context;
 }
 
 // Detect if the query is a question or a search
@@ -234,7 +485,14 @@ export async function POST(request: NextRequest) {
     // Check if this is a finance question with a price
     const financeQ = isFinanceQuestion(query);
     const weightQ = isWeightQuestion(query);
+    const listingQ = needsListingData(query);
     const extractedPrice = extractPrice(query);
+
+    // Query listings if the question needs database data
+    let listingData: { listings: ListingResult[]; stats: { total: number; avgPrice: number; minPrice: number; maxPrice: number } | null } | null = null;
+    if (listingQ) {
+      listingData = await queryListings(query);
+    }
 
     // If we have a price and it's a finance question, calculate payments
     let financeInfo = null;
@@ -310,11 +568,19 @@ IMPORTANT: Always respond in the SAME LANGUAGE as the user's question. If they a
 Your role is to help users with:
 - Advice on buying/selling trucks, trailers, and equipment
 - Explaining differences between equipment types
-- Pricing guidance and market insights
+- Pricing guidance and market insights from REAL INVENTORY DATA
 - Maintenance tips and what to look for
 - Industry terminology and specifications
 - FINANCING questions for commercial trucks and trailers
 - AXLE WEIGHT and load distribution questions
+- Finding specific equipment from the AxlesAI inventory
+
+WHEN GIVEN INVENTORY DATA:
+- Reference the ACTUAL listings provided in the context
+- Mention specific prices, years, makes, models from the data
+- Highlight deals that are below market value
+- Include the listing links (axles.ai/listing/ID) so users can view them
+- Use the stats (average price, price range, total count) to give market insights
 
 For FINANCING questions:
 - Commercial truck/trailer loans typically require 10-20% down payment
@@ -350,6 +616,7 @@ Keep responses:
 - Practical and actionable
 - Focused on commercial trucking/equipment
 - Friendly but professional
+- Include specific listing recommendations when inventory data is provided
 
 If the question is not related to trucks, trailers, heavy equipment, financing, or weight regulations, politely redirect them to search for equipment on the marketplace.
 
@@ -357,11 +624,23 @@ Do NOT use markdown formatting like ** or ## - just use plain text with line bre
 
     // Add finance context to prompt if we calculated it
     let prompt = query;
-    if (financeInfo) {
-      const scenario = financeInfo.scenarios[1];
+
+    // Add listing context if we have data
+    if (listingData && listingData.listings.length > 0) {
+      const listingContext = formatListingsForAI(listingData.listings, listingData.stats);
       prompt = `${query}
 
-[Context: User is asking about financing $${financeInfo.price.toLocaleString()}. With 10% down ($${financeInfo.downPayment.toLocaleString()}), at 7.5% APR for 60 months, the estimated monthly payment is $${scenario.monthly.toLocaleString()}/month. Total interest would be ~$${scenario.totalInterest.toLocaleString()}.]`;
+[REAL INVENTORY DATA FROM AXLESAI DATABASE:]
+${listingContext}
+
+Based on this real inventory data, answer the user's question with specific listings and prices.`;
+    }
+
+    if (financeInfo) {
+      const scenario = financeInfo.scenarios[1];
+      prompt += `
+
+[FINANCING CONTEXT: User is asking about financing $${financeInfo.price.toLocaleString()}. With 10% down ($${financeInfo.downPayment.toLocaleString()}), at 7.5% APR for 60 months, the estimated monthly payment is $${scenario.monthly.toLocaleString()}/month. Total interest would be ~$${scenario.totalInterest.toLocaleString()}.]`;
     }
 
     const { text } = await generateText({
@@ -369,6 +648,18 @@ Do NOT use markdown formatting like ** or ## - just use plain text with line bre
       system: systemPrompt,
       prompt,
     });
+
+    // Format suggested listings for the response
+    const suggestedListings = listingData?.listings.slice(0, 3).map(l => ({
+      id: l.id,
+      title: l.title,
+      price: l.price,
+      year: l.year,
+      make: l.make,
+      model: l.model,
+      location: [l.city, l.state].filter(Boolean).join(', '),
+      isGoodDeal: l.price && l.ai_price_estimate && l.price < l.ai_price_estimate * 0.9,
+    })) || null;
 
     return NextResponse.json({
       type: 'chat',
@@ -380,6 +671,8 @@ Do NOT use markdown formatting like ** or ## - just use plain text with line bre
         url: '/tools/axle-weight-calculator',
         description: 'Calculate weight distribution across your axles',
       } : null,
+      suggestedListings,
+      inventoryStats: listingData?.stats || null,
       query,
     });
 
