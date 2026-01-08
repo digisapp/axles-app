@@ -218,6 +218,7 @@ export default function HomePage() {
             autoFocus
             animatedPlaceholder
             onTypingChange={setIsTyping}
+            showLanguageHint
           />
         </div>
 

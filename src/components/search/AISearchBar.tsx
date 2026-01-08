@@ -85,6 +85,7 @@ interface AISearchBarProps {
   autoFocus?: boolean;
   onTypingChange?: (isTyping: boolean) => void;
   animatedPlaceholder?: boolean;
+  showLanguageHint?: boolean;
 }
 
 export function AISearchBar({
@@ -95,6 +96,7 @@ export function AISearchBar({
   autoFocus = false,
   onTypingChange,
   animatedPlaceholder = false,
+  showLanguageHint = false,
 }: AISearchBarProps) {
   const router = useRouter();
   const { translations: t } = useSearchTranslations();
@@ -590,6 +592,22 @@ export function AISearchBar({
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Language hint - shows supported languages */}
+      {showLanguageHint && !showSuggestions && !showChat && (
+        <div className="flex items-center justify-center gap-1.5 mt-3 text-xs text-zinc-400 dark:text-zinc-500">
+          <Sparkles className="w-3 h-3" />
+          <span>AI speaks:</span>
+          <span className="font-medium text-zinc-500 dark:text-zinc-400">English</span>
+          <span>·</span>
+          <span className="font-medium text-zinc-500 dark:text-zinc-400">Español</span>
+          <span>·</span>
+          <span className="font-medium text-zinc-500 dark:text-zinc-400">Français</span>
+          <span>·</span>
+          <span className="font-medium text-zinc-500 dark:text-zinc-400">Português</span>
+          <span className="text-zinc-400 dark:text-zinc-500">+ more</span>
         </div>
       )}
     </div>
