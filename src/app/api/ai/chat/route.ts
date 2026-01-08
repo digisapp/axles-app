@@ -88,6 +88,21 @@ function isFinanceQuestion(query: string): boolean {
   return financeKeywords.some(keyword => q.includes(keyword));
 }
 
+// Detect if question is weight/load-related
+function isWeightQuestion(query: string): boolean {
+  const q = query.toLowerCase();
+  const weightKeywords = [
+    'weight', 'axle', 'overweight', 'load', 'gross', 'gvw', 'gcw',
+    'steer axle', 'drive axle', 'tandem', 'bridge formula', 'legal weight',
+    'weight limit', 'max weight', 'maximum weight', 'how much can i haul',
+    'how heavy', 'weight distribution', 'sliding tandem', 'fifth wheel',
+    'kingpin', 'payload', 'cargo weight', 'scale', 'weigh station',
+    'overloaded', 'underweight', 'balance', 'lbs', 'pounds'
+  ];
+
+  return weightKeywords.some(keyword => q.includes(keyword));
+}
+
 // Detect if the query is a question or a search
 function isQuestion(query: string): boolean {
   const q = query.toLowerCase().trim();
@@ -218,6 +233,7 @@ export async function POST(request: NextRequest) {
 
     // Check if this is a finance question with a price
     const financeQ = isFinanceQuestion(query);
+    const weightQ = isWeightQuestion(query);
     const extractedPrice = extractPrice(query);
 
     // If we have a price and it's a finance question, calculate payments
@@ -298,6 +314,7 @@ Your role is to help users with:
 - Maintenance tips and what to look for
 - Industry terminology and specifications
 - FINANCING questions for commercial trucks and trailers
+- AXLE WEIGHT and load distribution questions
 
 For FINANCING questions:
 - Commercial truck/trailer loans typically require 10-20% down payment
@@ -306,13 +323,35 @@ For FINANCING questions:
 - New equipment often gets better rates than used
 - Mention that AxlesAI has a financing calculator on every listing page
 
+For AXLE WEIGHT and LOAD questions, use this knowledge:
+
+Federal Weight Limits (Interstate highways):
+- Steer Axle: 12,000 lbs maximum
+- Single Axle: 20,000 lbs maximum
+- Tandem Axles: 34,000 lbs maximum (spread at least 40" apart)
+- Gross Vehicle Weight: 80,000 lbs maximum
+
+Key concepts:
+- Federal Bridge Formula limits weight based on number of axles and distance between them
+- State limits may vary - some allow higher weights with permits, others are stricter
+- Sliding Tandems: Moving trailer tandems forward shifts weight to drive axles, moving back shifts to trailer axles
+- Fifth Wheel Position: Moving forward adds weight to steer axle, moving back shifts to drives
+- Overweight fines can be $1,000+ and may require offloading cargo
+
+Typical truck specs:
+- Standard sleeper truck: ~19,000 lbs, 245" wheelbase
+- Day cab: ~16,000 lbs, 180" wheelbase
+- Common trailer: 53ft, ~15,000 lbs empty, kingpin at 49"
+
+For detailed calculations, direct users to the Axle Weight Calculator at axles.ai/tools/axle-weight-calculator
+
 Keep responses:
 - Concise (2-4 short paragraphs or bullet points)
 - Practical and actionable
 - Focused on commercial trucking/equipment
 - Friendly but professional
 
-If the question is not related to trucks, trailers, heavy equipment, or financing, politely redirect them to search for equipment on the marketplace.
+If the question is not related to trucks, trailers, heavy equipment, financing, or weight regulations, politely redirect them to search for equipment on the marketplace.
 
 Do NOT use markdown formatting like ** or ## - just use plain text with line breaks.`;
 
@@ -336,6 +375,11 @@ Do NOT use markdown formatting like ** or ## - just use plain text with line bre
       response: text,
       financeInfo,
       suggestedCategory: extractCategory(query),
+      suggestedTool: weightQ ? {
+        name: 'Axle Weight Calculator',
+        url: '/tools/axle-weight-calculator',
+        description: 'Calculate weight distribution across your axles',
+      } : null,
       query,
     });
 

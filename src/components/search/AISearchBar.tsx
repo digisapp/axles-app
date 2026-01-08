@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Search, Sparkles, X, Loader2, ArrowUpRight, Mic, MicOff } from 'lucide-react';
+import { ArrowRight, Search, Sparkles, X, Loader2, ArrowUpRight, Mic, MicOff, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSearchTranslations } from '@/lib/i18n';
 
@@ -52,6 +52,11 @@ declare global {
 interface ChatResponse {
   response: string;
   suggestedCategory: string | null;
+  suggestedTool: {
+    name: string;
+    url: string;
+    description: string;
+  } | null;
 }
 
 interface AISearchBarProps {
@@ -243,6 +248,7 @@ export function AISearchBar({
         setChatResponse({
           response: data.response,
           suggestedCategory: data.suggestedCategory,
+          suggestedTool: data.suggestedTool || null,
         });
         setShowChat(true);
         setIsLoading(false);
@@ -433,8 +439,28 @@ export function AISearchBar({
               {chatResponse.response}
             </div>
 
+            {/* Suggested tool link */}
+            {chatResponse.suggestedTool && (
+              <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                <button
+                  onClick={() => {
+                    router.push(chatResponse.suggestedTool!.url);
+                    setShowChat(false);
+                  }}
+                  className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                >
+                  <Calculator className="w-4 h-4" />
+                  <span>{chatResponse.suggestedTool.name}</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </button>
+                <p className="text-xs text-muted-foreground mt-1 ml-6">
+                  {chatResponse.suggestedTool.description}
+                </p>
+              </div>
+            )}
+
             {/* Suggested category link */}
-            {chatResponse.suggestedCategory && (
+            {chatResponse.suggestedCategory && !chatResponse.suggestedTool && (
               <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800">
                 <button
                   onClick={() => {
