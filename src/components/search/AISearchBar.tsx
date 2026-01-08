@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Search, Sparkles, X, Loader2, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSearchTranslations } from '@/lib/i18n';
 
 interface ChatResponse {
   response: string;
@@ -20,43 +21,9 @@ interface AISearchBarProps {
   animatedPlaceholder?: boolean;
 }
 
-// Client-side question detection to avoid extra API call
-function isQuestion(query: string): boolean {
-  const q = query.toLowerCase().trim();
-
-  // Ends with question mark
-  if (q.endsWith('?')) return true;
-
-  // Starts with question words
-  const questionStarters = [
-    'what', 'how', 'why', 'when', 'where', 'which', 'who',
-    'should', 'can', 'could', 'would', 'is it', 'are there',
-    'tell me', 'explain', 'help me', 'i need help',
-    'difference between', 'compare'
-  ];
-
-  for (const starter of questionStarters) {
-    if (q.startsWith(starter + ' ') || q.startsWith(starter + ',')) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-// Animated placeholder examples - mix of searches and questions
-const PLACEHOLDER_EXAMPLES = [
-  'Search "Peterbilt 579 sleeper"',
-  'Ask "What\'s a fair price for a 2020 Freightliner?"',
-  'Search "Reefer trailers under $50k"',
-  'Ask "What should I look for in a used semi?"',
-  'Search "Lowboy trailers in Texas"',
-  'Ask "Difference between day cab and sleeper?"',
-];
-
 export function AISearchBar({
   defaultValue = '',
-  placeholder = 'Search or ask anything about trucks & trailers...',
+  placeholder,
   className,
   size = 'default',
   autoFocus = false,
@@ -64,6 +31,7 @@ export function AISearchBar({
   animatedPlaceholder = false,
 }: AISearchBarProps) {
   const router = useRouter();
+  const { translations: t } = useSearchTranslations();
   const [query, setQuery] = useState(defaultValue);
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -76,30 +44,39 @@ export function AISearchBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Client-side question detection using translated question starters
+  const isQuestion = useCallback((queryText: string): boolean => {
+    const q = queryText.toLowerCase().trim();
+
+    // Ends with question mark (universal)
+    if (q.endsWith('?')) return true;
+
+    // Check against translated question starters
+    for (const starter of t.questionStarters) {
+      if (q.startsWith(starter + ' ') || q.startsWith(starter + ',') || q.startsWith(starter)) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [t.questionStarters]);
+
   // Cycle through animated placeholders
   useEffect(() => {
     if (!animatedPlaceholder || query.length > 0 || isFocused) return;
 
     const interval = setInterval(() => {
-      setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDER_EXAMPLES.length);
+      setPlaceholderIndex((prev) => (prev + 1) % t.placeholderExamples.length);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [animatedPlaceholder, query.length, isFocused]);
+  }, [animatedPlaceholder, query.length, isFocused, t.placeholderExamples.length]);
 
-  // Get current placeholder
+  // Get current placeholder - use translated placeholder
+  const effectivePlaceholder = placeholder || t.placeholder;
   const currentPlaceholder = animatedPlaceholder && !isFocused && query.length === 0
-    ? PLACEHOLDER_EXAMPLES[placeholderIndex]
-    : placeholder;
-
-  // Example suggestions for dropdown
-  const exampleSearches = [
-    '2020 Peterbilt 579 under $100k',
-    'Reefer trailer 53ft',
-    'What should I look for in a used sleeper?',
-    'Kenworth W900 day cab',
-    'How much is a Freightliner Cascadia worth?',
-  ];
+    ? t.placeholderExamples[placeholderIndex]
+    : effectivePlaceholder;
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
@@ -200,10 +177,10 @@ export function AISearchBar({
 
     // Show example suggestions when typing
     if (value.length > 0) {
-      const filtered = exampleSearches.filter((s) =>
+      const filtered = t.exampleSearches.filter((s) =>
         s.toLowerCase().includes(value.toLowerCase())
       );
-      setSuggestions(filtered.length > 0 ? filtered : exampleSearches.slice(0, 3));
+      setSuggestions(filtered.length > 0 ? filtered : t.exampleSearches.slice(0, 3));
       setShowSuggestions(true);
     } else {
       setSuggestions([]);
@@ -214,7 +191,7 @@ export function AISearchBar({
   const handleFocus = () => {
     setIsFocused(true);
     if (query.length === 0 && !showChat) {
-      setSuggestions(exampleSearches);
+      setSuggestions(t.exampleSearches);
       setShowSuggestions(true);
     }
   };
@@ -226,21 +203,12 @@ export function AISearchBar({
   };
 
   const getCategoryLabel = (slug: string): string => {
-    const labels: Record<string, string> = {
-      'trailers': 'All Trailers',
-      'trucks': 'All Trucks',
-      'reefer-trailers': 'Reefer Trailers',
-      'dry-van-trailers': 'Dry Van Trailers',
-      'flatbed-trailers': 'Flatbed Trailers',
-      'lowboy-trailers': 'Lowboy Trailers',
-      'sleeper-trucks': 'Sleeper Trucks',
-      'day-cab-trucks': 'Day Cab Trucks',
-      'heavy-duty-trucks': 'Heavy Duty Trucks',
-      'dump-trucks': 'Dump Trucks',
-      'excavators': 'Excavators',
-      'loaders': 'Loaders',
-    };
-    return labels[slug] || slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    // Use translated category labels
+    if (t.categories[slug]) {
+      return t.categories[slug];
+    }
+    // Fallback: format slug as title case
+    return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   };
 
   const isLarge = size === 'large';
@@ -313,7 +281,7 @@ export function AISearchBar({
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex items-center gap-2 text-primary">
                 <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-medium">AI Assistant</span>
+                <span className="text-sm font-medium">{t.ui.aiAssistant}</span>
               </div>
               <button
                 onClick={closeChatResponse}
@@ -338,7 +306,7 @@ export function AISearchBar({
                   }}
                   className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
                 >
-                  <span>Browse {getCategoryLabel(chatResponse.suggestedCategory)}</span>
+                  <span>{t.ui.browse} {getCategoryLabel(chatResponse.suggestedCategory)}</span>
                   <ArrowUpRight className="w-4 h-4" />
                 </button>
               </div>
@@ -354,7 +322,7 @@ export function AISearchBar({
                 className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
               >
                 <Search className="w-3.5 h-3.5" />
-                <span>Search listings for &quot;{query}&quot;</span>
+                <span>{t.ui.searchListingsFor} &quot;{query}&quot;</span>
               </button>
             </div>
           </div>
@@ -366,7 +334,7 @@ export function AISearchBar({
         <div className="absolute top-full left-0 right-0 bg-white dark:bg-zinc-900 border-2 border-t-0 border-primary/50 rounded-b-2xl shadow-lg shadow-primary/10 z-50 overflow-hidden">
           <div className="p-2">
             <p className="px-3 py-1.5 text-xs text-zinc-500 font-medium uppercase tracking-wide">
-              {query ? 'Suggestions' : 'Try searching or asking'}
+              {query ? t.ui.suggestions : t.ui.trySearching}
             </p>
             {suggestions.map((suggestion, index) => {
               const isQuestion = suggestion.includes('?') ||
