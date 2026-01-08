@@ -2,9 +2,52 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Search, Sparkles, X, Loader2, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, Search, Sparkles, X, Loader2, ArrowUpRight, Mic, MicOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSearchTranslations } from '@/lib/i18n';
+
+// Type declarations for Web Speech API
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognition;
+    webkitSpeechRecognition?: new () => SpeechRecognition;
+  }
+}
 
 interface ChatResponse {
   response: string;
@@ -41,8 +84,80 @@ export function AISearchBar({
   const [chatResponse, setChatResponse] = useState<ChatResponse | null>(null);
   const [showChat, setShowChat] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Check for speech recognition support
+  useEffect(() => {
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    setSpeechSupported(!!SpeechRecognitionAPI);
+  }, []);
+
+  // Voice input handler
+  const startVoiceInput = useCallback(() => {
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionAPI) return;
+
+    const recognition = new SpeechRecognitionAPI();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = navigator.language || 'en-US';
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      // Update query with interim or final results
+      const newQuery = finalTranscript || interimTranscript;
+      if (newQuery) {
+        setQuery(newQuery);
+        onTypingChange?.(true);
+      }
+
+      // Auto-search on final result
+      if (finalTranscript) {
+        setIsListening(false);
+        // Small delay to let user see the transcription
+        setTimeout(() => {
+          handleSearch(finalTranscript);
+        }, 500);
+      }
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+    setShowSuggestions(false);
+    setShowChat(false);
+    inputRef.current?.focus();
+  }, [onTypingChange]);
+
+  const stopVoiceInput = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  }, []);
 
   // Client-side question detection using translated question starters
   const isQuestion = useCallback((queryText: string): boolean => {
@@ -252,6 +367,28 @@ export function AISearchBar({
           autoComplete="off"
           spellCheck="false"
         />
+
+        {/* Voice input button - shows on supported browsers */}
+        {speechSupported && (
+          <button
+            onClick={isListening ? stopVoiceInput : startVoiceInput}
+            type="button"
+            className={cn(
+              'flex-shrink-0 flex items-center justify-center rounded-lg transition-all',
+              isLarge ? 'h-9 w-9' : isSmall ? 'h-6 w-6' : 'h-8 w-8',
+              isListening
+                ? 'bg-red-500 text-white animate-pulse'
+                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-700 dark:hover:text-zinc-300'
+            )}
+            title={isListening ? 'Stop listening' : 'Voice search'}
+          >
+            {isListening ? (
+              <MicOff className={cn(isLarge ? 'w-4 h-4' : 'w-3.5 h-3.5')} />
+            ) : (
+              <Mic className={cn(isLarge ? 'w-4 h-4' : 'w-3.5 h-3.5')} />
+            )}
+          </button>
+        )}
 
         {/* Submit button - arrow that activates on input */}
         <button

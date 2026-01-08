@@ -92,26 +92,39 @@ function isFinanceQuestion(query: string): boolean {
 function isQuestion(query: string): boolean {
   const q = query.toLowerCase().trim();
 
-  // Starts with question words
-  const questionStarters = [
-    'what', 'how', 'why', 'when', 'where', 'which', 'who',
-    'should', 'can', 'could', 'would', 'is', 'are', 'do', 'does',
-    'tell me', 'explain', 'help me', 'i need help', 'i want to know',
-    'difference between', 'compare', 'vs', 'versus'
-  ];
-
-  for (const starter of questionStarters) {
-    if (q.startsWith(starter + ' ') || q.startsWith(starter + ',')) {
-      return true;
-    }
-  }
-
-  // Ends with question mark
+  // Ends with question mark (universal across languages)
   if (q.endsWith('?')) {
     return true;
   }
 
-  // Contains question patterns
+  // Starts with question words (English)
+  const questionStarters = [
+    'what', 'how', 'why', 'when', 'where', 'which', 'who',
+    'should', 'can', 'could', 'would', 'is', 'are', 'do', 'does',
+    'tell me', 'explain', 'help me', 'i need help', 'i want to know',
+    'difference between', 'compare', 'vs', 'versus',
+    // Spanish
+    'qué', 'que', 'cómo', 'como', 'por qué', 'porque', 'cuándo', 'cuando',
+    'dónde', 'donde', 'cuál', 'cual', 'quién', 'quien', 'puedo', 'puede',
+    'debería', 'necesito', 'quiero saber', 'explica', 'ayuda',
+    // French
+    'qu\'est', 'quel', 'quelle', 'comment', 'pourquoi', 'quand', 'où',
+    'qui', 'puis-je', 'pouvez', 'est-ce', 'y a-t-il',
+    // German
+    'was', 'wie', 'warum', 'wann', 'wo', 'welche', 'wer', 'kann ich',
+    'können', 'soll', 'gibt es',
+    // Portuguese
+    'o que', 'como', 'por que', 'quando', 'onde', 'qual', 'quem',
+    'posso', 'pode', 'preciso', 'quero saber',
+  ];
+
+  for (const starter of questionStarters) {
+    if (q.startsWith(starter + ' ') || q.startsWith(starter + ',') || q === starter) {
+      return true;
+    }
+  }
+
+  // Contains question patterns (English)
   const questionPatterns = [
     /what('s| is| are) (a |the |good |best |average )/,
     /how (do|can|should|much|many|long|to)/,
@@ -120,6 +133,13 @@ function isQuestion(query: string): boolean {
     /can (i|you) /,
     /difference between/,
     /worth (it|buying|the)/,
+    // Spanish patterns
+    /cuánto (cuesta|vale|es)/,
+    /qué (es|son|tipo)/,
+    /cuál es/,
+    // French patterns
+    /combien (coûte|ça coûte)/,
+    /c'est quoi/,
   ];
 
   for (const pattern of questionPatterns) {
@@ -268,6 +288,8 @@ Tip: Commercial truck/trailer loans typically require 10-20% down payment. Rates
 
     // Build system prompt - add finance context if relevant
     let systemPrompt = `You are a helpful assistant for AxlesAI, a marketplace for buying and selling commercial trucks, trailers, and heavy equipment.
+
+IMPORTANT: Always respond in the SAME LANGUAGE as the user's question. If they ask in Spanish, respond in Spanish. If they ask in French, respond in French. Match their language exactly.
 
 Your role is to help users with:
 - Advice on buying/selling trucks, trailers, and equipment
