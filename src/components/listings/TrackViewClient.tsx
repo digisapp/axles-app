@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { addToRecentlyViewed } from './RecentlyViewed';
 
 interface TrackViewClientProps {
@@ -18,9 +18,22 @@ interface TrackViewClientProps {
 }
 
 export function TrackViewClient({ listing }: TrackViewClientProps) {
+  const tracked = useRef(false);
+
   useEffect(() => {
-    if (!listing?.id) return;
+    if (!listing?.id || tracked.current) return;
+
+    // Add to recently viewed (local storage)
     addToRecentlyViewed(listing);
+
+    // Track view in database for analytics
+    tracked.current = true;
+    fetch(`/api/listings/${listing.id}/view`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    }).catch((err) => {
+      console.error('Failed to track view:', err);
+    });
   }, [listing]);
 
   return null;

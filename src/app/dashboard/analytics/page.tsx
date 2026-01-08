@@ -49,9 +49,8 @@ export default async function AnalyticsPage() {
     ? ((convertedLeads || 0) / totalLeads * 100).toFixed(1)
     : '0';
 
-  // Generate mock time series data for the chart (in production, this would come from a views table)
-  const viewsData = generateMockViewsData(30);
-  const leadsData = generateMockLeadsData(30);
+  // Get real analytics data
+  const { viewsData, leadsData, viewsTrend, leadsTrend } = await getAnalyticsData(supabase, user.id);
 
   // Top performing listings
   const topListings = listings?.slice(0, 5) || [];
@@ -73,7 +72,7 @@ export default async function AnalyticsPage() {
           value={totalViews.toLocaleString()}
           icon={<Eye className="w-5 h-5" />}
           description="All time"
-          trend={12}
+          trend={viewsTrend}
         />
         <StatCard
           title="Active Listings"
@@ -86,14 +85,13 @@ export default async function AnalyticsPage() {
           value={totalLeads || 0}
           icon={<Users className="w-5 h-5" />}
           description="From inquiries"
-          trend={8}
+          trend={leadsTrend}
         />
         <StatCard
           title="Conversion Rate"
           value={`${conversionRate}%`}
           icon={<MousePointerClick className="w-5 h-5" />}
           description="Leads to sales"
-          trend={parseFloat(conversionRate) > 5 ? 5 : -2}
         />
       </div>
 
@@ -294,37 +292,131 @@ async function LeadFunnel({ userId }: { userId: string }) {
   );
 }
 
-// Helper functions to generate mock data
-function generateMockViewsData(days: number) {
-  const data = [];
-  const now = new Date();
+// Fetch real analytics data
+async function getAnalyticsData(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+  const days = 30;
 
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
+  // Try to get data from RPC functions, fall back to direct queries
+  let viewsData: { date: string; views: number }[] = [];
+  let leadsData: { date: string; leads: number }[] = [];
+  let viewsTrend = 0;
+  let leadsTrend = 0;
 
-    data.push({
-      date: date.toISOString().split('T')[0],
-      views: Math.floor(Math.random() * 100) + 20,
+  try {
+    // Get daily views
+    const { data: dailyViews } = await supabase.rpc('get_user_daily_views', {
+      p_user_id: userId,
+      p_days: days,
     });
+
+    if (dailyViews) {
+      viewsData = fillMissingDates(dailyViews, days, 'view_date', 'view_count', 'views') as { date: string; views: number }[];
+    }
+
+    // Get view trend
+    const { data: viewStats } = await supabase.rpc('get_user_view_stats', {
+      p_user_id: userId,
+      p_period_days: 7,
+    });
+
+    if (viewStats?.[0]) {
+      viewsTrend = viewStats[0].trend_percentage || 0;
+    }
+  } catch (e) {
+    // RPC not available yet - use empty data
+    viewsData = generateEmptyDates(days, 'views') as unknown as { date: string; views: number }[];
   }
 
-  return data;
+  try {
+    // Get daily leads (leads table already exists with created_at)
+    const { data: leads } = await supabase
+      .from('leads')
+      .select('created_at')
+      .eq('user_id', userId)
+      .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+
+    if (leads) {
+      const leadsByDate = new Map<string, number>();
+      leads.forEach((lead) => {
+        const date = new Date(lead.created_at).toISOString().split('T')[0];
+        leadsByDate.set(date, (leadsByDate.get(date) || 0) + 1);
+      });
+      leadsData = generateEmptyDates(days, 'leads').map((d) => ({
+        date: d.date as string,
+        leads: leadsByDate.get(d.date as string) || 0,
+      }));
+    }
+
+    // Calculate lead trend manually
+    const now = Date.now();
+    const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const twoWeeksAgo = now - 14 * 24 * 60 * 60 * 1000;
+
+    const { count: currentWeekLeads } = await supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', new Date(weekAgo).toISOString());
+
+    const { count: previousWeekLeads } = await supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', new Date(twoWeeksAgo).toISOString())
+      .lt('created_at', new Date(weekAgo).toISOString());
+
+    if (previousWeekLeads && previousWeekLeads > 0) {
+      leadsTrend = Math.round(((currentWeekLeads || 0) - previousWeekLeads) / previousWeekLeads * 100);
+    }
+  } catch (e) {
+    leadsData = generateEmptyDates(days, 'leads') as unknown as { date: string; leads: number }[];
+  }
+
+  return { viewsData, leadsData, viewsTrend, leadsTrend };
 }
 
-function generateMockLeadsData(days: number) {
-  const data = [];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function fillMissingDates(
+  data: Array<Record<string, any>>,
+  days: number,
+  dateField: string,
+  countField: string,
+  outputField: string
+): Array<Record<string, any>> {
+  const result: Array<Record<string, any>> = [];
+  const dataMap = new Map<string, number>();
+
+  data.forEach((item) => {
+    const date = String(item[dateField]);
+    dataMap.set(date, Number(item[countField]) || 0);
+  });
+
+  const now = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    result.push({
+      date: dateStr,
+      [outputField]: dataMap.get(dateStr) || 0,
+    });
+  }
+
+  return result;
+}
+
+function generateEmptyDates(days: number, field: string): Array<Record<string, any>> {
+  const result: Array<Record<string, any>> = [];
   const now = new Date();
 
   for (let i = days - 1; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
-
-    data.push({
+    result.push({
       date: date.toISOString().split('T')[0],
-      leads: Math.floor(Math.random() * 5),
+      [field]: 0,
     });
   }
 
-  return data;
+  return result;
 }

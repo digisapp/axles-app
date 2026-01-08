@@ -102,14 +102,12 @@ export default async function DashboardPage() {
           value={activeListings || 0}
           icon={<Package className="w-5 h-5" />}
           description={`${totalListings || 0} total`}
-          trend={12}
         />
         <StatCard
           title="Total Views"
           value={totalViews}
           icon={<Eye className="w-5 h-5" />}
-          description="Last 30 days"
-          trend={8}
+          description="All time"
         />
         <StatCard
           title="New Leads"
