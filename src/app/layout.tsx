@@ -22,6 +22,7 @@ function OrganizationJsonLd() {
       email: 'sales@axles.ai',
     },
     sameAs: [
+      'https://instagram.com/axlesai',
       'https://facebook.com/axlesai',
       'https://twitter.com/axlesai',
       'https://linkedin.com/company/axlesai',
