@@ -6,6 +6,61 @@ import { CompareProvider } from "@/context/CompareContext";
 import { CompareBar } from "@/components/listings/CompareBar";
 import "./globals.css";
 
+// Organization JSON-LD Schema for rich search results
+function OrganizationJsonLd() {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'AxlesAI',
+    url: 'https://axles.ai',
+    logo: 'https://axles.ai/images/axlesai-logo.png',
+    description: 'AI-powered marketplace for trucks, trailers, and heavy equipment. Search with AI, get smart pricing, and list your equipment instantly.',
+    foundingDate: '2024',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'sales',
+      email: 'sales@axles.ai',
+    },
+    sameAs: [
+      'https://facebook.com/axlesai',
+      'https://twitter.com/axlesai',
+      'https://linkedin.com/company/axlesai',
+    ],
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+// WebSite JSON-LD Schema with SearchAction for sitelinks search box
+function WebsiteJsonLd() {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'AxlesAI',
+    url: 'https://axles.ai',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://axles.ai/search?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -83,6 +138,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <OrganizationJsonLd />
+        <WebsiteJsonLd />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >

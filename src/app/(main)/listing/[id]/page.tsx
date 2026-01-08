@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +35,133 @@ import { VideoPlayer } from '@/components/listings/VideoPlayer';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+// Generate dynamic metadata for SEO
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: listing } = await supabase
+    .from('listings')
+    .select(`
+      title, description, price, year, make, model, condition, city, state,
+      images:listing_images!left(url, is_primary)
+    `)
+    .eq('id', id)
+    .single();
+
+  if (!listing) {
+    return {
+      title: 'Listing Not Found',
+      description: 'This listing is no longer available.',
+    };
+  }
+
+  const primaryImage = listing.images?.find((img: { is_primary: boolean }) => img.is_primary) || listing.images?.[0];
+  const imageUrl = primaryImage?.url || '/images/og-image.png';
+
+  // Build descriptive title and description
+  const titleParts = [listing.year, listing.make, listing.model].filter(Boolean);
+  const metaTitle = titleParts.length > 0
+    ? `${titleParts.join(' ')} for Sale`
+    : listing.title;
+
+  const priceText = listing.price ? `$${listing.price.toLocaleString()}` : 'Contact for price';
+  const locationText = [listing.city, listing.state].filter(Boolean).join(', ');
+
+  const metaDescription = listing.description
+    ? listing.description.slice(0, 155) + (listing.description.length > 155 ? '...' : '')
+    : `${metaTitle} - ${priceText}${locationText ? ` in ${locationText}` : ''}. Browse trucks, trailers, and heavy equipment on AxlesAI.`;
+
+  return {
+    title: metaTitle,
+    description: metaDescription,
+    openGraph: {
+      title: metaTitle,
+      description: metaDescription,
+      type: 'website',
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: listing.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: metaTitle,
+      description: metaDescription,
+      images: [imageUrl],
+    },
+  };
+}
+
+// JSON-LD Product Schema for rich search results
+interface ListingUser {
+  is_dealer?: boolean;
+  company_name?: string;
+}
+
+interface ListingForSchema {
+  title?: string;
+  description?: string;
+  year?: number;
+  make?: string;
+  model?: string;
+  condition?: string;
+  price?: number;
+  vin?: string;
+  mileage?: number;
+  images?: Array<{ url: string; is_primary?: boolean }>;
+  user?: ListingUser;
+}
+
+function ProductJsonLd({ listing, url }: { listing: ListingForSchema; url: string }) {
+  const primaryImage = listing.images?.find(img => img.is_primary) || listing.images?.[0];
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: listing.title,
+    description: listing.description || `${listing.year} ${listing.make} ${listing.model}`,
+    image: primaryImage?.url,
+    url: url,
+    brand: listing.make ? {
+      '@type': 'Brand',
+      name: listing.make,
+    } : undefined,
+    model: listing.model,
+    productionDate: listing.year?.toString(),
+    itemCondition: listing.condition === 'new'
+      ? 'https://schema.org/NewCondition'
+      : 'https://schema.org/UsedCondition',
+    offers: {
+      '@type': 'Offer',
+      price: listing.price || undefined,
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+      seller: listing.user ? {
+        '@type': listing.user.is_dealer ? 'Organization' : 'Person',
+        name: listing.user.company_name || 'Private Seller',
+      } : undefined,
+    },
+    ...(listing.vin && { vehicleIdentificationNumber: listing.vin }),
+    ...(listing.mileage && { mileageFromOdometer: {
+      '@type': 'QuantitativeValue',
+      value: listing.mileage,
+      unitCode: 'SMI',
+    }}),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
 }
 
 export default async function ListingPage({ params }: PageProps) {
@@ -95,8 +223,14 @@ export default async function ListingPage({ params }: PageProps) {
     imageUrl: primaryImage?.url || null,
   };
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axles.ai';
+  const listingUrl = `${baseUrl}/listing/${id}`;
+
   return (
     <div className="min-h-screen bg-background">
+      {/* JSON-LD Product Schema for SEO */}
+      <ProductJsonLd listing={listing as ListingForSchema} url={listingUrl} />
+
       {/* Track view client-side */}
       <TrackViewClient listing={trackingData} />
 
