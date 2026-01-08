@@ -10,11 +10,13 @@ CREATE TABLE IF NOT EXISTS listing_views (
   ip_hash TEXT, -- Hashed IP for deduplication (privacy-safe)
   user_agent TEXT,
   referrer TEXT,
-  viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-  -- Prevent duplicate views from same session within short time
-  CONSTRAINT unique_view_session UNIQUE (listing_id, session_id, (viewed_at::date))
+  viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Prevent duplicate views from same session on same day (unique index with expression)
+CREATE UNIQUE INDEX idx_unique_view_session
+  ON listing_views(listing_id, session_id, (viewed_at::date))
+  WHERE session_id IS NOT NULL;
 
 -- Indexes for efficient queries
 CREATE INDEX idx_listing_views_listing_id ON listing_views(listing_id);
