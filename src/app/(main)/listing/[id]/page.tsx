@@ -32,6 +32,7 @@ import { RecentlyViewed } from '@/components/listings/RecentlyViewed';
 import { CompareButton } from '@/components/listings/CompareButton';
 import { FinancingCalculator } from '@/components/listings/FinancingCalculator';
 import { VideoPlayer } from '@/components/listings/VideoPlayer';
+import { TranslatableTitle, TranslatableDescription } from '@/components/listings/TranslatableContent';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -312,7 +313,12 @@ export default async function ListingPage({ params }: PageProps) {
             <div>
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 md:gap-4">
                 <div>
-                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">{listing.title}</h1>
+                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">
+                    <TranslatableTitle
+                      listingId={listing.id}
+                      originalTitle={listing.title}
+                    />
+                  </h1>
                   <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2 text-sm text-muted-foreground">
                     {listing.year && <span>{listing.year}</span>}
                     {listing.make && <span>{listing.make}</span>}
@@ -492,7 +498,12 @@ export default async function ListingPage({ params }: PageProps) {
                   <CardTitle className="text-base md:text-lg">Description</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm md:text-base whitespace-pre-wrap">{listing.description}</p>
+                  <TranslatableDescription
+                    listingId={listing.id}
+                    originalTitle={listing.title}
+                    originalDescription={listing.description}
+                    className="text-sm md:text-base"
+                  />
                 </CardContent>
               </Card>
             )}

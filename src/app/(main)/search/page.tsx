@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { AISearchBar } from '@/components/search/AISearchBar';
+import { useListingTranslations } from '@/hooks/useListingTranslations';
 
 // Dynamically import MapView to avoid SSR issues with Leaflet
 const MapView = dynamic(
@@ -51,6 +52,7 @@ import {
   ChevronRight,
   TrendingDown,
   Flame,
+  Languages,
 } from 'lucide-react';
 import { AdvancedFilters, FilterValues } from '@/components/search/AdvancedFilters';
 import { CompareButton } from '@/components/listings/CompareButton';
@@ -79,6 +81,15 @@ function SearchPageContent() {
   // Refs to prevent infinite loops
   const fetchIdRef = useRef(0);
   const lastFetchParamsRef = useRef<string>('');
+
+  // Translation hook for non-English users
+  const { getTranslatedListing, isTranslating, needsTranslation, locale } = useListingTranslations(
+    listings.map((l) => ({
+      id: l.id,
+      title: l.title,
+      description: l.description,
+    }))
+  );
 
   // Fetch categories on mount
   useEffect(() => {
@@ -499,9 +510,19 @@ function SearchPageContent() {
           </div>
         ) : (
           <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4' : 'space-y-4'}>
-            {listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} viewMode={viewMode} />
-            ))}
+            {listings.map((listing) => {
+              const translated = getTranslatedListing(listing);
+              return (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  viewMode={viewMode}
+                  translatedTitle={translated.title}
+                  translatedDescription={translated.description}
+                  isTranslated={translated.isTranslated}
+                />
+              );
+            })}
           </div>
         )}
 
@@ -556,9 +577,25 @@ function getDealInfo(listing: Listing): { type: 'hot' | 'good' | null; percentag
   return null;
 }
 
-function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid' | 'list' }) {
+interface ListingCardProps {
+  listing: Listing;
+  viewMode: 'grid' | 'list';
+  translatedTitle?: string;
+  translatedDescription?: string;
+  isTranslated?: boolean;
+}
+
+function ListingCard({
+  listing,
+  viewMode,
+  translatedTitle,
+  translatedDescription,
+  isTranslated,
+}: ListingCardProps) {
   const primaryImage = listing.images?.find((img) => img.is_primary) || listing.images?.[0];
   const dealInfo = getDealInfo(listing);
+  const displayTitle = translatedTitle || listing.title;
+  const displayDescription = translatedDescription || listing.description || '';
 
   if (viewMode === 'list') {
     return (
@@ -600,7 +637,14 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
           <div className="flex-1 p-3 md:p-4">
             <div className="flex justify-between items-start gap-2">
               <div className="min-w-0">
-                <h3 className="font-semibold text-sm md:text-lg line-clamp-1">{listing.title}</h3>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-semibold text-sm md:text-lg line-clamp-1">{displayTitle}</h3>
+                  {isTranslated && (
+                    <span title="Translated">
+                      <Languages className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-lg md:text-2xl font-bold text-primary">
                     {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
@@ -655,9 +699,9 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
               )}
             </div>
 
-            {listing.description && (
+            {displayDescription && (
               <p className="text-xs md:text-sm text-muted-foreground mt-2 line-clamp-2 hidden md:block">
-                {listing.description}
+                {displayDescription}
               </p>
             )}
           </div>
@@ -728,7 +772,14 @@ function ListingCard({ listing, viewMode }: { listing: Listing; viewMode: 'grid'
         </div>
 
         <div className="p-2 md:p-4">
-          <h3 className="font-semibold text-sm md:text-base line-clamp-1">{listing.title}</h3>
+          <div className="flex items-center gap-1">
+            <h3 className="font-semibold text-sm md:text-base line-clamp-1">{displayTitle}</h3>
+            {isTranslated && (
+              <span title="Translated">
+                <Languages className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 mt-0.5 md:mt-1">
             <p className="text-base md:text-xl font-bold text-primary">
               {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
