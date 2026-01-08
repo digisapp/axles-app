@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { estimatePrice } from '@/lib/price-estimator';
+import {
+  cacheGet,
+  cacheSet,
+  generateSearchCacheKey,
+  CACHE_TTL,
+  isRedisConfigured,
+} from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -26,6 +33,49 @@ export async function GET(request: NextRequest) {
   const sort = searchParams.get('sort') || 'created_at';
   const order = searchParams.get('order') || 'desc';
   const search = searchParams.get('q');
+
+  // Try to get cached results if Redis is available
+  const cacheParams = {
+    page: page.toString(),
+    perPage: perPage.toString(),
+    category: category || undefined,
+    minPrice: minPrice || undefined,
+    maxPrice: maxPrice || undefined,
+    minYear: minYear || undefined,
+    maxYear: maxYear || undefined,
+    make: make || undefined,
+    model: model || undefined,
+    condition: condition || undefined,
+    state: state || undefined,
+    city: city || undefined,
+    maxMileage: maxMileage || undefined,
+    featured: featured || undefined,
+    listingType: listingType || undefined,
+    industry: industry || undefined,
+    sort,
+    order,
+    search: search || undefined,
+  };
+
+  const cacheKey = generateSearchCacheKey(cacheParams);
+
+  // Check cache first
+  if (isRedisConfigured()) {
+    const cached = await cacheGet<{
+      data: unknown[];
+      total: number;
+      page: number;
+      per_page: number;
+      total_pages: number;
+    }>(cacheKey);
+
+    if (cached) {
+      return NextResponse.json({
+        ...cached,
+        cached: true,
+      });
+    }
+  }
 
   let query = supabase
     .from('listings')
@@ -145,13 +195,20 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({
+  const response = {
     data,
     total: count || 0,
     page,
     per_page: perPage,
     total_pages: Math.ceil((count || 0) / perPage),
-  });
+  };
+
+  // Cache the results
+  if (isRedisConfigured()) {
+    await cacheSet(cacheKey, response, CACHE_TTL.SEARCH_RESULTS);
+  }
+
+  return NextResponse.json(response);
 }
 
 export async function POST(request: NextRequest) {

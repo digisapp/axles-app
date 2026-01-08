@@ -2,6 +2,13 @@ import { createXai } from '@ai-sdk/xai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import type { AIPriceEstimate, Listing } from '@/types';
+import {
+  cacheGet,
+  cacheSet,
+  generatePriceCacheKey,
+  CACHE_TTL,
+  isRedisConfigured,
+} from '@/lib/cache';
 
 // Lazy initialization to avoid build-time errors
 function getXai() {
@@ -23,6 +30,24 @@ const priceEstimateSchema = z.object({
 });
 
 export async function estimatePrice(listing: Partial<Listing>): Promise<AIPriceEstimate> {
+  // Check cache first if Redis is available
+  if (isRedisConfigured()) {
+    const cacheKey = generatePriceCacheKey({
+      make: listing.make,
+      model: listing.model,
+      year: listing.year,
+      condition: listing.condition,
+      mileage: listing.mileage,
+      category_id: listing.category_id,
+    });
+
+    const cached = await cacheGet<AIPriceEstimate>(cacheKey);
+    if (cached) {
+      console.log('Price estimate cache hit');
+      return cached;
+    }
+  }
+
   const xai = getXai();
 
   const { object } = await generateObject({
@@ -59,7 +84,7 @@ Consider:
 Provide a realistic price estimate based on 2024-2025 market data for commercial vehicles.`,
   });
 
-  return {
+  const result: AIPriceEstimate = {
     estimated_price: object.estimated_price,
     confidence: object.confidence,
     price_range: {
@@ -69,6 +94,23 @@ Provide a realistic price estimate based on 2024-2025 market data for commercial
     market_trend: object.market_trend,
     factors: object.factors,
   };
+
+  // Cache the result
+  if (isRedisConfigured()) {
+    const cacheKey = generatePriceCacheKey({
+      make: listing.make,
+      model: listing.model,
+      year: listing.year,
+      condition: listing.condition,
+      mileage: listing.mileage,
+      category_id: listing.category_id,
+    });
+
+    await cacheSet(cacheKey, result, CACHE_TTL.PRICE_ESTIMATE);
+    console.log('Price estimate cached');
+  }
+
+  return result;
 }
 
 export async function comparePrices(

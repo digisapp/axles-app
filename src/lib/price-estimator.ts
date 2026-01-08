@@ -1,4 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
+import {
+  cacheGet,
+  cacheSet,
+  generatePriceCacheKey,
+  CACHE_TTL,
+  isRedisConfigured,
+} from '@/lib/cache';
 
 interface PriceEstimate {
   estimate: number | null;
@@ -28,6 +35,23 @@ interface ListingForEstimate {
  * Estimate price for a listing by comparing to similar listings in the database
  */
 export async function estimatePrice(listing: ListingForEstimate): Promise<PriceEstimate> {
+  // Check cache first
+  if (isRedisConfigured()) {
+    const cacheKey = generatePriceCacheKey({
+      make: listing.make || undefined,
+      model: listing.model || undefined,
+      year: listing.year || undefined,
+      condition: listing.condition || undefined,
+      mileage: listing.mileage || undefined,
+      category_id: listing.category_id || undefined,
+    }) + ':db'; // Add suffix to differentiate from AI estimates
+
+    const cached = await cacheGet<PriceEstimate>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+  }
+
   const supabase = await createClient();
 
   // Try to find exact matches first (same make, similar year)
@@ -49,13 +73,28 @@ export async function estimatePrice(listing: ListingForEstimate): Promise<PriceE
       const median = calculateMedian(prices);
       const confidence = Math.min(1, 0.5 + (exactMatches.length * 0.05));
 
-      return {
+      const result: PriceEstimate = {
         estimate: Math.round(median),
         confidence,
         comparableCount: exactMatches.length,
         comparables: exactMatches.slice(0, 5),
         method: 'exact_match',
       };
+
+      // Cache the result
+      if (isRedisConfigured()) {
+        const cacheKey = generatePriceCacheKey({
+          make: listing.make || undefined,
+          model: listing.model || undefined,
+          year: listing.year || undefined,
+          condition: listing.condition || undefined,
+          mileage: listing.mileage || undefined,
+          category_id: listing.category_id || undefined,
+        }) + ':db';
+        await cacheSet(cacheKey, result, CACHE_TTL.PRICE_ESTIMATE);
+      }
+
+      return result;
     }
   }
 
@@ -114,17 +153,32 @@ export async function estimatePrice(listing: ListingForEstimate): Promise<PriceE
       // Lower confidence for category-only matches
       const confidence = Math.min(0.7, 0.3 + (categoryMatches.length * 0.03));
 
-      return {
+      const result: PriceEstimate = {
         estimate: Math.round(median),
         confidence,
         comparableCount: categoryMatches.length,
         comparables: categoryMatches.slice(0, 5),
         method: 'category_match',
       };
+
+      // Cache the result
+      if (isRedisConfigured()) {
+        const cacheKey = generatePriceCacheKey({
+          make: listing.make || undefined,
+          model: listing.model || undefined,
+          year: listing.year || undefined,
+          condition: listing.condition || undefined,
+          mileage: listing.mileage || undefined,
+          category_id: listing.category_id || undefined,
+        }) + ':db';
+        await cacheSet(cacheKey, result, CACHE_TTL.PRICE_ESTIMATE);
+      }
+
+      return result;
     }
   }
 
-  // No good comparables found
+  // No good comparables found - don't cache this as data might change
   return {
     estimate: null,
     confidence: 0,

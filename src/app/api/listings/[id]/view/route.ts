@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { recordViewBatch, isRedisConfigured } from '@/lib/cache';
 
 // Generate a simple session ID for anonymous tracking
 async function getSessionId(req: NextRequest): Promise<string> {
@@ -87,11 +88,17 @@ export async function POST(
       console.error('View tracking error:', viewError);
     }
 
-    // Also increment the legacy views_count for backwards compatibility
-    try {
-      await supabase.rpc('increment_views', { listing_id: listingId });
-    } catch {
-      // Fallback if RPC doesn't exist - ignore errors
+    // Increment view count - use batching if Redis is available
+    if (isRedisConfigured()) {
+      // Batch views in Redis for better performance
+      await recordViewBatch(listingId);
+    } else {
+      // Direct DB update as fallback
+      try {
+        await supabase.rpc('increment_views', { listing_id: listingId });
+      } catch {
+        // Fallback if RPC doesn't exist - ignore errors
+      }
     }
 
     // Set session cookie for future tracking
