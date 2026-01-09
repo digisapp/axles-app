@@ -15,7 +15,7 @@ export function FloatingCallButton() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
-      aria-label="Call Sal AI Assistant"
+      aria-label="Call AxlesAI"
     >
       {/* Expanded state with number */}
       <div
@@ -24,7 +24,7 @@ export function FloatingCallButton() {
         }`}
       >
         <div className="whitespace-nowrap">
-          <p className="text-xs font-medium opacity-90">Talk to Sal</p>
+          <p className="text-xs font-medium opacity-90">Call AxlesAI</p>
           <p className="text-sm font-bold">{DISPLAY_NUMBER}</p>
         </div>
       </div>
