@@ -33,8 +33,9 @@ import { CompareButton } from '@/components/listings/CompareButton';
 import { FinancingCalculator } from '@/components/listings/FinancingCalculator';
 import { VideoPlayer } from '@/components/listings/VideoPlayer';
 import { TranslatableTitle, TranslatableDescription } from '@/components/listings/TranslatableContent';
-import { LiveChat } from '@/components/listings/LiveChat';
-import { DealerAIChat } from '@/components/listings/DealerAIChat';
+// Temporarily disabled - dealer integration coming later
+// import { LiveChat } from '@/components/listings/LiveChat';
+// import { DealerAIChat } from '@/components/listings/DealerAIChat';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -204,20 +205,6 @@ export default async function ListingPage({ params }: PageProps) {
     .or(`make.eq.${listing.make},category_id.eq.${listing.category_id}`)
     .limit(4);
 
-  // Check if dealer has AI assistant enabled
-  let dealerAIEnabled = false;
-  if (listing.user?.id) {
-    const { data: aiSettings } = await supabase
-      .from('dealer_ai_settings')
-      .select('is_enabled, show_on_listings')
-      .eq('dealer_id', listing.user.id)
-      .eq('is_enabled', true)
-      .eq('show_on_listings', true)
-      .single();
-
-    dealerAIEnabled = !!aiSettings;
-  }
-
   // Sort images by sort_order, primary first
   const sortedImages = [...(listing.images || [])]
     .sort((a: { is_primary: boolean; sort_order: number }, b: { is_primary: boolean; sort_order: number }) => {
@@ -357,44 +344,30 @@ export default async function ListingPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Mobile Contact CTA */}
+            {/* Mobile Contact CTA - AxlesAI */}
             <div className="lg:hidden">
               <Card>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      {listing.user?.avatar_url ? (
-                        <Image
-                          src={listing.user.avatar_url}
-                          alt={listing.user.company_name || 'Seller'}
-                          width={40}
-                          height={40}
-                          className="rounded-full"
-                        />
-                      ) : (
-                        <Building2 className="w-5 h-5 text-muted-foreground" />
-                      )}
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Image
+                        src="/images/axlesai-logo.png"
+                        alt="AxlesAI"
+                        width={24}
+                        height={24}
+                      />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold truncate">
-                        {listing.user?.company_name || 'Private Seller'}
-                      </p>
-                      {listing.user?.is_dealer && (
-                        <Badge variant="secondary" className="text-xs mt-0.5">
-                          <Shield className="w-3 h-3 mr-1" />
-                          Verified Dealer
-                        </Badge>
-                      )}
+                      <p className="font-semibold truncate">Listed by AxlesAI</p>
+                      <p className="text-xs text-muted-foreground">AI-powered assistance 24/7</p>
                     </div>
                   </div>
-                  {listing.user?.phone && (
-                    <Button className="w-full" size="lg" asChild>
-                      <a href={`tel:${listing.user.phone}`}>
-                        <Phone className="w-4 h-4 mr-2" />
-                        Call Seller
-                      </a>
-                    </Button>
-                  )}
+                  <Button className="w-full" size="lg" asChild>
+                    <a href="tel:+14694213536">
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call: (469) 421-3536
+                    </a>
+                  </Button>
                 </CardContent>
               </Card>
             </div>
@@ -532,88 +505,47 @@ export default async function ListingPage({ params }: PageProps) {
 
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block space-y-6">
-            {/* Seller Info */}
+            {/* AxlesAI Contact Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Seller</CardTitle>
+                <CardTitle>Listed by AxlesAI</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                    {listing.user?.avatar_url ? (
-                      <Image
-                        src={listing.user.avatar_url}
-                        alt={listing.user.company_name || 'Seller'}
-                        width={48}
-                        height={48}
-                        className="rounded-full"
-                      />
-                    ) : (
-                      <Building2 className="w-6 h-6 text-muted-foreground" />
-                    )}
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Image
+                      src="/images/axlesai-logo.png"
+                      alt="AxlesAI"
+                      width={32}
+                      height={32}
+                    />
                   </div>
                   <div>
-                    <p className="font-semibold">
-                      {listing.user?.company_name || 'Private Seller'}
-                    </p>
-                    {listing.user?.is_dealer && (
-                      <Badge variant="secondary" className="mt-1">
-                        <Shield className="w-3 h-3 mr-1" />
-                        Verified Dealer
-                      </Badge>
-                    )}
+                    <p className="font-semibold">AxlesAI</p>
+                    <p className="text-sm text-muted-foreground">AI-powered assistance 24/7</p>
                   </div>
                 </div>
 
                 <Separator />
 
                 <div className="space-y-3">
-                  {listing.user?.phone && (
-                    <Button className="w-full" size="lg" asChild>
-                      <a href={`tel:${listing.user.phone}`}>
-                        <Phone className="w-4 h-4 mr-2" />
-                        {listing.user.phone}
-                      </a>
-                    </Button>
-                  )}
+                  <Button className="w-full" size="lg" asChild>
+                    <a href="tel:+14694213536">
+                      <Phone className="w-4 h-4 mr-2" />
+                      (469) 421-3536
+                    </a>
+                  </Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href={`/?ask=${encodeURIComponent(`Tell me about ${listing.title}`)}`}>
+                      <Building2 className="w-4 h-4 mr-2" />
+                      Chat with AI
+                    </Link>
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Dealer AI Chat or Live Chat */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">
-                  {dealerAIEnabled ? 'Ask AI Assistant' : 'Quick Contact'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {dealerAIEnabled ? (
-                  <>
-                    <DealerAIChat
-                      dealerId={listing.user?.id || ''}
-                      dealerName={listing.user?.company_name || 'Dealer'}
-                      listingId={id}
-                      listingTitle={listing.title}
-                    />
-                    <p className="text-xs text-muted-foreground text-center">
-                      AI-powered sales assistant available 24/7
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <LiveChat
-                      listingId={id}
-                      sellerId={listing.user?.id || ''}
-                      sellerName={listing.user?.company_name || 'Seller'}
-                      sellerAvatar={listing.user?.avatar_url}
-                      listingTitle={listing.title}
-                    />
-                    <p className="text-xs text-muted-foreground text-center">
-                      Get instant responses from the dealer
-                    </p>
-                  </>
-                )}
+                <p className="text-xs text-muted-foreground text-center">
+                  Questions about this listing? Our AI assistant can help anytime.
+                </p>
               </CardContent>
             </Card>
 
@@ -713,40 +645,27 @@ export default async function ListingPage({ params }: PageProps) {
 
         {/* Mobile Contact Form & Financing */}
         <div className="lg:hidden mt-8 space-y-6">
-          {/* Mobile Dealer AI Chat or Live Chat */}
+          {/* Mobile AI Chat */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">
-                {dealerAIEnabled ? 'Ask AI Assistant' : 'Quick Contact'}
-              </CardTitle>
+              <CardTitle className="text-lg">Chat with AI</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {dealerAIEnabled ? (
-                <>
-                  <DealerAIChat
-                    dealerId={listing.user?.id || ''}
-                    dealerName={listing.user?.company_name || 'Dealer'}
-                    listingId={id}
-                    listingTitle={listing.title}
-                  />
-                  <p className="text-xs text-muted-foreground text-center">
-                    AI-powered sales assistant available 24/7
-                  </p>
-                </>
-              ) : (
-                <>
-                  <LiveChat
-                    listingId={id}
-                    sellerId={listing.user?.id || ''}
-                    sellerName={listing.user?.company_name || 'Seller'}
-                    sellerAvatar={listing.user?.avatar_url}
-                    listingTitle={listing.title}
-                  />
-                  <p className="text-xs text-muted-foreground text-center">
-                    Get instant responses from the dealer
-                  </p>
-                </>
-              )}
+              <p className="text-sm text-muted-foreground">
+                Have questions about this listing? Our AI assistant is available 24/7 to help.
+              </p>
+              <Button className="w-full" asChild>
+                <Link href={`/?ask=${encodeURIComponent(`Tell me about ${listing.title}`)}`}>
+                  <Building2 className="w-4 h-4 mr-2" />
+                  Ask AI Assistant
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full" asChild>
+                <a href="tel:+14694213536">
+                  <Phone className="w-4 h-4 mr-2" />
+                  Call: (469) 421-3536
+                </a>
+              </Button>
             </CardContent>
           </Card>
 
