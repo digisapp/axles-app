@@ -41,10 +41,11 @@ export default async function AdminDashboardPage() {
     redirect('/dashboard');
   }
 
-  // Get stats
+  // Get stats - exclude placeholder profiles (@dealers.axles.ai)
   const { count: totalUsers } = await supabase
     .from('profiles')
-    .select('*', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true })
+    .not('email', 'like', '%@dealers.axles.ai');
 
   const { count: totalListings } = await supabase
     .from('listings')
