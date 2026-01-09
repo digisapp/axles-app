@@ -143,22 +143,29 @@ async def start_recording(ctx: JobContext) -> str | None:
             api_secret=os.getenv("LIVEKIT_API_SECRET"),
         )
 
-        # Configure S3 output (or use LiveKit's default storage)
+        # Get Supabase project ref from URL (e.g., https://abc123.supabase.co -> abc123)
+        supabase_url = os.getenv("SUPABASE_URL", "")
+        project_ref = supabase_url.replace("https://", "").split(".")[0] if supabase_url else ""
+
+        # Configure S3-compatible upload for Supabase Storage
         s3_upload = api.S3Upload(
-            access_key=os.getenv("AWS_ACCESS_KEY_ID", ""),
-            secret=os.getenv("AWS_SECRET_ACCESS_KEY", ""),
-            bucket=os.getenv("S3_BUCKET", "axles-recordings"),
-            region=os.getenv("AWS_REGION", "us-east-1"),
+            access_key=project_ref,  # Supabase project ref as access key
+            secret=os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""),
+            bucket="call-recordings",  # Supabase storage bucket name
+            region="us-east-1",  # Required but not used by Supabase
+            endpoint=f"{supabase_url}/storage/v1/s3",  # Supabase S3-compatible endpoint
+            force_path_style=True,
         )
 
         # Start room composite egress (records audio)
+        filename = f"{ctx.room.name}-{int(time.time())}.mp3"
         egress_request = api.RoomCompositeEgressRequest(
             room_name=ctx.room.name,
             audio_only=True,
             file_outputs=[
                 api.EncodedFileOutput(
                     file_type=api.EncodedFileType.MP3,
-                    filepath=f"calls/{ctx.room.name}-{int(time.time())}.mp3",
+                    filepath=filename,
                     s3=s3_upload,
                 )
             ],
@@ -236,13 +243,13 @@ async def entrypoint(ctx: JobContext):
         'egress_id': None,
     }
 
-    # Start recording if S3 is configured
-    if os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("S3_BUCKET"):
+    # Start recording if Supabase is configured
+    if os.getenv("SUPABASE_URL") and os.getenv("SUPABASE_SERVICE_ROLE_KEY"):
         egress_id = await start_recording(ctx)
         if egress_id:
             active_calls[ctx.room.name]['egress_id'] = egress_id
     else:
-        logger.info("Recording disabled - S3 not configured")
+        logger.info("Recording disabled - Supabase not configured")
 
     # Create xAI Realtime model with voice from settings
     model = xai.realtime.RealtimeModel(

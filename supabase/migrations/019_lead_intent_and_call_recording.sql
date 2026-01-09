@@ -7,10 +7,27 @@ ALTER TABLE leads ADD COLUMN IF NOT EXISTS equipment_type TEXT;
 -- Add call recording fields
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS call_recording_url TEXT;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS call_duration_seconds INTEGER;
-ALTER TABLE leads ADD COLUMN IF NOT EXISTS call_sid TEXT; -- LiveKit/Twilio call ID
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS call_sid TEXT; -- LiveKit call/room ID
 
 -- Index for filtering by intent
 CREATE INDEX IF NOT EXISTS idx_leads_intent ON leads(intent) WHERE intent IS NOT NULL;
+
+-- Create storage bucket for call recordings
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('call-recordings', 'call-recordings', false)
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow service role to upload recordings
+CREATE POLICY "Service role can upload recordings"
+ON storage.objects FOR INSERT
+TO service_role
+WITH CHECK (bucket_id = 'call-recordings');
+
+-- Allow authenticated users to read their recordings (via lead association)
+CREATE POLICY "Users can read call recordings"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (bucket_id = 'call-recordings');
 
 -- Update AI agent instructions with better lead capture prompts
 UPDATE ai_agent_settings
