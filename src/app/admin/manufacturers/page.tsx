@@ -66,7 +66,7 @@ const emptyManufacturer = {
   canonical_name: '',
   name_variations: [] as string[],
   is_featured: false,
-  feature_tier: 'free' as const,
+  feature_tier: 'free' as 'free' | 'featured' | 'premium',
 };
 
 export default function AdminManufacturersPage() {
