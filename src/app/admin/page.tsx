@@ -16,6 +16,7 @@ import {
   Building2,
   Clock,
   Phone,
+  UserPlus,
 } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
@@ -101,6 +102,13 @@ export default async function AdminDashboardPage() {
     .from('profiles')
     .select('*', { count: 'exact', head: true })
     .eq('is_dealer', true);
+
+  // Get placeholder profiles count (for onboarding)
+  const { count: pendingOnboarding } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact', head: true })
+    .like('email', '%@dealers.axles.ai')
+    .eq('is_dealer', false);
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -347,6 +355,27 @@ export default async function AdminDashboardPage() {
                   <div>
                     <p className="font-medium">Analytics</p>
                     <p className="text-sm text-muted-foreground">Charts & reports</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/onboarding">
+              <Card className="hover:border-primary transition-colors cursor-pointer relative">
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="p-3 bg-orange-100 rounded-lg">
+                    <UserPlus className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">Dealer Onboarding</p>
+                      {(pendingOnboarding || 0) > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {pendingOnboarding}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Scraped dealers</p>
                   </div>
                 </CardContent>
               </Card>
