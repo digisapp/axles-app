@@ -23,8 +23,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Menu,
-  X,
-  Search,
   Heart,
   MessageSquare,
   Package,
@@ -32,9 +30,6 @@ import {
   LogOut,
   Plus,
   LayoutDashboard,
-  User,
-  Bell,
-  Factory,
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 
@@ -94,12 +89,6 @@ export function Header() {
     window.location.href = '/';
   };
 
-  const navLinks = [
-    { href: '/search', label: 'Search', icon: Search },
-    { href: '/categories', label: 'Categories', icon: Package },
-    { href: '/manufacturers', label: 'Manufacturers', icon: Factory },
-  ];
-
   const userLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/listings', label: 'My Listings', icon: Package },
@@ -123,21 +112,6 @@ export function Header() {
               priority
             />
           </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === link.href ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
@@ -263,25 +237,6 @@ export function Header() {
                       </div>
                     </div>
                   )}
-
-                  {/* Navigation Links */}
-                  <nav className="flex flex-col gap-1">
-                    {navLinks.map((link) => (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => setIsOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                          pathname === link.href
-                            ? 'bg-primary/10 text-primary'
-                            : 'hover:bg-muted'
-                        }`}
-                      >
-                        <link.icon className="w-5 h-5" />
-                        {link.label}
-                      </Link>
-                    ))}
-                  </nav>
 
                   {/* User Links */}
                   {user && (
