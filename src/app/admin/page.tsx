@@ -17,6 +17,7 @@ import {
   Clock,
   Phone,
   UserPlus,
+  PhoneCall,
 } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
@@ -109,6 +110,12 @@ export default async function AdminDashboardPage() {
     .select('*', { count: 'exact', head: true })
     .like('email', '%@dealers.axles.ai')
     .eq('is_dealer', false);
+
+  // Get new leads count
+  const { count: newLeads } = await supabase
+    .from('leads')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'new');
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -341,6 +348,27 @@ export default async function AdminDashboardPage() {
                   <div>
                     <p className="font-medium">Manage Listings</p>
                     <p className="text-sm text-muted-foreground">Moderate content</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/leads">
+              <Card className="hover:border-primary transition-colors cursor-pointer relative">
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <PhoneCall className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">Leads</p>
+                      {(newLeads || 0) > 0 && (
+                        <Badge variant="destructive" className="text-xs">
+                          {newLeads} new
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Phone calls & inquiries</p>
                   </div>
                 </CardContent>
               </Card>

@@ -232,6 +232,30 @@ class LeadTools:
         source: str = "phone_call",
     ) -> str:
         """Capture a lead and save to Supabase."""
+        result, _ = await self.capture_with_id(
+            name=name,
+            phone=phone,
+            interest=interest,
+            email=email,
+            listing_id=listing_id,
+            intent=intent,
+            equipment_type=equipment_type,
+            source=source,
+        )
+        return result
+
+    async def capture_with_id(
+        self,
+        name: str,
+        phone: str,
+        interest: str,
+        email: Optional[str] = None,
+        listing_id: Optional[str] = None,
+        intent: Optional[str] = None,  # buy, lease, rent
+        equipment_type: Optional[str] = None,
+        source: str = "phone_call",
+    ) -> tuple[str, Optional[str]]:
+        """Capture a lead and return both message and lead ID."""
         try:
             supabase = get_supabase()
 
@@ -266,15 +290,16 @@ class LeadTools:
             result = supabase.table("leads").insert(lead_data).execute()
 
             if result.data:
-                logger.info(f"Lead captured successfully: {name} - {phone} - intent: {intent}")
+                lead_id = result.data[0].get('id') if result.data else None
+                logger.info(f"Lead captured successfully: {name} - {phone} - intent: {intent} - id: {lead_id}")
                 intent_str = f" to {intent}" if intent else ""
-                return f"I've captured your information. A dealer will reach out to you at {phone} soon about {interest}{intent_str}."
+                return f"I've captured your information. A dealer will reach out to you at {phone} soon about {interest}{intent_str}.", lead_id
             else:
-                return "I've noted your information. A team member will follow up with you shortly."
+                return "I've noted your information. A team member will follow up with you shortly.", None
 
         except Exception as e:
             logger.error(f"Error capturing lead: {e}")
-            return "I've noted your information. Someone will be in touch with you soon."
+            return "I've noted your information. Someone will be in touch with you soon.", None
 
     async def get_recent_leads(self, user_id: str, limit: int = 10) -> list:
         """Get recent leads for a dealer."""
@@ -292,3 +317,36 @@ class LeadTools:
         except Exception as e:
             logger.error(f"Error getting leads: {e}")
             return []
+
+
+async def update_lead_with_recording(
+    lead_id: str,
+    recording_url: Optional[str] = None,
+    duration_seconds: Optional[int] = None,
+    call_sid: Optional[str] = None,
+) -> bool:
+    """Update a lead with call recording information."""
+    try:
+        supabase = get_supabase()
+
+        update_data = {}
+        if recording_url:
+            update_data["call_recording_url"] = recording_url
+        if duration_seconds:
+            update_data["call_duration_seconds"] = duration_seconds
+        if call_sid:
+            update_data["call_sid"] = call_sid
+
+        if not update_data:
+            return False
+
+        result = supabase.table("leads").update(update_data).eq("id", lead_id).execute()
+
+        if result.data:
+            logger.info(f"Updated lead {lead_id} with recording: url={recording_url}, duration={duration_seconds}s")
+            return True
+        return False
+
+    except Exception as e:
+        logger.error(f"Error updating lead with recording: {e}")
+        return False
