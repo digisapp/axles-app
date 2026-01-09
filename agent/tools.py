@@ -163,6 +163,20 @@ Guidelines:
 - Keep responses concise for phone conversation (2-3 sentences max)
 - You only have access to {business_name}'s inventory, not all marketplace listings
 
+STAFF AUTHENTICATION:
+If a caller identifies themselves as a staff member, employee, or salesperson and wants to access
+internal information (costs, margins, leads, customer data), you can authenticate them:
+1. Ask for their name
+2. Ask for their access PIN (4-6 digits)
+3. Use the verify_staff_pin tool with their name and PIN
+4. If authenticated, they can query internal data using query_internal_data tool
+5. Available queries: 'inventory' (with costs/margins if permitted), 'leads', 'customer' (lookup by name/phone), 'pricing' (by stock number), 'stats'
+
+Example staff interactions:
+- "Hi, I'm John from sales, I need to check on our inventory" -> Ask for PIN to authenticate
+- "What's our cost on stock number 12345?" -> Verify they're authenticated, then query pricing
+- "Any new leads today?" -> Verify authenticated, then query leads with today filter
+
 {f"Additional instructions: {custom_instructions}" if custom_instructions else ""}
 """
     return base_instructions
@@ -497,6 +511,341 @@ async def update_lead_with_recording(
     except Exception as e:
         logger.error(f"Error updating lead with recording: {e}")
         return False
+
+
+class StaffAuthTools:
+    """Tools for staff authentication and internal data queries."""
+
+    def __init__(self, dealer_id: str):
+        """Initialize with dealer_id.
+
+        Args:
+            dealer_id: The dealer's user ID
+        """
+        self.dealer_id = dealer_id
+        self.authenticated_staff = None  # Will hold staff info after auth
+
+    async def verify_pin(
+        self,
+        name: str,
+        pin: str,
+        caller_phone: Optional[str] = None,
+    ) -> tuple[bool, Optional[Dict[str, Any]], str]:
+        """Verify staff member's name and PIN.
+
+        Args:
+            name: Staff member's name
+            pin: 4-6 digit PIN
+            caller_phone: Optional caller phone for logging
+
+        Returns:
+            Tuple of (success, staff_info, message)
+        """
+        try:
+            supabase = get_supabase()
+
+            # Query for matching staff
+            result = supabase.table("dealer_staff").select("*").eq(
+                "dealer_id", self.dealer_id
+            ).eq("voice_pin", pin).eq("is_active", True).execute()
+
+            if not result.data:
+                # Log failed attempt
+                supabase.table("dealer_staff_access_logs").insert({
+                    "dealer_id": self.dealer_id,
+                    "caller_phone": caller_phone,
+                    "auth_success": False,
+                    "auth_method": "pin",
+                    "query": "PIN verification attempt - invalid PIN",
+                }).execute()
+
+                logger.warning(f"Staff auth failed for dealer {self.dealer_id}")
+                return False, None, "Invalid PIN. Please try again."
+
+            # Check if name matches (case-insensitive partial match)
+            staff = None
+            for s in result.data:
+                if name.lower() in s.get('name', '').lower():
+                    staff = s
+                    break
+
+            if not staff:
+                # PIN matched but name didn't
+                supabase.table("dealer_staff_access_logs").insert({
+                    "dealer_id": self.dealer_id,
+                    "caller_phone": caller_phone,
+                    "auth_success": False,
+                    "auth_method": "name_and_pin",
+                    "query": f"PIN verification attempt - name mismatch: {name}",
+                }).execute()
+
+                logger.warning(f"Staff auth failed - name mismatch for dealer {self.dealer_id}")
+                return False, None, "I couldn't verify that name and PIN combination. Please try again."
+
+            # Check if account is locked
+            if staff.get('locked_until'):
+                locked_until = datetime.fromisoformat(staff['locked_until'].replace('Z', '+00:00'))
+                if locked_until > datetime.now(locked_until.tzinfo):
+                    return False, None, "This account is temporarily locked. Please try again later."
+
+            # Success - update access tracking
+            supabase.table("dealer_staff").update({
+                "last_access_at": datetime.utcnow().isoformat(),
+                "access_count": (staff.get('access_count') or 0) + 1,
+                "failed_attempts": 0,
+            }).eq("id", staff['id']).execute()
+
+            # Log successful access
+            supabase.table("dealer_staff_access_logs").insert({
+                "dealer_id": self.dealer_id,
+                "staff_id": staff['id'],
+                "caller_phone": caller_phone,
+                "auth_success": True,
+                "auth_method": "name_and_pin",
+                "query": "Successful authentication",
+            }).execute()
+
+            # Store authenticated staff
+            self.authenticated_staff = staff
+
+            logger.info(f"Staff authenticated: {staff['name']} for dealer {self.dealer_id}")
+            return True, staff, f"Access granted. Welcome back, {staff['name']}!"
+
+        except Exception as e:
+            logger.error(f"Error verifying staff PIN: {e}")
+            return False, None, "I'm having trouble verifying your credentials. Please try again."
+
+    async def query_internal_data(
+        self,
+        query_type: str,
+        query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Query internal dealer data for authenticated staff.
+
+        Args:
+            query_type: Type of query - 'inventory', 'leads', 'customer', 'pricing', 'stats'
+            query: Natural language query or specific lookup value
+            filters: Optional filters dict
+
+        Returns:
+            Formatted string response for voice
+        """
+        if not self.authenticated_staff:
+            return "You need to authenticate first. Please provide your name and PIN."
+
+        try:
+            supabase = get_supabase()
+            staff = self.authenticated_staff
+
+            if query_type == 'inventory':
+                return await self._query_inventory(supabase, staff, query, filters)
+            elif query_type in ('lead', 'leads'):
+                return await self._query_leads(supabase, staff, query, filters)
+            elif query_type == 'customer':
+                return await self._query_customer(supabase, staff, query)
+            elif query_type == 'pricing':
+                return await self._query_pricing(supabase, staff, query)
+            elif query_type == 'stats':
+                return await self._query_stats(supabase, staff)
+            else:
+                return f"I don't recognize the query type '{query_type}'. Try inventory, leads, customer, pricing, or stats."
+
+        except Exception as e:
+            logger.error(f"Error querying internal data: {e}")
+            return "I'm having trouble accessing that data right now. Please try again."
+
+    async def _query_inventory(
+        self,
+        supabase: Client,
+        staff: Dict[str, Any],
+        query: Optional[str],
+        filters: Optional[Dict[str, Any]],
+    ) -> str:
+        """Query dealer inventory with internal details."""
+        db_query = supabase.table("listings").select(
+            "id, title, price, year, make, model, condition, status, stock_number, mileage, acquisition_cost"
+        ).eq("user_id", self.dealer_id).order("created_at", desc=True).limit(10)
+
+        # Apply filters
+        if filters:
+            if filters.get('status'):
+                db_query = db_query.eq('status', filters['status'])
+            if filters.get('make'):
+                db_query = db_query.ilike('make', f"%{filters['make']}%")
+            if filters.get('stock_number'):
+                db_query = db_query.eq('stock_number', filters['stock_number'])
+
+        result = db_query.execute()
+
+        if not result.data:
+            return "No listings found matching your criteria."
+
+        parts = [f"Found {len(result.data)} listings:"]
+        for listing in result.data:
+            title = listing.get('title', 'Unknown')
+            stock = listing.get('stock_number', 'N/A')
+            price = f"${listing['price']:,}" if listing.get('price') else 'No price'
+            status = listing.get('status', 'unknown')
+
+            line = f"Stock {stock}: {title}, {price}, {status}"
+
+            # Add cost/margin if permitted
+            if staff.get('can_view_costs') and listing.get('acquisition_cost'):
+                cost = listing['acquisition_cost']
+                line += f", cost ${cost:,}"
+
+                if staff.get('can_view_margins') and listing.get('price'):
+                    margin = listing['price'] - cost
+                    margin_pct = (margin / cost * 100) if cost > 0 else 0
+                    line += f", margin ${margin:,} ({margin_pct:.0f}%)"
+
+            parts.append(line)
+
+        return ". ".join(parts)
+
+    async def _query_leads(
+        self,
+        supabase: Client,
+        staff: Dict[str, Any],
+        query: Optional[str],
+        filters: Optional[Dict[str, Any]],
+    ) -> str:
+        """Query recent leads."""
+        db_query = supabase.table("leads").select(
+            "id, buyer_name, buyer_phone, message, status, priority, created_at"
+        ).eq("user_id", self.dealer_id).order("created_at", desc=True).limit(10)
+
+        # Apply filters
+        if filters:
+            if filters.get('status'):
+                db_query = db_query.eq('status', filters['status'])
+            if filters.get('today'):
+                today = datetime.utcnow().strftime('%Y-%m-%d')
+                db_query = db_query.gte('created_at', today)
+
+        result = db_query.execute()
+
+        if not result.data:
+            return "No leads found."
+
+        parts = [f"Found {len(result.data)} leads:"]
+        for lead in result.data:
+            name = lead.get('buyer_name', 'Unknown')
+            phone = lead.get('buyer_phone', 'No phone')
+            status = lead.get('status', 'new')
+            message = (lead.get('message') or '')[:50]
+
+            parts.append(f"{name}, {phone}, {status}, interested in: {message}")
+
+        return ". ".join(parts)
+
+    async def _query_customer(
+        self,
+        supabase: Client,
+        staff: Dict[str, Any],
+        query: Optional[str],
+    ) -> str:
+        """Look up a specific customer by name or phone."""
+        if not query:
+            return "Please provide a customer name or phone number to look up."
+
+        result = supabase.table("leads").select(
+            "id, buyer_name, buyer_email, buyer_phone, message, status, created_at"
+        ).eq("user_id", self.dealer_id).or_(
+            f"buyer_name.ilike.%{query}%,buyer_phone.ilike.%{query}%,buyer_email.ilike.%{query}%"
+        ).order("created_at", desc=True).limit(5).execute()
+
+        if not result.data:
+            return f"No customer found matching '{query}'."
+
+        customer = result.data[0]
+        inquiry_count = len(result.data)
+
+        return (
+            f"Found {customer.get('buyer_name', 'Unknown')}. "
+            f"Phone: {customer.get('buyer_phone', 'not provided')}. "
+            f"Email: {customer.get('buyer_email', 'not provided')}. "
+            f"Total inquiries: {inquiry_count}. "
+            f"Last inquiry: {customer.get('message', 'No message')[:100]}"
+        )
+
+    async def _query_pricing(
+        self,
+        supabase: Client,
+        staff: Dict[str, Any],
+        query: Optional[str],
+    ) -> str:
+        """Get pricing info for a specific listing by stock number or ID."""
+        if not query:
+            return "Please provide a stock number or listing ID."
+
+        result = supabase.table("listings").select(
+            "id, title, price, ai_price_estimate, acquisition_cost, stock_number"
+        ).eq("user_id", self.dealer_id).or_(
+            f"stock_number.eq.{query},id.eq.{query}"
+        ).single().execute()
+
+        if not result.data:
+            return f"No listing found for '{query}'."
+
+        listing = result.data
+        parts = [f"{listing.get('title', 'Unknown')} (Stock: {listing.get('stock_number', 'N/A')})"]
+
+        price = listing.get('price')
+        if price:
+            parts.append(f"Asking price: ${price:,}")
+
+        market = listing.get('ai_price_estimate')
+        if market:
+            parts.append(f"Market value estimate: ${market:,}")
+
+        if staff.get('can_view_costs') and listing.get('acquisition_cost'):
+            cost = listing['acquisition_cost']
+            parts.append(f"Acquisition cost: ${cost:,}")
+
+            if staff.get('can_view_margins') and price:
+                margin = price - cost
+                min_price = int(cost * 1.1)
+                parts.append(f"Margin: ${margin:,}")
+                parts.append(f"Minimum price at 10% margin: ${min_price:,}")
+
+        return ". ".join(parts)
+
+    async def _query_stats(
+        self,
+        supabase: Client,
+        staff: Dict[str, Any],
+    ) -> str:
+        """Get dealer stats overview."""
+        # Count listings
+        total_listings = supabase.table("listings").select(
+            "*", count="exact", head=True
+        ).eq("user_id", self.dealer_id).execute()
+
+        active_listings = supabase.table("listings").select(
+            "*", count="exact", head=True
+        ).eq("user_id", self.dealer_id).eq("status", "active").execute()
+
+        # Count leads
+        total_leads = supabase.table("leads").select(
+            "*", count="exact", head=True
+        ).eq("user_id", self.dealer_id).execute()
+
+        new_leads = supabase.table("leads").select(
+            "*", count="exact", head=True
+        ).eq("user_id", self.dealer_id).eq("status", "new").execute()
+
+        today = datetime.utcnow().strftime('%Y-%m-%d')
+        today_leads = supabase.table("leads").select(
+            "*", count="exact", head=True
+        ).eq("user_id", self.dealer_id).gte("created_at", today).execute()
+
+        return (
+            f"Inventory: {active_listings.count or 0} active out of {total_listings.count or 0} total listings. "
+            f"Leads: {new_leads.count or 0} new leads, {today_leads.count or 0} received today, "
+            f"{total_leads.count or 0} total."
+        )
 
 
 class CallLogTools:

@@ -29,6 +29,7 @@ from tools import (
     InventoryTools,
     LeadTools,
     CallLogTools,
+    StaffAuthTools,
     get_ai_agent_settings,
     get_dealer_voice_agent_by_phone,
     build_dealer_instructions,
@@ -68,12 +69,14 @@ class AxlesAgent(Agent):
         # Initialize tools with dealer context if this is a dealer call
         self.inventory_tools = InventoryTools(dealer_id=dealer_id)
         self.lead_tools = LeadTools(dealer_id=dealer_id, business_name=business_name)
+        self.staff_auth_tools = StaffAuthTools(dealer_id=dealer_id) if dealer_id else None
 
         self.captured_lead_id = None
         self.caller_name = None
         self.interest = None
         self.equipment_type = None
         self.intent = None
+        self.is_staff_authenticated = False
 
     @function_tool()
     async def search_inventory(
@@ -164,6 +167,101 @@ class AxlesAgent(Agent):
             # Store in active_calls for later recording update
             if self.room_name in active_calls:
                 active_calls[self.room_name]['lead_id'] = lead_id
+
+        return result
+
+    @function_tool()
+    async def verify_staff_pin(
+        self,
+        ctx: RunContext,
+        name: str,
+        pin: str,
+    ) -> str:
+        """Verify a staff member's identity using their name and PIN.
+
+        Use this when someone identifies themselves as an employee or staff member
+        and wants to access internal dealership data like inventory costs,
+        margins, leads, or customer information.
+
+        Args:
+            name: The staff member's name
+            pin: Their 4-6 digit access PIN
+        """
+        if not self.staff_auth_tools:
+            return "Staff authentication is not available for this line."
+
+        success, staff_info, message = await self.staff_auth_tools.verify_pin(
+            name=name,
+            pin=pin,
+            caller_phone=self.caller_phone,
+        )
+
+        if success:
+            self.is_staff_authenticated = True
+            self.caller_name = staff_info.get('name')
+            # Include what they can access
+            permissions = []
+            if staff_info.get('can_view_costs'):
+                permissions.append("costs")
+            if staff_info.get('can_view_margins'):
+                permissions.append("margins")
+            if staff_info.get('can_view_all_leads'):
+                permissions.append("all leads")
+            perm_str = ", ".join(permissions) if permissions else "standard inventory and leads"
+            return f"{message} You have access to {perm_str}. What would you like to know?"
+
+        return message
+
+    @function_tool()
+    async def query_internal_data(
+        self,
+        ctx: RunContext,
+        query_type: str,
+        query: str | None = None,
+        filter_status: str | None = None,
+        filter_today: bool = False,
+    ) -> str:
+        """Query internal dealership data. Only available after staff authentication.
+
+        Args:
+            query_type: What to query - 'inventory', 'leads', 'customer', 'pricing', or 'stats'
+            query: For customer lookup: name or phone. For pricing: stock number.
+            filter_status: Filter by status (e.g., 'active', 'new', 'sold')
+            filter_today: For leads, only show today's leads
+        """
+        if not self.staff_auth_tools:
+            return "Internal data access is not available for this line."
+
+        if not self.is_staff_authenticated:
+            return "You need to authenticate first. Please tell me your name and PIN."
+
+        filters = {}
+        if filter_status:
+            filters['status'] = filter_status
+        if filter_today:
+            filters['today'] = True
+
+        result = await self.staff_auth_tools.query_internal_data(
+            query_type=query_type,
+            query=query,
+            filters=filters if filters else None,
+        )
+
+        # Log the query
+        if self.staff_auth_tools.authenticated_staff:
+            from tools import get_supabase
+            try:
+                supabase = get_supabase()
+                supabase.table("dealer_staff_access_logs").insert({
+                    "dealer_id": self.dealer_id,
+                    "staff_id": self.staff_auth_tools.authenticated_staff['id'],
+                    "query_type": query_type,
+                    "query": query[:500] if query else None,
+                    "response_summary": result[:200] if result else None,
+                    "auth_success": True,
+                }).execute()
+            except Exception as e:
+                logger.warning(f"Failed to log staff query: {e}")
 
         return result
 
