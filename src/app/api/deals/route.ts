@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   const category = searchParams.get('category');
   const limit = parseInt(searchParams.get('limit') || '10');
   const minDiscount = parseInt(searchParams.get('min_discount') || '5'); // Minimum % below market
+  const shuffle = searchParams.get('shuffle') === 'true'; // Randomize results
 
   // Build query for deals (price < ai_price_estimate)
   let query = supabase
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Calculate discount and filter for deals
-  const deals = (listings || [])
+  let deals = (listings || [])
     .map(listing => {
       const discount = Math.round(
         ((listing.ai_price_estimate - listing.price) / listing.ai_price_estimate) * 100
@@ -76,9 +77,20 @@ export async function GET(request: NextRequest) {
         savings: listing.ai_price_estimate - listing.price,
       };
     })
-    .filter(listing => listing.discount_percent >= minDiscount)
-    .sort((a, b) => b.discount_percent - a.discount_percent)
-    .slice(0, limit);
+    .filter(listing => listing.discount_percent >= minDiscount);
+
+  // Either shuffle or sort by discount
+  if (shuffle) {
+    // Fisher-Yates shuffle for random selection
+    for (let i = deals.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deals[i], deals[j]] = [deals[j], deals[i]];
+    }
+  } else {
+    deals = deals.sort((a, b) => b.discount_percent - a.discount_percent);
+  }
+
+  deals = deals.slice(0, limit);
 
   return NextResponse.json({
     data: deals,

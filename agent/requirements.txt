@@ -1,5 +1,5 @@
 # LiveKit Agents
-livekit-agents>=0.12.0
+livekit-agents>=1.2.0
 livekit-plugins-xai>=1.0.0
 
 # Supabase

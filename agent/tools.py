@@ -229,7 +229,6 @@ class LeadTools:
         listing_id: Optional[str] = None,
         intent: Optional[str] = None,  # buy, lease, rent
         equipment_type: Optional[str] = None,
-        source: str = "phone_call",
     ) -> str:
         """Capture a lead and save to Supabase."""
         result, _ = await self.capture_with_id(
@@ -240,7 +239,6 @@ class LeadTools:
             listing_id=listing_id,
             intent=intent,
             equipment_type=equipment_type,
-            source=source,
         )
         return result
 
@@ -253,7 +251,6 @@ class LeadTools:
         listing_id: Optional[str] = None,
         intent: Optional[str] = None,  # buy, lease, rent
         equipment_type: Optional[str] = None,
-        source: str = "phone_call",
     ) -> tuple[str, Optional[str]]:
         """Capture a lead and return both message and lead ID."""
         try:
@@ -275,7 +272,6 @@ class LeadTools:
                 "buyer_phone": phone,
                 "buyer_email": email or "",
                 "message": interest,
-                "source": source,
                 "status": "new",
                 "intent": intent,  # buy, lease, rent
                 "equipment_type": equipment_type,

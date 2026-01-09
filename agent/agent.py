@@ -129,7 +129,6 @@ class AxlesAgent(Agent):
             listing_id=listing_id,
             intent=intent,
             equipment_type=equipment_type,
-            source="phone_call",
         )
 
         # Store info for call log

@@ -79,11 +79,11 @@ export default function HomePage() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch hot deals
+  // Fetch hot deals (shuffled for variety)
   useEffect(() => {
     const fetchDeals = async () => {
       try {
-        const response = await fetch('/api/deals?limit=4&min_discount=5');
+        const response = await fetch('/api/deals?limit=4&min_discount=5&shuffle=true');
         if (response.ok) {
           const data = await response.json();
           setDeals(data.data || []);
