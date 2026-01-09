@@ -532,10 +532,12 @@ export default async function DealerStorefrontPage({ params, searchParams }: Pag
                       <h3 className="font-semibold text-white text-base leading-tight line-clamp-2 mb-1 drop-shadow-lg">
                         {listing.title}
                       </h3>
-                      <p className="text-white/80 text-sm drop-shadow">
-                        {[listing.year, listing.make, listing.model].filter(Boolean).join(' ')}
-                        {listing.mileage && ` · ${listing.mileage.toLocaleString()} mi`}
-                      </p>
+                      {/* Only show specs if they add info not in title */}
+                      {listing.mileage && (
+                        <p className="text-white/80 text-sm drop-shadow">
+                          {listing.mileage.toLocaleString()} miles
+                        </p>
+                      )}
                     </div>
                   </div>
                 </Link>
