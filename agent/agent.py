@@ -168,10 +168,9 @@ async def entrypoint(ctx: JobContext):
             pass
 
     # Create xAI Realtime model with settings from database
+    # Note: xAI RealtimeModel only accepts 'voice' and 'api_key' as main parameters
     xai_model = lk_xai.realtime.RealtimeModel(
-        model=settings.get('model', 'grok-2-public'),
         voice=settings.get('voice', 'Sal'),
-        temperature=float(settings.get('temperature', 0.7)),
         api_key=os.getenv("XAI_API_KEY"),
     )
 
