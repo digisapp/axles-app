@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateLeadScoreWithAI } from '@/lib/leads/scoring';
 
+const AXLESAI_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axles.ai';
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -16,10 +18,13 @@ export async function POST(request: NextRequest) {
       message,
     } = body;
 
+    // Check if routing to AxlesAI (no seller specified)
+    const isAxlesAILead = !seller_id;
+
     // Validate required fields
-    if (!buyer_name || !buyer_email || !seller_id) {
+    if (!buyer_name || !buyer_email) {
       return NextResponse.json(
-        { error: 'Name, email, and seller ID are required' },
+        { error: 'Name and email are required' },
         { status: 400 }
       );
     }
@@ -62,7 +67,7 @@ export async function POST(request: NextRequest) {
       .from('leads')
       .insert({
         listing_id: listing_id || null,
-        user_id: seller_id, // The dealer/seller receiving the lead
+        user_id: seller_id || null, // null for AxlesAI leads
         buyer_name,
         buyer_email,
         buyer_phone: buyer_phone || null,
@@ -71,6 +76,7 @@ export async function POST(request: NextRequest) {
         priority: priority,
         score: score,
         score_factors: factors,
+        source: isAxlesAILead ? 'axlesai_contact' : 'contact_form',
       })
       .select()
       .single();
@@ -80,19 +86,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Get seller info for email notification
-    const { data: seller } = await supabase
-      .from('profiles')
-      .select('email, company_name')
-      .eq('id', seller_id)
-      .single();
-
     // Use listing title from earlier fetch, or fallback
-    const emailListingTitle = listingTitle || 'your listing';
+    const emailListingTitle = listingTitle || 'a listing';
 
-    // Send email notification to seller (if Resend is configured)
-    if (seller?.email && process.env.RESEND_API_KEY) {
+    // Determine notification recipient
+    let notificationEmail: string | null = null;
+
+    if (isAxlesAILead) {
+      // Send to AxlesAI admin
+      notificationEmail = AXLESAI_ADMIN_EMAIL;
+    } else if (seller_id) {
+      // Get seller info for email notification
+      const { data: seller } = await supabase
+        .from('profiles')
+        .select('email, company_name')
+        .eq('id', seller_id)
+        .single();
+      notificationEmail = seller?.email || null;
+    }
+
+    // Send email notification (if Resend is configured)
+    if (notificationEmail && process.env.RESEND_API_KEY) {
       try {
+        const dashboardUrl = isAxlesAILead
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/admin/leads`
+          : `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/leads`;
+
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -101,7 +120,7 @@ export async function POST(request: NextRequest) {
           },
           body: JSON.stringify({
             from: 'AxlesAI <leads@axles.ai>',
-            to: seller.email,
+            to: notificationEmail,
             subject: `New Lead: ${buyer_name} interested in ${emailListingTitle}`,
             html: `
               <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -123,9 +142,9 @@ export async function POST(request: NextRequest) {
                 ` : ''}
 
                 <p>
-                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/leads"
+                  <a href="${dashboardUrl}"
                      style="display: inline-block; background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
-                    View in Dashboard
+                    View in ${isAxlesAILead ? 'Admin Panel' : 'Dashboard'}
                   </a>
                 </p>
 

@@ -549,10 +549,10 @@ export default async function ListingPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            {/* Contact Form */}
+            {/* Contact Form - Routes to AxlesAI */}
             <ContactSeller
               listingId={id}
-              sellerId={listing.user?.id || ''}
+              sellerId=""
               listingTitle={listing.title}
             />
 
@@ -669,9 +669,10 @@ export default async function ListingPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
+          {/* Contact Form - Routes to AxlesAI */}
           <ContactSeller
             listingId={id}
-            sellerId={listing.user?.id || ''}
+            sellerId=""
             listingTitle={listing.title}
           />
           {listing.price && listing.price > 0 && (

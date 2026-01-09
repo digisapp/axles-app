@@ -66,8 +66,8 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Check if user is trying to message themselves
-    if (user?.id === sellerId) {
+    // Check if user is trying to message themselves (only if seller is specified)
+    if (sellerId && user?.id === sellerId) {
       setError("You can't contact yourself");
       return;
     }
@@ -125,12 +125,15 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
     );
   }
 
+  // Determine if routing to AxlesAI (when no seller specified)
+  const isAxlesAI = !sellerId;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Mail className="w-5 h-5" />
-          Contact Seller
+          {isAxlesAI ? 'Contact AxlesAI' : 'Contact Seller'}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -215,7 +218,9 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            Your contact info will be shared with the seller
+            {isAxlesAI
+              ? 'Our team will respond to your inquiry shortly'
+              : 'Your contact info will be shared with the seller'}
           </p>
         </form>
       </CardContent>
