@@ -29,6 +29,7 @@ import {
   Bell,
   Search,
   Phone,
+  UserCog,
 } from 'lucide-react';
 
 interface NavItem {
@@ -83,6 +84,11 @@ const navItems: NavItem[] = [
     href: '/dashboard/voice-agent',
     label: 'Voice Agent',
     icon: <Phone className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/staff',
+    label: 'Staff Access',
+    icon: <UserCog className="w-5 h-5" />,
   },
   {
     href: '/dashboard/messages',
