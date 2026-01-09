@@ -15,6 +15,7 @@ import {
   Shield,
   Building2,
   Clock,
+  Phone,
 } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
@@ -346,6 +347,20 @@ export default async function AdminDashboardPage() {
                   <div>
                     <p className="font-medium">Analytics</p>
                     <p className="text-sm text-muted-foreground">Charts & reports</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/ai-agent">
+              <Card className="hover:border-primary transition-colors cursor-pointer">
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="p-3 bg-cyan-100 rounded-lg">
+                    <Phone className="w-6 h-6 text-cyan-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">AI Phone Agent</p>
+                    <p className="text-sm text-muted-foreground">Voice & settings</p>
                   </div>
                 </CardContent>
               </Card>

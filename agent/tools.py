@@ -1,16 +1,49 @@
 """
 Tools for AxlesAI Voice Agent
 
-Provides inventory search and lead capture functionality via Supabase.
+Provides inventory search, lead capture, and settings functionality via Supabase.
 """
 
 import os
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 from supabase import create_client, Client
 
 logger = logging.getLogger("axles-agent.tools")
+
+
+# Default settings if database fetch fails
+DEFAULT_SETTINGS = {
+    "voice": "Sal",
+    "agent_name": "Axles AI",
+    "greeting_message": "Hello! Thanks for calling Axles AI, your marketplace for trucks, trailers, and heavy equipment. How can I help you find what you're looking for today?",
+    "instructions": """You are a helpful AI assistant for AxlesAI, a marketplace for trucks, trailers, and heavy equipment.
+
+Your role is to:
+1. Answer questions about available inventory (trucks, trailers, heavy equipment)
+2. Help callers find equipment that matches their needs
+3. Provide pricing and specification information
+4. Capture lead information for follow-up by dealers
+5. Transfer calls to dealers when requested
+
+Guidelines:
+- Be friendly, professional, and knowledgeable about commercial trucks and trailers
+- Ask clarifying questions to understand what the caller is looking for
+- When discussing equipment, mention key specs like year, make, model, price, and condition
+- If a caller is interested in a specific unit, offer to capture their information for a callback
+- Keep responses concise for phone conversation (2-3 sentences max)
+- If you don't have information, offer to connect them with a dealer
+
+Common equipment types:
+- Trailers: flatbed, dry van, reefer, lowboy, drop deck, dump, tanker
+- Trucks: semi trucks, day cabs, sleeper cabs, box trucks, dump trucks
+- Heavy equipment: excavators, loaders, bulldozers, cranes
+""",
+    "model": "grok-2-public",
+    "temperature": 0.7,
+    "is_active": True,
+}
 
 
 def get_supabase() -> Client:
@@ -22,6 +55,24 @@ def get_supabase() -> Client:
         raise ValueError("Missing Supabase credentials")
 
     return create_client(url, key)
+
+
+def get_ai_agent_settings() -> Dict[str, Any]:
+    """Fetch AI agent settings from database."""
+    try:
+        supabase = get_supabase()
+        result = supabase.table("ai_agent_settings").select("*").single().execute()
+
+        if result.data:
+            logger.info("Loaded AI agent settings from database")
+            return result.data
+        else:
+            logger.warning("No AI agent settings found, using defaults")
+            return DEFAULT_SETTINGS
+
+    except Exception as e:
+        logger.error(f"Error fetching AI agent settings: {e}")
+        return DEFAULT_SETTINGS
 
 
 class InventoryTools:
