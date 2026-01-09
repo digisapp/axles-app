@@ -487,9 +487,9 @@ export default async function DealerStorefrontPage({ params, searchParams }: Pag
               const cat = Array.isArray(listing.category) ? listing.category[0] : listing.category;
 
               return (
-                <div key={listing.id} className="group bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-slate-300 transition-all duration-300">
-                  {/* Image */}
-                  <Link href={`/listing/${listing.id}`}>
+                <Link key={listing.id} href={`/listing/${listing.id}`} className="group block">
+                  <div className="h-full bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-slate-300 transition-all duration-300">
+                    {/* Image */}
                     <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
                       {primaryImage ? (
                         <Image
@@ -519,7 +519,7 @@ export default async function DealerStorefrontPage({ params, searchParams }: Pag
                       </div>
 
                       {/* Price Tag */}
-                      <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
+                      <div className="absolute bottom-3 left-3">
                         <div className="px-3 py-1.5 rounded-lg bg-slate-900/90 backdrop-blur-sm">
                           <p className="text-lg font-bold text-white">
                             {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
@@ -527,57 +527,38 @@ export default async function DealerStorefrontPage({ params, searchParams }: Pag
                         </div>
                       </div>
                     </div>
-                  </Link>
 
-                  {/* Content */}
-                  <div className="p-4">
-                    <Link href={`/listing/${listing.id}`}>
+                    {/* Content */}
+                    <div className="p-4">
                       <h3 className="font-semibold text-slate-900 group-hover:text-primary transition-colors line-clamp-1 mb-1">
                         {listing.title}
                       </h3>
-                    </Link>
 
-                    {/* Year, Make, Model */}
-                    {(listing.year || listing.make || listing.model) && (
-                      <p className="text-sm text-slate-500 mb-2">
-                        {[listing.year, listing.make, listing.model].filter(Boolean).join(' ')}
-                      </p>
-                    )}
+                      {/* Year, Make, Model */}
+                      {(listing.year || listing.make || listing.model) && (
+                        <p className="text-sm text-slate-500 mb-2">
+                          {[listing.year, listing.make, listing.model].filter(Boolean).join(' ')}
+                        </p>
+                      )}
 
-                    {/* Specs Row */}
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 mb-3">
-                      {listing.mileage && (
-                        <span className="flex items-center gap-1">
-                          <Gauge className="w-3 h-3" />
-                          {listing.mileage.toLocaleString()} mi
-                        </span>
-                      )}
-                      {cat?.name && (
-                        <span className="flex items-center gap-1">
-                          <Package className="w-3 h-3" />
-                          {cat.name}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 pt-3 border-t border-slate-100">
-                      <Button size="sm" variant="outline" className="flex-1 text-xs" asChild>
-                        <Link href={`/listing/${listing.id}`}>
-                          View Details
-                        </Link>
-                      </Button>
-                      {dealer.phone && (
-                        <Button size="sm" className="flex-1 text-xs gap-1" asChild>
-                          <a href={`tel:${dealer.phone}`}>
-                            <Phone className="w-3 h-3" />
-                            Call
-                          </a>
-                        </Button>
-                      )}
+                      {/* Specs Row */}
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+                        {listing.mileage && (
+                          <span className="flex items-center gap-1">
+                            <Gauge className="w-3 h-3" />
+                            {listing.mileage.toLocaleString()} mi
+                          </span>
+                        )}
+                        {cat?.name && (
+                          <span className="flex items-center gap-1">
+                            <Package className="w-3 h-3" />
+                            {cat.name}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
