@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps) {
 
   return {
     title: `${manufacturer.name} ${types.charAt(0).toUpperCase() + types.slice(1)} | AxlesAI`,
-    description: manufacturer.short_description || `Browse ${manufacturer.name} equipment on AxlesAI. Find trucks, trailers, and heavy equipment.`,
+    description: manufacturer.short_description || `Browse ${manufacturer.name} equipment on AxlesAI. Find trucks, trailers, and equipment.`,
   };
 }
 

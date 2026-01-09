@@ -75,7 +75,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const metaDescription = listing.description
     ? listing.description.slice(0, 155) + (listing.description.length > 155 ? '...' : '')
-    : `${metaTitle} - ${priceText}${locationText ? ` in ${locationText}` : ''}. Browse trucks, trailers, and heavy equipment on AxlesAI.`;
+    : `${metaTitle} - ${priceText}${locationText ? ` in ${locationText}` : ''}. Browse trucks, trailers, and equipment on AxlesAI.`;
 
   return {
     title: metaTitle,

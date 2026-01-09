@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 
 export const metadata = {
   title: 'Trade-In Your Equipment | AxlesAI',
-  description: 'Get a quick valuation for your truck, trailer, or heavy equipment. Submit a trade-in request and receive a response within 24-48 hours.',
+  description: 'Get a quick valuation for your truck, trailer, or equipment. Submit a trade-in request and receive a response within 24-48 hours.',
 };
 
 export default function TradeInPage() {

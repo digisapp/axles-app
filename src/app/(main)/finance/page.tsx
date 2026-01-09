@@ -262,7 +262,7 @@ export default function FinancePage() {
                     <div>
                       <p className="font-medium">New & Used Equipment</p>
                       <p className="text-sm text-muted-foreground">
-                        Financing available for trucks, trailers, and heavy equipment
+                        Financing available for trucks, trailers, and equipment
                       </p>
                     </div>
                   </div>
@@ -312,14 +312,15 @@ export default function FinancePage() {
                     <Shield className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-1">Need Help?</h3>
+                    <h3 className="font-semibold mb-1">Need Help Finding Equipment?</h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Ask our AI assistant about financing options. Try asking:
-                      &quot;What&apos;s the monthly payment on a $80k truck?&quot;
+                      Use our AI-powered search to find the perfect truck or trailer.
+                      Just describe what you need in plain English.
                     </p>
                     <Button variant="outline" size="sm" asChild>
                       <Link href="/">
-                        Ask AI Assistant
+                        Search with AI
+                        <ArrowRight className="w-4 h-4 ml-2" />
                       </Link>
                     </Button>
                   </div>

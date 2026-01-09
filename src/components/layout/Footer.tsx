@@ -55,7 +55,7 @@ export function Footer() {
               />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
-              The AI-powered marketplace for trucks, trailers, and heavy equipment.
+              The AI-powered marketplace for trucks, trailers, and equipment.
             </p>
             <div className="flex gap-3">
               {socialLinks.map((link) => (

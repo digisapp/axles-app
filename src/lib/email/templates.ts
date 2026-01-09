@@ -166,7 +166,7 @@ export function welcomeEmail({
 
           <p>Hi ${userName},</p>
 
-          <p>Thank you for joining AxlesAI, the AI-powered marketplace for trucks, trailers, and heavy equipment.</p>
+          <p>Thank you for joining AxlesAI, the AI-powered marketplace for trucks, trailers, and equipment.</p>
 
           <p style="text-align: center; margin: 32px 0;">
             <a href="${dashboardUrl}" style="${buttonStyles}">

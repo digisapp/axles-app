@@ -19,7 +19,7 @@ import { Manufacturer } from '@/types';
 
 export const metadata = {
   title: 'Manufacturer Directory | AxlesAI',
-  description: 'Browse leading truck, trailer, and heavy equipment manufacturers. Research brands before you buy.',
+  description: 'Browse leading truck, trailer, and equipment manufacturers. Research brands before you buy.',
 };
 
 interface PageProps {

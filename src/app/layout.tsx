@@ -15,7 +15,7 @@ function OrganizationJsonLd() {
     name: 'AxlesAI',
     url: 'https://axles.ai',
     logo: 'https://axles.ai/images/axlesai-logo.png',
-    description: 'AI-powered marketplace for trucks, trailers, and heavy equipment. Search with AI, get smart pricing, and list your equipment instantly.',
+    description: 'AI-powered marketplace for trucks, trailers, and equipment. Search with AI, get smart pricing, and list your equipment instantly.',
     foundingDate: '2024',
     contactPoint: {
       '@type': 'ContactPoint',
@@ -80,7 +80,7 @@ export const metadata: Metadata = {
     default: "AxlesAI - AI-Powered Truck & Equipment Marketplace",
     template: "%s | AxlesAI",
   },
-  description: "The future of buying and selling trucks, trailers, and heavy equipment. AI-powered search, smart pricing, and instant listings.",
+  description: "The future of buying and selling trucks, trailers, and equipment. AI-powered search, smart pricing, and instant listings.",
   keywords: ["trucks", "trailers", "heavy equipment", "marketplace", "semi trucks", "commercial vehicles", "Peterbilt", "Freightliner", "Kenworth", "Volvo", "buy trucks", "sell trucks"],
   authors: [{ name: "AxlesAI" }],
   creator: "AxlesAI",
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://axles.ai"),
   openGraph: {
     title: "AxlesAI - AI-Powered Truck & Equipment Marketplace",
-    description: "The future of buying and selling trucks, trailers, and heavy equipment. Search with AI, get smart pricing, and list your equipment instantly.",
+    description: "The future of buying and selling trucks, trailers, and equipment. Search with AI, get smart pricing, and list your equipment instantly.",
     type: "website",
     siteName: "AxlesAI",
     locale: "en_US",
@@ -104,7 +104,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "AxlesAI - AI-Powered Truck & Equipment Marketplace",
-    description: "The future of buying and selling trucks, trailers, and heavy equipment.",
+    description: "The future of buying and selling trucks, trailers, and equipment.",
     images: ["/images/og-image.png"],
   },
   robots: {

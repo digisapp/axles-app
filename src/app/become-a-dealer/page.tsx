@@ -226,7 +226,7 @@ export default function BecomeADealerPage() {
                 Start Selling on AxlesAI
               </h1>
               <p className="text-lg text-muted-foreground">
-                Join the AI-powered marketplace for trucks, trailers, and heavy equipment.
+                Join the AI-powered marketplace for trucks, trailers, and equipment.
                 Reach thousands of buyers and grow your business.
               </p>
             </div>
