@@ -25,6 +25,7 @@ import {
   List,
 } from 'lucide-react';
 import { CompareButton } from '@/components/listings/CompareButton';
+import { ListingCardWrapper } from '@/components/listings/ListingCardWrapper';
 
 interface DealListing {
   id: string;
@@ -251,7 +252,7 @@ function DealCard({ deal, viewMode }: { deal: DealListing; viewMode: 'grid' | 'l
 
   if (viewMode === 'list') {
     return (
-      <Link href={`/listing/${deal.id}`}>
+      <ListingCardWrapper listingId={deal.id} listingTitle={deal.title}>
         <Card className="flex flex-col sm:flex-row overflow-hidden hover:shadow-lg transition-shadow">
           <div className="relative w-full sm:w-48 md:w-64 h-48 sm:h-40 md:h-48 flex-shrink-0">
             {primaryImage ? (
@@ -337,12 +338,12 @@ function DealCard({ deal, viewMode }: { deal: DealListing; viewMode: 'grid' | 'l
             </div>
           </div>
         </Card>
-      </Link>
+      </ListingCardWrapper>
     );
   }
 
   return (
-    <Link href={`/listing/${deal.id}`}>
+    <ListingCardWrapper listingId={deal.id} listingTitle={deal.title}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
         <div className="relative aspect-[4/3]">
           {primaryImage ? (
@@ -421,7 +422,7 @@ function DealCard({ deal, viewMode }: { deal: DealListing; viewMode: 'grid' | 'l
           )}
         </div>
       </Card>
-    </Link>
+    </ListingCardWrapper>
   );
 }
 

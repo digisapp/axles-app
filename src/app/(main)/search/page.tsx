@@ -57,6 +57,7 @@ import {
 import { AdvancedFilters, FilterValues } from '@/components/search/AdvancedFilters';
 import { CompareButton } from '@/components/listings/CompareButton';
 import { SaveSearchButton } from '@/components/search/SaveSearchButton';
+import { ListingCardWrapper } from '@/components/listings/ListingCardWrapper';
 import type { Listing, AISearchResult, Category } from '@/types';
 
 function SearchPageContent() {
@@ -599,7 +600,7 @@ function ListingCard({
 
   if (viewMode === 'list') {
     return (
-      <Link href={`/listing/${listing.id}`}>
+      <ListingCardWrapper listingId={listing.id} listingTitle={listing.title}>
         <Card className="flex flex-col sm:flex-row overflow-hidden hover:shadow-lg transition-shadow">
           <div className="relative w-full sm:w-48 md:w-64 h-48 sm:h-40 md:h-48 flex-shrink-0">
             {primaryImage ? (
@@ -706,12 +707,12 @@ function ListingCard({
             )}
           </div>
         </Card>
-      </Link>
+      </ListingCardWrapper>
     );
   }
 
   return (
-    <Link href={`/listing/${listing.id}`}>
+    <ListingCardWrapper listingId={listing.id} listingTitle={listing.title}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
         <div className="relative aspect-[4/3]">
           {primaryImage ? (
@@ -805,7 +806,7 @@ function ListingCard({
           )}
         </div>
       </Card>
-    </Link>
+    </ListingCardWrapper>
   );
 }
 

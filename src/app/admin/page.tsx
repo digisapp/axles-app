@@ -118,6 +118,12 @@ export default async function AdminDashboardPage() {
     .select('*', { count: 'exact', head: true })
     .eq('status', 'new');
 
+  // Get pending trade-ins count
+  const { count: pendingTradeIns } = await supabase
+    .from('trade_in_requests')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending');
+
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
@@ -369,6 +375,27 @@ export default async function AdminDashboardPage() {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">Phone calls & inquiries</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/trade-ins">
+              <Card className="hover:border-primary transition-colors cursor-pointer relative">
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="p-3 bg-amber-100 rounded-lg">
+                    <ArrowUpRight className="w-6 h-6 text-amber-600" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">Trade-Ins</p>
+                      {(pendingTradeIns || 0) > 0 && (
+                        <Badge variant="destructive" className="text-xs">
+                          {pendingTradeIns} pending
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Trade-in requests</p>
                   </div>
                 </CardContent>
               </Card>
