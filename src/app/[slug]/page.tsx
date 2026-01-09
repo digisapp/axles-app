@@ -488,56 +488,46 @@ export default async function DealerStorefrontPage({ params, searchParams }: Pag
 
               return (
                 <Link key={listing.id} href={`/listing/${listing.id}`} className="group block">
-                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 shadow-md hover:shadow-xl transition-all duration-300">
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all duration-300 h-full">
                     {/* Image */}
-                    {primaryImage ? (
-                      <Image
-                        src={primaryImage.thumbnail_url || primaryImage.url}
-                        alt={listing.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-slate-200">
-                        <Truck className="w-16 h-16 text-slate-400" />
-                      </div>
-                    )}
+                    <div className="relative aspect-[4/3] bg-slate-100">
+                      {primaryImage ? (
+                        <Image
+                          src={primaryImage.thumbnail_url || primaryImage.url}
+                          alt={listing.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Truck className="w-12 h-12 text-slate-300" />
+                        </div>
+                      )}
 
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                    {/* Top: Condition Badge + Price */}
-                    <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
-                      <div className="flex gap-2">
-                        {listing.condition === 'new' ? (
-                          <Badge className="bg-emerald-500 text-white border-0 text-xs shadow-lg">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            New
-                          </Badge>
-                        ) : listing.condition === 'used' && (
-                          <Badge className="bg-white/90 text-slate-700 border-0 text-xs shadow-lg backdrop-blur-sm">
-                            Used
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-sm shadow-lg">
-                        <p className="text-sm font-bold text-slate-900">
-                          {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
-                        </p>
-                      </div>
+                      {/* Condition Badge */}
+                      {listing.condition === 'new' && (
+                        <Badge className="absolute top-2 left-2 bg-emerald-500 text-white border-0 text-xs shadow-md">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          New
+                        </Badge>
+                      )}
                     </div>
 
-                    {/* Bottom: Title & Details */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="font-semibold text-white text-base leading-tight line-clamp-2 mb-1 drop-shadow-lg">
+                    {/* Content */}
+                    <div className="p-3 md:p-4">
+                      <h3 className="font-semibold text-slate-900 text-sm md:text-base line-clamp-2 group-hover:text-primary transition-colors">
                         {listing.title}
                       </h3>
-                      {/* Only show specs if they add info not in title */}
-                      {listing.mileage && (
-                        <p className="text-white/80 text-sm drop-shadow">
-                          {listing.mileage.toLocaleString()} miles
-                        </p>
-                      )}
+
+                      <p className="text-lg md:text-xl font-bold text-primary mt-1">
+                        {listing.price ? `$${listing.price.toLocaleString()}` : 'Call for Price'}
+                      </p>
+
+                      <div className="flex flex-wrap gap-x-2 gap-y-1 mt-2 text-xs text-slate-500">
+                        {listing.year && <span>{listing.year}</span>}
+                        {listing.year && listing.mileage && <span>·</span>}
+                        {listing.mileage && <span>{listing.mileage.toLocaleString()} mi</span>}
+                      </div>
                     </div>
                   </div>
                 </Link>
