@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, RefreshCw, CalendarDays, Flame, TrendingDown, Calculator } from 'lucide-react';
-import { ListingCardWrapper } from '@/components/listings/ListingCardWrapper';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -376,7 +375,7 @@ function DealCard({ deal }: { deal: DealListing }) {
   const primaryImage = deal.images?.find((img) => img.is_primary) || deal.images?.[0];
 
   return (
-    <ListingCardWrapper listingId={deal.id} listingTitle={deal.title}>
+    <Link href={`/listing/${deal.id}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur">
         <div className="relative aspect-[4/3]">
           {primaryImage ? (
@@ -412,6 +411,6 @@ function DealCard({ deal }: { deal: DealListing }) {
           </p>
         </div>
       </Card>
-    </ListingCardWrapper>
+    </Link>
   );
 }
