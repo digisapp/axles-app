@@ -227,6 +227,8 @@ class LeadTools:
         interest: str,
         email: Optional[str] = None,
         listing_id: Optional[str] = None,
+        intent: Optional[str] = None,  # buy, lease, rent
+        equipment_type: Optional[str] = None,
         source: str = "phone_call",
     ) -> str:
         """Capture a lead and save to Supabase."""
@@ -243,14 +245,16 @@ class LeadTools:
                 if listing_result.data:
                     user_id = listing_result.data.get('user_id')
 
-            # Create the lead
+            # Create the lead with correct field names
             lead_data = {
-                "name": name,
-                "phone": phone,
-                "email": email,
+                "buyer_name": name,
+                "buyer_phone": phone,
+                "buyer_email": email or "",
                 "message": interest,
                 "source": source,
                 "status": "new",
+                "intent": intent,  # buy, lease, rent
+                "equipment_type": equipment_type,
                 "created_at": datetime.utcnow().isoformat(),
             }
 
@@ -262,8 +266,9 @@ class LeadTools:
             result = supabase.table("leads").insert(lead_data).execute()
 
             if result.data:
-                logger.info(f"Lead captured successfully: {name} - {phone}")
-                return f"I've captured your information. A dealer will reach out to you at {phone} soon about {interest}."
+                logger.info(f"Lead captured successfully: {name} - {phone} - intent: {intent}")
+                intent_str = f" to {intent}" if intent else ""
+                return f"I've captured your information. A dealer will reach out to you at {phone} soon about {interest}{intent_str}."
             else:
                 return "I've noted your information. A team member will follow up with you shortly."
 

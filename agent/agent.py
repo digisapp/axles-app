@@ -90,6 +90,8 @@ class AxlesAgent(Agent):
         interest: str,
         email: str | None = None,
         listing_id: str | None = None,
+        intent: str | None = None,
+        equipment_type: str | None = None,
     ) -> str:
         """Capture caller's information as a lead for dealer follow-up.
 
@@ -99,6 +101,8 @@ class AxlesAgent(Agent):
             interest: What they're looking for or interested in
             email: Caller's email (optional)
             listing_id: Specific listing they're interested in (optional)
+            intent: Whether they want to 'buy', 'lease', or 'rent'
+            equipment_type: Type of equipment (e.g., 'flatbed trailer', 'semi truck')
         """
         result = await self.lead_tools.capture(
             name=name,
@@ -106,6 +110,8 @@ class AxlesAgent(Agent):
             interest=interest,
             email=email,
             listing_id=listing_id,
+            intent=intent,
+            equipment_type=equipment_type,
             source="phone_call",
         )
         return result
