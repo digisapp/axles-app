@@ -1,0 +1,16 @@
+{
+    "trunk_ids": [],
+    "rule": {
+        "dispatchRuleIndividual": {
+            "roomPrefix": "call-"
+        }
+    },
+    "name": "axles-inbound",
+    "metadata": "",
+    "attributes": {},
+    "room_config": {
+        "agents": [{
+            "agentName": "axles-voice-agent"
+        }]
+    }
+}

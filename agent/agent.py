@@ -2,7 +2,7 @@
 AxlesAI Voice Agent - LiveKit + xAI
 
 A voice AI agent that answers phone calls about truck and trailer inventory.
-Uses xAI's Grok for conversation and connects to Supabase for live inventory data.
+Uses xAI's Grok Realtime API for native voice-to-voice conversation.
 """
 
 import os
@@ -12,8 +12,6 @@ from dotenv import load_dotenv
 
 from livekit import api, rtc
 from livekit.agents import (
-    Agent,
-    AgentSession,
     JobContext,
     RunContext,
     WorkerOptions,
@@ -21,8 +19,7 @@ from livekit.agents import (
     cli,
     get_job_context,
 )
-from livekit.agents.llm import ChatContext, ChatMessage
-from livekit.plugins import deepgram, silero, openai as lk_openai
+from livekit.plugins.openai import realtime
 
 from tools import InventoryTools, LeadTools
 
@@ -31,13 +28,8 @@ load_dotenv()
 logger = logging.getLogger("axles-agent")
 logger.setLevel(logging.INFO)
 
-
-class AxlesAssistant(Agent):
-    """Voice AI assistant for AxlesAI truck and trailer marketplace."""
-
-    def __init__(self) -> None:
-        super().__init__(
-            instructions="""You are a helpful AI assistant for AxlesAI, a marketplace for trucks, trailers, and heavy equipment.
+# Agent instructions for xAI Realtime
+AGENT_INSTRUCTIONS = """You are a helpful AI assistant for AxlesAI, a marketplace for trucks, trailers, and heavy equipment.
 
 Your role is to:
 1. Answer questions about available inventory (trucks, trailers, heavy equipment)
@@ -58,8 +50,13 @@ Common equipment types:
 - Trailers: flatbed, dry van, reefer, lowboy, drop deck, dump, tanker
 - Trucks: semi trucks, day cabs, sleeper cabs, box trucks, dump trucks
 - Heavy equipment: excavators, loaders, bulldozers, cranes
-""",
-        )
+"""
+
+
+class AxlesTools:
+    """Function tools for the voice agent."""
+
+    def __init__(self) -> None:
         self.inventory_tools = InventoryTools()
         self.lead_tools = LeadTools()
 
@@ -133,57 +130,6 @@ Common equipment types:
         )
         return result
 
-    @function_tool()
-    async def transfer_to_dealer(self, ctx: RunContext, dealer_phone: str) -> str:
-        """Transfer the call to a dealer's phone number.
-
-        Args:
-            dealer_phone: The dealer's phone number to transfer to
-        """
-        await ctx.session.generate_reply(
-            instructions="Let the caller know you're transferring them to a dealer now."
-        )
-
-        job_ctx = get_job_context()
-        if job_ctx is None:
-            return "Unable to transfer call - not in call context"
-
-        try:
-            # Get the SIP participant identity (the caller)
-            caller_identity = None
-            for p in job_ctx.room.remote_participants.values():
-                if p.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
-                    caller_identity = p.identity
-                    break
-
-            if caller_identity:
-                await job_ctx.api.sip.transfer_sip_participant(
-                    api.TransferSIPParticipantRequest(
-                        room_name=job_ctx.room.name,
-                        participant_identity=caller_identity,
-                        transfer_to=f"tel:{dealer_phone}",
-                    )
-                )
-                return "Call transferred successfully"
-            else:
-                return "Could not find caller to transfer"
-        except Exception as e:
-            logger.error(f"Error transferring call: {e}")
-            return f"Could not transfer call: {str(e)}"
-
-    @function_tool()
-    async def end_call(self, ctx: RunContext) -> None:
-        """End the call when the conversation is complete."""
-        await ctx.session.generate_reply(
-            instructions="Thank the caller for calling AxlesAI and wish them well."
-        )
-
-        job_ctx = get_job_context()
-        if job_ctx:
-            await job_ctx.api.room.delete_room(
-                api.DeleteRoomRequest(room=job_ctx.room.name)
-            )
-
 
 async def entrypoint(ctx: JobContext):
     """Main entrypoint for the voice agent."""
@@ -202,30 +148,38 @@ async def entrypoint(ctx: JobContext):
         except json.JSONDecodeError:
             pass
 
-    # Create xAI client (compatible with OpenAI SDK)
-    xai_llm = lk_openai.LLM(
-        model="grok-beta",  # or grok-2-latest
-        base_url="https://api.x.ai/v1",
+    # Create xAI Realtime model (native voice-to-voice)
+    xai_model = realtime.RealtimeModel(
+        model="grok-2-public",
+        base_url="wss://api.x.ai/v1/realtime",
         api_key=os.getenv("XAI_API_KEY"),
+        voice="alloy",
+        temperature=0.7,
     )
 
-    # Create the agent session
-    session = AgentSession(
-        stt=deepgram.STT(),
-        llm=xai_llm,
-        tts=deepgram.TTS(voice="aura-asteria-en"),  # or use elevenlabs
-        vad=silero.VAD.load(),
-    )
+    # Create tools
+    tools = AxlesTools()
 
-    # Create assistant and start session
-    assistant = AxlesAssistant()
-    await session.start(ctx.room, agent=assistant)
+    # Create realtime session
+    session = realtime.RealtimeSession(realtime_model=xai_model)
 
-    # Greet inbound callers (outbound waits for recipient to speak first)
+    # Set instructions
+    session.session_update(instructions=AGENT_INSTRUCTIONS)
+
+    # Start the session with the room
+    session.start(ctx.room, fnc_ctx=tools)
+
+    # Greet inbound callers
     if phone_number is None:
-        await session.generate_reply(
-            instructions="Greet the caller warmly and ask how you can help them find trucks or trailers today."
+        session.conversation.item.create(
+            type="message",
+            role="assistant",
+            content=[{
+                "type": "text",
+                "text": "Hello! Thanks for calling Axles AI, your marketplace for trucks, trailers, and heavy equipment. How can I help you find what you're looking for today?"
+            }]
         )
+        session.response.create()
 
     logger.info("Agent session started successfully")
 
