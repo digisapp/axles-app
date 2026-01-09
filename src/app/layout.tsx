@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 import { CompareProvider } from "@/context/CompareContext";
 import { CompareBar } from "@/components/listings/CompareBar";
+import { FloatingCallButton } from "@/components/FloatingCallButton";
 import "./globals.css";
 
 // Organization JSON-LD Schema for rich search results
@@ -19,7 +20,9 @@ function OrganizationJsonLd() {
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'sales',
+      telephone: '+1-469-421-3536',
       email: 'sales@axles.ai',
+      availableLanguage: 'English',
     },
     sameAs: [
       'https://instagram.com/axlesai',
@@ -150,6 +153,7 @@ export default function RootLayout({
           <CompareProvider>
             {children}
             <CompareBar />
+            <FloatingCallButton />
             <Toaster position="top-right" richColors closeButton />
           </CompareProvider>
         </NotificationProvider>
