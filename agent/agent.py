@@ -25,7 +25,7 @@ from livekit.agents import (
 )
 from livekit.plugins import xai
 
-from tools import InventoryTools, LeadTools, get_ai_agent_settings, update_lead_with_recording
+from tools import InventoryTools, LeadTools, CallLogTools, get_ai_agent_settings, update_lead_with_recording
 
 load_dotenv()
 
@@ -39,15 +39,20 @@ active_calls = {}
 class AxlesAgent(Agent):
     """Voice AI agent for AxlesAI marketplace."""
 
-    def __init__(self, settings: dict, room_name: str) -> None:
+    def __init__(self, settings: dict, room_name: str, caller_phone: str = None) -> None:
         super().__init__(
             instructions=settings.get('instructions', 'You are a helpful AI assistant.'),
         )
         self.settings = settings
         self.room_name = room_name
+        self.caller_phone = caller_phone
         self.inventory_tools = InventoryTools()
         self.lead_tools = LeadTools()
         self.captured_lead_id = None
+        self.caller_name = None
+        self.interest = None
+        self.equipment_type = None
+        self.intent = None
 
     @function_tool()
     async def search_inventory(
@@ -95,9 +100,9 @@ class AxlesAgent(Agent):
         self,
         ctx: RunContext,
         name: str,
-        phone: str,
         interest: str,
         email: str | None = None,
+        phone: str | None = None,
         listing_id: str | None = None,
         intent: str | None = None,
         equipment_type: str | None = None,
@@ -106,16 +111,19 @@ class AxlesAgent(Agent):
 
         Args:
             name: Caller's name
-            phone: Caller's phone number
             interest: What they're looking for or interested in
-            email: Caller's email (optional)
+            email: Caller's email for follow-up (optional but try to get it)
+            phone: Caller's phone number (optional - we have caller ID)
             listing_id: Specific listing they're interested in (optional)
             intent: Whether they want to 'buy', 'lease', or 'rent'
             equipment_type: Type of equipment (e.g., 'flatbed trailer', 'semi truck')
         """
+        # Use caller ID if phone not provided
+        actual_phone = phone or self.caller_phone or "unknown"
+
         result, lead_id = await self.lead_tools.capture_with_id(
             name=name,
-            phone=phone,
+            phone=actual_phone,
             interest=interest,
             email=email,
             listing_id=listing_id,
@@ -123,6 +131,12 @@ class AxlesAgent(Agent):
             equipment_type=equipment_type,
             source="phone_call",
         )
+
+        # Store info for call log
+        self.caller_name = name
+        self.interest = interest
+        self.equipment_type = equipment_type
+        self.intent = intent
 
         # Store lead ID for recording association
         if lead_id:
@@ -217,12 +231,29 @@ async def stop_recording(egress_id: str) -> tuple[str | None, int | None]:
         return None, None
 
 
+def get_caller_phone(ctx: JobContext) -> str | None:
+    """Extract caller phone number from SIP participant."""
+    for participant in ctx.room.remote_participants.values():
+        if participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
+            # SIP identity is usually the phone number
+            identity = participant.identity
+            # Clean up the phone number (remove sip: prefix if present)
+            if identity.startswith("sip:"):
+                identity = identity[4:]
+            if "@" in identity:
+                identity = identity.split("@")[0]
+            return identity
+    return None
+
+
 async def entrypoint(ctx: JobContext):
     """Main entrypoint for the voice agent."""
 
     logger.info(f"Agent starting in room: {ctx.room.name}")
     call_start_time = time.time()
     egress_id = None
+    call_log_id = None
+    call_log_tools = CallLogTools()
 
     # Load settings from database
     settings = get_ai_agent_settings()
@@ -236,11 +267,24 @@ async def entrypoint(ctx: JobContext):
     # Connect to the room
     await ctx.connect()
 
+    # Get caller phone from SIP participant
+    caller_phone = get_caller_phone(ctx)
+    logger.info(f"Caller phone: {caller_phone}")
+
+    # Create call log entry
+    if caller_phone:
+        call_log_id = await call_log_tools.create_call_log(
+            caller_phone=caller_phone,
+            call_sid=ctx.room.name,
+        )
+
     # Initialize call tracking
     active_calls[ctx.room.name] = {
         'start_time': call_start_time,
         'lead_id': None,
         'egress_id': None,
+        'call_log_id': call_log_id,
+        'caller_phone': caller_phone,
     }
 
     # Start recording if Supabase is configured
@@ -257,8 +301,8 @@ async def entrypoint(ctx: JobContext):
         api_key=os.getenv("XAI_API_KEY"),
     )
 
-    # Create agent with instructions from settings
-    agent = AxlesAgent(settings, ctx.room.name)
+    # Create agent with instructions from settings and caller phone
+    agent = AxlesAgent(settings, ctx.room.name, caller_phone)
 
     # Create session with xAI model
     session = AgentSession(llm=model)
@@ -287,6 +331,7 @@ async def entrypoint(ctx: JobContext):
         call_info = active_calls.get(ctx.room.name, {})
         egress_id = call_info.get('egress_id')
         lead_id = call_info.get('lead_id') or agent.captured_lead_id
+        call_log_id = call_info.get('call_log_id')
 
         if egress_id:
             recording_url, recorded_duration = await stop_recording(egress_id)
@@ -302,6 +347,21 @@ async def entrypoint(ctx: JobContext):
                 call_sid=ctx.room.name,
             )
             logger.info(f"Updated lead {lead_id} with recording info")
+
+        # Update call log with all info
+        if call_log_id:
+            await call_log_tools.update_call_log(
+                call_log_id=call_log_id,
+                caller_name=agent.caller_name,
+                duration_seconds=call_duration,
+                recording_url=recording_url,
+                interest=agent.interest,
+                equipment_type=agent.equipment_type,
+                intent=agent.intent,
+                lead_id=lead_id,
+                status="completed",
+            )
+            logger.info(f"Updated call log {call_log_id}")
 
         # Cleanup
         if ctx.room.name in active_calls:

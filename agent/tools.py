@@ -350,3 +350,82 @@ async def update_lead_with_recording(
     except Exception as e:
         logger.error(f"Error updating lead with recording: {e}")
         return False
+
+
+class CallLogTools:
+    """Tools for logging all calls."""
+
+    async def create_call_log(
+        self,
+        caller_phone: str,
+        call_sid: str,
+    ) -> Optional[str]:
+        """Create a call log entry when call starts. Returns call_log_id."""
+        try:
+            supabase = get_supabase()
+
+            result = supabase.table("call_logs").insert({
+                "caller_phone": caller_phone,
+                "call_sid": call_sid,
+                "status": "in_progress",
+            }).execute()
+
+            if result.data:
+                call_log_id = result.data[0].get('id')
+                logger.info(f"Created call log: {call_log_id} for {caller_phone}")
+                return call_log_id
+            return None
+
+        except Exception as e:
+            logger.error(f"Error creating call log: {e}")
+            return None
+
+    async def update_call_log(
+        self,
+        call_log_id: str,
+        caller_name: Optional[str] = None,
+        duration_seconds: Optional[int] = None,
+        recording_url: Optional[str] = None,
+        interest: Optional[str] = None,
+        equipment_type: Optional[str] = None,
+        intent: Optional[str] = None,
+        lead_id: Optional[str] = None,
+        summary: Optional[str] = None,
+        status: str = "completed",
+    ) -> bool:
+        """Update call log when call ends."""
+        try:
+            supabase = get_supabase()
+
+            update_data = {
+                "status": status,
+                "ended_at": datetime.utcnow().isoformat(),
+            }
+
+            if caller_name:
+                update_data["caller_name"] = caller_name
+            if duration_seconds:
+                update_data["duration_seconds"] = duration_seconds
+            if recording_url:
+                update_data["recording_url"] = recording_url
+            if interest:
+                update_data["interest"] = interest
+            if equipment_type:
+                update_data["equipment_type"] = equipment_type
+            if intent:
+                update_data["intent"] = intent
+            if lead_id:
+                update_data["lead_id"] = lead_id
+            if summary:
+                update_data["summary"] = summary
+
+            result = supabase.table("call_logs").update(update_data).eq("id", call_log_id).execute()
+
+            if result.data:
+                logger.info(f"Updated call log {call_log_id}")
+                return True
+            return False
+
+        except Exception as e:
+            logger.error(f"Error updating call log: {e}")
+            return False

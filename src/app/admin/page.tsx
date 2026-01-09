@@ -374,6 +374,20 @@ export default async function AdminDashboardPage() {
               </Card>
             </Link>
 
+            <Link href="/admin/calls">
+              <Card className="hover:border-primary transition-colors cursor-pointer">
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="p-3 bg-cyan-100 rounded-lg">
+                    <Phone className="w-6 h-6 text-cyan-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Call Logs</p>
+                    <p className="text-sm text-muted-foreground">All incoming calls</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
             <Link href="/admin/analytics">
               <Card className="hover:border-primary transition-colors cursor-pointer">
                 <CardContent className="p-6 flex items-center gap-4">
