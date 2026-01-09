@@ -103,6 +103,7 @@ export default function ComparePage() {
                                 alt={listing.title}
                                 fill
                                 className="object-cover"
+                                unoptimized
                               />
                             </div>
                           ) : (

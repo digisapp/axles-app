@@ -159,6 +159,7 @@ export function MapView({ listings, isLoading, onClose }: MapViewProps) {
                           alt={listing.title}
                           fill
                           className="object-cover rounded-t"
+                          unoptimized
                         />
                         {listing.is_featured && (
                           <Badge className="absolute top-1 left-1 text-[10px] bg-secondary text-secondary-foreground">

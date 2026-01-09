@@ -122,6 +122,7 @@ export function RecentlyViewed({
                     alt={listing.title}
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
@@ -212,6 +213,7 @@ export function RecentlyViewedCompact({ maxItems = 4 }: { maxItems?: number }) {
                   alt={listing.title}
                   fill
                   className="object-cover"
+                  unoptimized
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[8px] text-muted-foreground">

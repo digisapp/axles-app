@@ -107,6 +107,7 @@ export default async function ListingsPage() {
                           alt={listing.title}
                           fill
                           className="object-cover"
+                          unoptimized
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
