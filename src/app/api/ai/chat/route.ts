@@ -115,10 +115,225 @@ function isWeightQuestion(query: string): boolean {
     'weight limit', 'max weight', 'maximum weight', 'how much can i haul',
     'how heavy', 'weight distribution', 'sliding tandem', 'fifth wheel',
     'kingpin', 'payload', 'cargo weight', 'scale', 'weigh station',
-    'overloaded', 'underweight', 'balance', 'lbs', 'pounds'
+    'overloaded', 'underweight', 'balance', 'lbs', 'pounds', 'haul'
   ];
 
   return weightKeywords.some(keyword => q.includes(keyword));
+}
+
+// Weight calculation types and presets
+interface TruckPreset {
+  name: string;
+  emptyWeight: number;
+  steerWeight: number;
+  driveWeight: number;
+  wheelbase: number;
+}
+
+interface TrailerPreset {
+  name: string;
+  emptyWeight: number;
+  length: number;
+  axleSpread: number;
+}
+
+const TRUCK_PRESETS: TruckPreset[] = [
+  { name: 'day cab', emptyWeight: 16000, steerWeight: 10000, driveWeight: 6000, wheelbase: 180 },
+  { name: 'sleeper', emptyWeight: 19000, steerWeight: 11000, driveWeight: 8000, wheelbase: 245 },
+  { name: 'heavy haul', emptyWeight: 21000, steerWeight: 12000, driveWeight: 9000, wheelbase: 280 },
+];
+
+const TRAILER_PRESETS: TrailerPreset[] = [
+  { name: 'dry van', emptyWeight: 15000, length: 53, axleSpread: 49 },
+  { name: '53ft dry van', emptyWeight: 15000, length: 53, axleSpread: 49 },
+  { name: 'reefer', emptyWeight: 16500, length: 53, axleSpread: 49 },
+  { name: 'refrigerated', emptyWeight: 16500, length: 53, axleSpread: 49 },
+  { name: 'flatbed', emptyWeight: 10500, length: 48, axleSpread: 48 },
+  { name: '53ft flatbed', emptyWeight: 11000, length: 53, axleSpread: 50 },
+  { name: '48ft flatbed', emptyWeight: 10500, length: 48, axleSpread: 48 },
+  { name: 'lowboy', emptyWeight: 20000, length: 48, axleSpread: 36 },
+  { name: 'step deck', emptyWeight: 12000, length: 53, axleSpread: 50 },
+  { name: 'drop deck', emptyWeight: 12000, length: 53, axleSpread: 50 },
+  { name: 'container chassis', emptyWeight: 6500, length: 40, axleSpread: 36 },
+];
+
+const WEIGHT_LIMITS = {
+  steerAxle: 12000,
+  singleAxle: 20000,
+  tandemAxle: 34000,
+  grossWeight: 80000,
+};
+
+interface WeightCalculationResult {
+  truckType: string;
+  trailerType: string;
+  cargoWeight: number;
+  steerAxleWeight: number;
+  driveAxleWeight: number;
+  trailerAxleWeight: number;
+  totalWeight: number;
+  maxLegalCargo: number;
+  violations: string[];
+  isLegal: boolean;
+}
+
+// Extract weight calculation parameters from query
+function extractWeightParams(query: string): { truck: TruckPreset | null; trailer: TrailerPreset | null; cargoWeight: number | null } {
+  const q = query.toLowerCase();
+
+  // Find truck type
+  let truck: TruckPreset | null = null;
+  for (const preset of TRUCK_PRESETS) {
+    if (q.includes(preset.name)) {
+      truck = preset;
+      break;
+    }
+  }
+  // Default to sleeper if not specified but asking about weight
+  if (!truck && (q.includes('truck') || q.includes('tractor') || q.includes('semi'))) {
+    truck = TRUCK_PRESETS.find(t => t.name === 'sleeper') || null;
+  }
+
+  // Find trailer type
+  let trailer: TrailerPreset | null = null;
+  for (const preset of TRAILER_PRESETS) {
+    if (q.includes(preset.name)) {
+      trailer = preset;
+      break;
+    }
+  }
+  // Default to dry van if asking about trailer weight but type not specified
+  if (!trailer && (q.includes('trailer') || q.includes('van'))) {
+    trailer = TRAILER_PRESETS.find(t => t.name === 'dry van') || null;
+  }
+
+  // Extract cargo weight
+  let cargoWeight: number | null = null;
+  const cargoPatterns = [
+    /(\d{1,3},?\d{3})\s*(lbs?|pounds?)/i,
+    /(\d{2,3})k\s*(lbs?|pounds?|cargo|load)?/i,
+    /haul\s*(\d{1,3},?\d{3})/i,
+    /haul\s*(\d{2,3})k/i,
+    /(\d{1,3},?\d{3})\s*(cargo|load)/i,
+    /load\s*(of\s*)?(\d{1,3},?\d{3})/i,
+  ];
+
+  for (const pattern of cargoPatterns) {
+    const match = q.match(pattern);
+    if (match) {
+      const numStr = (match[1] || match[2]).replace(/,/g, '');
+      let num = parseInt(numStr);
+      if (num < 1000) num *= 1000; // Assume "45" means "45,000"
+      cargoWeight = num;
+      break;
+    }
+  }
+
+  return { truck, trailer, cargoWeight };
+}
+
+// Calculate weight distribution
+function calculateWeightDistribution(
+  truck: TruckPreset,
+  trailer: TrailerPreset,
+  cargoWeight: number,
+  cargoPosition: number = 50 // percentage from front, default centered
+): WeightCalculationResult {
+  // Fifth wheel offset from steer axle (typically 36-48 inches behind steer)
+  const fifthWheelOffset = truck.wheelbase - 36;
+
+  // Kingpin to trailer axle center
+  const kingpinToTrailerAxle = (trailer.length * 12) - (trailer.axleSpread * 12 / 2) - 36;
+
+  // Calculate cargo center of gravity position
+  const cargoFromKingpin = (trailer.length * 12 - 48) * (cargoPosition / 100);
+
+  // Cargo weight distribution between fifth wheel and trailer axles
+  const cargoOnFifthWheel = cargoWeight * (1 - cargoFromKingpin / kingpinToTrailerAxle);
+  const cargoOnTrailerAxle = cargoWeight - cargoOnFifthWheel;
+
+  // Trailer empty weight distribution (30% on kingpin, 70% on axles)
+  const trailerEmptyOnKingpin = trailer.emptyWeight * 0.3;
+  const trailerEmptyOnAxles = trailer.emptyWeight * 0.7;
+
+  // Total kingpin weight
+  const totalKingpinWeight = cargoOnFifthWheel + trailerEmptyOnKingpin;
+
+  // Weight distribution on tractor using lever arm
+  const fifthWheelToSteer = fifthWheelOffset;
+  const kingpinOnDrive = totalKingpinWeight * (fifthWheelToSteer / truck.wheelbase);
+  const kingpinOnSteer = totalKingpinWeight - kingpinOnDrive;
+
+  // Final axle weights
+  const steerAxleWeight = Math.round(truck.steerWeight + kingpinOnSteer);
+  const driveAxleWeight = Math.round(truck.driveWeight + kingpinOnDrive);
+  const trailerAxleWeight = Math.round(trailerEmptyOnAxles + cargoOnTrailerAxle);
+  const totalWeight = steerAxleWeight + driveAxleWeight + trailerAxleWeight;
+
+  // Check violations
+  const violations: string[] = [];
+  if (steerAxleWeight > WEIGHT_LIMITS.steerAxle) {
+    violations.push(`Steer axle (${steerAxleWeight.toLocaleString()} lbs) exceeds ${WEIGHT_LIMITS.steerAxle.toLocaleString()} lb limit`);
+  }
+  if (driveAxleWeight > WEIGHT_LIMITS.tandemAxle) {
+    violations.push(`Drive axles (${driveAxleWeight.toLocaleString()} lbs) exceed ${WEIGHT_LIMITS.tandemAxle.toLocaleString()} lb limit`);
+  }
+  if (trailerAxleWeight > WEIGHT_LIMITS.tandemAxle) {
+    violations.push(`Trailer axles (${trailerAxleWeight.toLocaleString()} lbs) exceed ${WEIGHT_LIMITS.tandemAxle.toLocaleString()} lb limit`);
+  }
+  if (totalWeight > WEIGHT_LIMITS.grossWeight) {
+    violations.push(`Gross weight (${totalWeight.toLocaleString()} lbs) exceeds ${WEIGHT_LIMITS.grossWeight.toLocaleString()} lb federal limit`);
+  }
+
+  // Calculate max legal cargo
+  const combinedEmptyWeight = truck.emptyWeight + trailer.emptyWeight;
+  const maxLegalCargo = WEIGHT_LIMITS.grossWeight - combinedEmptyWeight;
+
+  return {
+    truckType: truck.name,
+    trailerType: trailer.name,
+    cargoWeight,
+    steerAxleWeight,
+    driveAxleWeight,
+    trailerAxleWeight,
+    totalWeight,
+    maxLegalCargo,
+    violations,
+    isLegal: violations.length === 0,
+  };
+}
+
+// Format weight calculation for AI context
+function formatWeightCalculation(params: { truck: TruckPreset | null; trailer: TrailerPreset | null; cargoWeight: number | null }): string | null {
+  // Need at least truck and trailer to calculate
+  if (!params.truck || !params.trailer) {
+    return null;
+  }
+
+  // If no cargo specified, calculate max legal cargo
+  const cargoWeight = params.cargoWeight || 0;
+  const result = calculateWeightDistribution(params.truck, params.trailer, cargoWeight);
+
+  let context = `\n[WEIGHT CALCULATION RESULTS:]
+Truck: ${params.truck.name} (${params.truck.emptyWeight.toLocaleString()} lbs empty)
+Trailer: ${params.trailer.name} (${params.trailer.emptyWeight.toLocaleString()} lbs empty)
+Combined empty weight: ${(params.truck.emptyWeight + params.trailer.emptyWeight).toLocaleString()} lbs
+Maximum legal cargo (to stay under 80,000 lbs gross): ${result.maxLegalCargo.toLocaleString()} lbs
+`;
+
+  if (cargoWeight > 0) {
+    context += `
+With ${cargoWeight.toLocaleString()} lbs cargo (positioned at center):
+- Steer axle: ${result.steerAxleWeight.toLocaleString()} lbs (limit: 12,000)
+- Drive axles: ${result.driveAxleWeight.toLocaleString()} lbs (limit: 34,000)
+- Trailer axles: ${result.trailerAxleWeight.toLocaleString()} lbs (limit: 34,000)
+- TOTAL: ${result.totalWeight.toLocaleString()} lbs (limit: 80,000)
+
+Status: ${result.isLegal ? 'LEGAL - All weights within limits' : 'VIOLATION - ' + result.violations.join(', ')}
+`;
+  }
+
+  return context;
 }
 
 // Detect if question needs listing data from database
@@ -553,6 +768,51 @@ Tip: Commercial truck/trailer loans typically require 10-20% down payment. Rates
         });
       }
 
+      // Fallback response for weight questions without AI
+      if (weightQ) {
+        const weightParams = extractWeightParams(query);
+        if (weightParams.truck && weightParams.trailer) {
+          const result = calculateWeightDistribution(
+            weightParams.truck,
+            weightParams.trailer,
+            weightParams.cargoWeight || 0
+          );
+          let response = `Weight calculation for ${weightParams.truck.name} + ${weightParams.trailer.name}:
+
+Combined empty weight: ${(weightParams.truck.emptyWeight + weightParams.trailer.emptyWeight).toLocaleString()} lbs
+Maximum legal cargo: ${result.maxLegalCargo.toLocaleString()} lbs (to stay under 80,000 lbs gross)`;
+
+          if (weightParams.cargoWeight) {
+            response += `
+
+With ${weightParams.cargoWeight.toLocaleString()} lbs cargo:
+- Steer axle: ${result.steerAxleWeight.toLocaleString()} lbs (limit: 12,000)
+- Drive axles: ${result.driveAxleWeight.toLocaleString()} lbs (limit: 34,000)
+- Trailer axles: ${result.trailerAxleWeight.toLocaleString()} lbs (limit: 34,000)
+- Total: ${result.totalWeight.toLocaleString()} lbs (limit: 80,000)
+
+${result.isLegal ? 'Status: LEGAL - All weights within federal limits.' : 'Status: VIOLATION - ' + result.violations.join('. ')}`;
+          }
+
+          response += `
+
+For detailed calculations with adjustable cargo position, use our Axle Weight Calculator.`;
+
+          return NextResponse.json({
+            type: 'chat',
+            response,
+            weightInfo: result,
+            suggestedTool: {
+              name: 'Axle Weight Calculator',
+              url: '/tools/axle-weight-calculator',
+              description: 'Calculate weight distribution across your axles',
+            },
+            suggestedCategory: extractCategory(query),
+            query,
+          });
+        }
+      }
+
       return NextResponse.json({
         type: 'chat',
         response: "I'm sorry, I can't answer questions right now. Please try searching instead.",
@@ -643,6 +903,24 @@ Based on this real inventory data, answer the user's question with specific list
 [FINANCING CONTEXT: User is asking about financing $${financeInfo.price.toLocaleString()}. With 10% down ($${financeInfo.downPayment.toLocaleString()}), at 7.5% APR for 60 months, the estimated monthly payment is $${scenario.monthly.toLocaleString()}/month. Total interest would be ~$${scenario.totalInterest.toLocaleString()}.]`;
     }
 
+    // Add weight calculation context if this is a weight question
+    let weightInfo: WeightCalculationResult | null = null;
+    if (weightQ) {
+      const weightParams = extractWeightParams(query);
+      const weightContext = formatWeightCalculation(weightParams);
+      if (weightContext) {
+        prompt += weightContext;
+        // Also calculate the result to return in the response
+        if (weightParams.truck && weightParams.trailer) {
+          weightInfo = calculateWeightDistribution(
+            weightParams.truck,
+            weightParams.trailer,
+            weightParams.cargoWeight || 0
+          );
+        }
+      }
+    }
+
     const { text } = await generateText({
       model: xai('grok-3-mini'),
       system: systemPrompt,
@@ -665,6 +943,7 @@ Based on this real inventory data, answer the user's question with specific list
       type: 'chat',
       response: text,
       financeInfo,
+      weightInfo,
       suggestedCategory: extractCategory(query),
       suggestedTool: weightQ ? {
         name: 'Axle Weight Calculator',
