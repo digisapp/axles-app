@@ -7,20 +7,19 @@ Settings are loaded from the database (configurable via admin panel).
 """
 
 import os
-import json
 import logging
 from dotenv import load_dotenv
 
-from livekit import api, rtc
 from livekit.agents import (
+    Agent,
+    AgentSession,
     JobContext,
     RunContext,
     WorkerOptions,
     function_tool,
     cli,
-    get_job_context,
 )
-from livekit.plugins import xai as lk_xai
+from livekit.plugins import xai
 
 from tools import InventoryTools, LeadTools, get_ai_agent_settings
 
@@ -30,10 +29,14 @@ logger = logging.getLogger("axles-agent")
 logger.setLevel(logging.INFO)
 
 
-class AxlesTools:
-    """Function tools for the voice agent."""
+class AxlesAgent(Agent):
+    """Voice AI agent for AxlesAI marketplace."""
 
-    def __init__(self) -> None:
+    def __init__(self, settings: dict) -> None:
+        super().__init__(
+            instructions=settings.get('instructions', 'You are a helpful AI assistant.'),
+        )
+        self.settings = settings
         self.inventory_tools = InventoryTools()
         self.lead_tools = LeadTools()
 
@@ -107,39 +110,6 @@ class AxlesTools:
         )
         return result
 
-    @function_tool()
-    async def transfer_to_dealer(self, ctx: RunContext, dealer_phone: str) -> str:
-        """Transfer the call to a dealer's phone number.
-
-        Args:
-            dealer_phone: The dealer's phone number to transfer to
-        """
-        job_ctx = get_job_context()
-        if job_ctx is None:
-            return "Unable to transfer call - not in call context"
-
-        try:
-            caller_identity = None
-            for p in job_ctx.room.remote_participants.values():
-                if p.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
-                    caller_identity = p.identity
-                    break
-
-            if caller_identity:
-                await job_ctx.api.sip.transfer_sip_participant(
-                    api.TransferSIPParticipantRequest(
-                        room_name=job_ctx.room.name,
-                        participant_identity=caller_identity,
-                        transfer_to=f"tel:{dealer_phone}",
-                    )
-                )
-                return "Call transferred successfully"
-            else:
-                return "Could not find caller to transfer"
-        except Exception as e:
-            logger.error(f"Error transferring call: {e}")
-            return f"Could not transfer call: {str(e)}"
-
 
 async def entrypoint(ctx: JobContext):
     """Main entrypoint for the voice agent."""
@@ -148,7 +118,7 @@ async def entrypoint(ctx: JobContext):
 
     # Load settings from database
     settings = get_ai_agent_settings()
-    logger.info(f"Using voice: {settings.get('voice')}, model: {settings.get('model')}")
+    logger.info(f"Using voice: {settings.get('voice')}")
 
     # Check if agent is active
     if not settings.get('is_active', True):
@@ -158,46 +128,24 @@ async def entrypoint(ctx: JobContext):
     # Connect to the room
     await ctx.connect()
 
-    # Check if this is an outbound call
-    phone_number = None
-    if ctx.job.metadata:
-        try:
-            dial_info = json.loads(ctx.job.metadata)
-            phone_number = dial_info.get("phone_number")
-        except json.JSONDecodeError:
-            pass
-
-    # Create xAI Realtime model with settings from database
-    # Note: xAI RealtimeModel only accepts 'voice' and 'api_key' as main parameters
-    xai_model = lk_xai.realtime.RealtimeModel(
+    # Create xAI Realtime model with voice from settings
+    model = xai.realtime.RealtimeModel(
         voice=settings.get('voice', 'Sal'),
         api_key=os.getenv("XAI_API_KEY"),
     )
 
-    # Create tools instance
-    tools = AxlesTools()
+    # Create agent with instructions from settings
+    agent = AxlesAgent(settings)
 
-    # Create realtime session
-    session = lk_xai.realtime.RealtimeSession(realtime_model=xai_model)
+    # Create session with xAI model
+    session = AgentSession(llm=model)
 
-    # Set instructions from database
-    session.session_update(instructions=settings.get('instructions', ''))
+    # Start the session
+    await session.start(room=ctx.room, agent=agent)
 
-    # Start session with room and tools
-    session.start(ctx.room, fnc_ctx=tools)
-
-    # Greet inbound callers with message from database
-    if phone_number is None:
-        greeting = settings.get('greeting_message', 'Hello! How can I help you?')
-        session.conversation.item.create(
-            type="message",
-            role="assistant",
-            content=[{
-                "type": "text",
-                "text": greeting
-            }]
-        )
-        session.response.create()
+    # Generate greeting for inbound callers
+    greeting = settings.get('greeting_message', 'Hello! How can I help you today?')
+    await session.generate_reply(instructions=greeting)
 
     logger.info("xAI voice agent session started successfully")
 
