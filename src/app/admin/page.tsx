@@ -41,11 +41,10 @@ export default async function AdminDashboardPage() {
     redirect('/dashboard');
   }
 
-  // Get stats - exclude placeholder profiles (@dealers.axles.ai)
-  const { count: totalUsers } = await supabase
-    .from('profiles')
-    .select('*', { count: 'exact', head: true })
-    .not('email', 'like', '%@dealers.axles.ai');
+  // Get stats
+  const { count: totalMessages } = await supabase
+    .from('messages')
+    .select('*', { count: 'exact', head: true });
 
   const { count: totalListings } = await supabase
     .from('listings')
@@ -146,11 +145,10 @@ export default async function AdminDashboardPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Users className="w-5 h-5 text-blue-500" />
-                <ArrowUpRight className="w-4 h-4 text-green-500" />
+                <MessageSquare className="w-5 h-5 text-blue-500" />
               </div>
-              <p className="text-3xl font-bold">{totalUsers || 0}</p>
-              <p className="text-sm text-muted-foreground">Total Users</p>
+              <p className="text-3xl font-bold">{totalMessages || 0}</p>
+              <p className="text-sm text-muted-foreground">Messages Sent</p>
             </CardContent>
           </Card>
 
