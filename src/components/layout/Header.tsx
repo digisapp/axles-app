@@ -34,6 +34,7 @@ import {
   LayoutDashboard,
   User,
   Bell,
+  Factory,
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 
@@ -96,6 +97,7 @@ export function Header() {
   const navLinks = [
     { href: '/search', label: 'Search', icon: Search },
     { href: '/categories', label: 'Categories', icon: Package },
+    { href: '/manufacturers', label: 'Manufacturers', icon: Factory },
   ];
 
   const userLinks = [

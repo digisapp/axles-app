@@ -165,6 +165,30 @@ export interface AIImageAnalysis {
   is_valid_equipment_photo: boolean;
 }
 
+// Manufacturer Directory
+export interface Manufacturer {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url?: string;
+  description?: string;
+  short_description?: string;
+  website?: string;
+  country: string;
+  headquarters?: string;
+  founded_year?: number;
+  equipment_types: string[];
+  canonical_name: string;
+  name_variations: string[];
+  is_featured: boolean;
+  feature_tier: 'free' | 'featured' | 'premium';
+  feature_expires_at?: string;
+  listing_count: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
   data?: T;
