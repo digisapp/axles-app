@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +21,18 @@ export default async function LeadsPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return null;
+    redirect('/login?redirect=/dashboard/leads');
+  }
+
+  // Check if user is a dealer
+  const { data: dealerProfile } = await supabase
+    .from('profiles')
+    .select('is_dealer')
+    .eq('id', user.id)
+    .single();
+
+  if (!dealerProfile?.is_dealer) {
+    redirect('/become-a-dealer');
   }
 
   // Get all leads for this user

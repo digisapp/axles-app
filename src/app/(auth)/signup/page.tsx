@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mail, Lock, Building2, ArrowLeft, Check } from 'lucide-react';
+import { Loader2, Mail, Lock, Building2, ArrowLeft, Check, Package, BarChart3, Users } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -19,7 +19,6 @@ export default function SignupPage() {
     password: '',
     confirmPassword: '',
     companyName: '',
-    isDealer: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +49,7 @@ export default function SignupPage() {
       options: {
         data: {
           company_name: formData.companyName,
-          is_dealer: formData.isDealer,
+          is_dealer: true, // All signups are dealers
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -89,7 +88,7 @@ export default function SignupPage() {
             <CardTitle>Check Your Email</CardTitle>
             <CardDescription>
               We&apos;ve sent a confirmation link to <strong>{formData.email}</strong>.
-              Click the link to activate your account.
+              Click the link to activate your dealer account.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -123,19 +122,51 @@ export default function SignupPage() {
               className="dark:brightness-110"
             />
           </Link>
-          <CardTitle>Create Your Account</CardTitle>
+          <CardTitle>Create Dealer Account</CardTitle>
           <CardDescription>
-            Start buying and selling on AxlesAI
+            Start selling trucks and trailers on AxlesAI
           </CardDescription>
         </CardHeader>
 
         <CardContent>
+          {/* Benefits */}
+          <div className="grid grid-cols-3 gap-2 mb-6 text-center">
+            <div className="p-2 rounded-lg bg-muted/50">
+              <Package className="w-4 h-4 mx-auto mb-1 text-primary" />
+              <span className="text-xs text-muted-foreground">List Equipment</span>
+            </div>
+            <div className="p-2 rounded-lg bg-muted/50">
+              <Users className="w-4 h-4 mx-auto mb-1 text-green-500" />
+              <span className="text-xs text-muted-foreground">Get Leads</span>
+            </div>
+            <div className="p-2 rounded-lg bg-muted/50">
+              <BarChart3 className="w-4 h-4 mx-auto mb-1 text-blue-500" />
+              <span className="text-xs text-muted-foreground">Track Sales</span>
+            </div>
+          </div>
+
           <form onSubmit={handleSignup} className="space-y-4">
             {error && (
               <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
                 {error}
               </div>
             )}
+
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Company Name</Label>
+              <div className="relative">
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="companyName"
+                  type="text"
+                  placeholder="Your dealership name"
+                  value={formData.companyName}
+                  onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -149,21 +180,6 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="pl-10"
                   required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Company Name (Optional)</Label>
-              <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="companyName"
-                  type="text"
-                  placeholder="Your Company LLC"
-                  value={formData.companyName}
-                  onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                  className="pl-10"
                 />
               </div>
             </div>
@@ -200,22 +216,9 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-              <input
-                type="checkbox"
-                id="isDealer"
-                checked={formData.isDealer}
-                onChange={(e) => setFormData({ ...formData, isDealer: e.target.checked })}
-                className="w-4 h-4 rounded border-border"
-              />
-              <Label htmlFor="isDealer" className="text-sm cursor-pointer">
-                I&apos;m a dealer/business (get verified dealer badge)
-              </Label>
-            </div>
-
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Create Account
+              Create Dealer Account
             </Button>
           </form>
 

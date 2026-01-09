@@ -23,9 +23,14 @@ export default async function DashboardLayout({
   // Get user profile
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_name, avatar_url')
+    .select('company_name, avatar_url, is_dealer')
     .eq('id', user.id)
     .single();
+
+  // All dashboard users should be dealers - redirect if not
+  if (!profile?.is_dealer) {
+    redirect('/become-a-dealer');
+  }
 
   // Get unread messages count
   const { count: unreadMessages } = await supabase

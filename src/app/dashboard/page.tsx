@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,6 @@ import {
   Plus,
   Package,
   Eye,
-  DollarSign,
   MessageSquare,
   TrendingUp,
   Users,
@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return null; // Layout handles redirect
+    redirect('/login');
   }
 
   // Get user profile
@@ -33,25 +33,10 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single();
 
-  // Get user's listings stats
-  const { count: totalListings } = await supabase
-    .from('listings')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id);
-
-  const { count: activeListings } = await supabase
-    .from('listings')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('status', 'active');
-
-  // Get total views
-  const { data: viewsData } = await supabase
-    .from('listings')
-    .select('views_count')
-    .eq('user_id', user.id);
-
-  const totalViews = viewsData?.reduce((sum, l) => sum + (l.views_count || 0), 0) || 0;
+  // All dashboard users should be dealers
+  if (!profile?.is_dealer) {
+    redirect('/become-a-dealer');
+  }
 
   // Get unread messages count
   const { count: unreadMessages } = await supabase
@@ -60,21 +45,42 @@ export default async function DashboardPage() {
     .eq('recipient_id', user.id)
     .eq('is_read', false);
 
-  // Get new leads count
-  const { count: newLeads } = await supabase
+  // Dealer data
+  const { count: total } = await supabase
+    .from('listings')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id);
+  const totalListings = total || 0;
+
+  const { count: active } = await supabase
+    .from('listings')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'active');
+  const activeListings = active || 0;
+
+  const { data: viewsData } = await supabase
+    .from('listings')
+    .select('views_count')
+    .eq('user_id', user.id);
+  const totalViews = viewsData?.reduce((sum, l) => sum + (l.views_count || 0), 0) || 0;
+
+  const { count: leads } = await supabase
     .from('leads')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
     .eq('status', 'new');
+  const newLeads = leads || 0;
 
-  // Get recent listings
-  const { data: recentListings } = await supabase
+  const { data: listings } = await supabase
     .from('listings')
     .select('id, title, price, status, views_count, created_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(5);
+  const recentListings = listings || [];
 
+  // Dealer dashboard
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
@@ -349,3 +355,4 @@ function QuickActionButton({
     </Button>
   );
 }
+

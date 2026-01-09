@@ -67,9 +67,9 @@ function LoginForm() {
             className="dark:brightness-110"
           />
         </Link>
-        <CardTitle>Welcome Back</CardTitle>
+        <CardTitle>Dealer Login</CardTitle>
         <CardDescription>
-          Sign in to your AxlesAI account
+          Sign in to manage your listings
         </CardDescription>
       </CardHeader>
 
@@ -168,9 +168,9 @@ function LoginForm() {
 
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
+          New dealer?{' '}
           <Link href="/signup" className="text-primary hover:underline">
-            Sign up
+            Create account
           </Link>
         </p>
       </CardFooter>

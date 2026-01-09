@@ -28,10 +28,13 @@ import {
   Video,
   Tag,
   CalendarDays,
+  Crown,
+  Zap,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { VINDecoder } from '@/components/listings/VINDecoder';
 import { VideoUpload } from '@/components/listings/VideoUpload';
+import { canCreateListing, getPlanLimits, getRemainingListings } from '@/lib/plans';
 import type { Category, AIPriceEstimate } from '@/types';
 
 export default function NewListingPage() {
@@ -39,10 +42,14 @@ export default function NewListingPage() {
   const supabase = createClient();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingLimits, setIsCheckingLimits] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [industries, setIndustries] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [priceEstimate, setPriceEstimate] = useState<AIPriceEstimate | null>(null);
   const [isEstimating, setIsEstimating] = useState(false);
+  const [listingLimitReached, setListingLimitReached] = useState(false);
+  const [currentListingCount, setCurrentListingCount] = useState(0);
+  const [subscriptionTier, setSubscriptionTier] = useState<string>('free');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -68,6 +75,49 @@ export default function NewListingPage() {
     selected_industries: [] as string[],
     specs: {} as Record<string, string>,
   });
+
+  useEffect(() => {
+    const checkDealerStatusAndLimits = async () => {
+      setIsCheckingLimits(true);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login?redirect=/dashboard/listings/new');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_dealer, subscription_tier')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.is_dealer) {
+        router.push('/become-a-dealer');
+        return;
+      }
+
+      // Check listing limits
+      const tier = profile.subscription_tier || 'free';
+      setSubscriptionTier(tier);
+
+      const { count } = await supabase
+        .from('listings')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      const listingCount = count || 0;
+      setCurrentListingCount(listingCount);
+
+      if (!canCreateListing(listingCount, tier)) {
+        setListingLimitReached(true);
+      }
+
+      setIsCheckingLimits(false);
+    };
+
+    checkDealerStatusAndLimits();
+  }, [supabase, router]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -241,6 +291,74 @@ export default function NewListingPage() {
     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
   ];
 
+  const limits = getPlanLimits(subscriptionTier);
+  const remainingListings = getRemainingListings(currentListingCount, subscriptionTier);
+
+  // Show loading while checking limits
+  if (isCheckingLimits) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Show upgrade prompt if limit reached
+  if (listingLimitReached) {
+    return (
+      <div className="min-h-screen bg-muted/30">
+        <header className="bg-background border-b">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Dashboard
+            </Link>
+            <h1 className="text-xl font-bold">Create New Listing</h1>
+          </div>
+        </header>
+        <main className="max-w-2xl mx-auto px-4 py-12">
+          <Card className="text-center">
+            <CardHeader>
+              <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown className="w-8 h-8 text-amber-600" />
+              </div>
+              <CardTitle>Listing Limit Reached</CardTitle>
+              <CardDescription>
+                You&apos;ve used all {limits.listings} listings on your Free plan.
+                Upgrade to Pro for unlimited listings.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="text-2xl font-bold">{currentListingCount} / {limits.listings}</p>
+                <p className="text-sm text-muted-foreground">Listings used</p>
+              </div>
+              <div className="space-y-2">
+                <Button className="w-full" asChild>
+                  <Link href="/dashboard/billing">
+                    <Zap className="w-4 h-4 mr-2" />
+                    Upgrade to Pro - $79/mo
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/dashboard/listings">
+                    Manage Existing Listings
+                  </Link>
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Pro includes unlimited listings, AI Sales Assistant, and advanced analytics.
+              </p>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Header */}
@@ -254,6 +372,11 @@ export default function NewListingPage() {
             Dashboard
           </Link>
           <h1 className="text-xl font-bold">Create New Listing</h1>
+          {remainingListings !== null && (
+            <span className="ml-auto text-sm text-muted-foreground">
+              {remainingListings} listing{remainingListings !== 1 ? 's' : ''} remaining
+            </span>
+          )}
         </div>
       </header>
 

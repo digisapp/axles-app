@@ -292,8 +292,8 @@ export default function SettingsPage() {
                   Dealer
                 </span>
               ) : (
-                <Button variant="outline" size="sm">
-                  Upgrade
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/become-a-dealer">Upgrade</Link>
                 </Button>
               )}
             </div>

@@ -46,9 +46,28 @@ export default function ConversationsPage() {
   const [filter, setFilter] = useState<'all' | 'active' | 'converted' | 'closed'>('all');
 
   useEffect(() => {
-    const fetchConversations = async () => {
+    const checkDealerAndFetch = async () => {
       setIsLoading(true);
 
+      // Check if user is a dealer
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login?redirect=/dashboard/conversations');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_dealer')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.is_dealer) {
+        router.push('/become-a-dealer');
+        return;
+      }
+
+      // Fetch conversations
       const response = await fetch(`/api/dashboard/conversations?status=${filter}`);
       if (response.ok) {
         const data = await response.json();
@@ -58,8 +77,8 @@ export default function ConversationsPage() {
       setIsLoading(false);
     };
 
-    fetchConversations();
-  }, [filter]);
+    checkDealerAndFetch();
+  }, [filter, router, supabase]);
 
   // Set up real-time subscription
   useEffect(() => {

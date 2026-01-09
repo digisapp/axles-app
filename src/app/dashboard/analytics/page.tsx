@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Eye,
@@ -17,7 +18,18 @@ export default async function AnalyticsPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return null;
+    redirect('/login?redirect=/dashboard/analytics');
+  }
+
+  // Check if user is a dealer
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_dealer')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile?.is_dealer) {
+    redirect('/become-a-dealer');
   }
 
   // Get listings with view counts

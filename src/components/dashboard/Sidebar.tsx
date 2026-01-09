@@ -84,21 +84,6 @@ const navItems: NavItem[] = [
     icon: <MessageSquare className="w-5 h-5" />,
   },
   {
-    href: '/dashboard/favorites',
-    label: 'Favorites',
-    icon: <Heart className="w-5 h-5" />,
-  },
-  {
-    href: '/dashboard/saved',
-    label: 'Saved Searches',
-    icon: <Search className="w-5 h-5" />,
-  },
-  {
-    href: '/dashboard/alerts',
-    label: 'Alerts',
-    icon: <Bell className="w-5 h-5" />,
-  },
-  {
     href: '/dashboard/settings',
     label: 'Settings',
     icon: <Settings className="w-5 h-5" />,
@@ -207,7 +192,7 @@ export function Sidebar({ unreadMessages = 0, newLeads = 0 }: SidebarProps) {
           })}
         </nav>
 
-        {/* Upgrade Banner */}
+        {/* Bottom Banner */}
         {!collapsed && (
           <div className="p-3 border-t">
             <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-4">

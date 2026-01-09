@@ -20,6 +20,7 @@ import {
   User,
   CreditCard,
   HelpCircle,
+  Search,
 } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -58,7 +59,7 @@ export function DashboardHeader({
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-2 ml-auto">
-          {/* New Listing Button */}
+          {/* Primary Action Button */}
           <Button size="sm" className="hidden sm:flex gap-2" asChild>
             <Link href="/dashboard/listings/new">
               <Plus className="w-4 h-4" />

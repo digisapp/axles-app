@@ -127,6 +127,11 @@ export default function AIAssistantPage() {
         .single();
 
       if (profile) {
+        // Redirect non-dealers
+        if (!profile.is_dealer) {
+          router.push('/become-a-dealer');
+          return;
+        }
         setIsDealer(profile.is_dealer || false);
         setSubscriptionTier(profile.subscription_tier || 'free');
         setDealerName(profile.company_name || '');
@@ -327,6 +332,75 @@ export default function AIAssistantPage() {
               <Link href="/dashboard/settings">
                 <Button>Upgrade to Dealer</Button>
               </Link>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  // Gate AI Assistant behind Pro plan
+  if (!isPro) {
+    return (
+      <div className="min-h-screen bg-muted/30">
+        <header className="bg-background border-b">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-4">
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
+              <h1 className="text-xl font-bold">AI Sales Assistant</h1>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-2xl mx-auto px-4 py-12">
+          <Card className="text-center">
+            <CardHeader>
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle>Pro Feature</CardTitle>
+              <CardDescription>
+                AI Sales Assistant is available on Pro and Enterprise plans.
+                Upgrade to get your own AI that captures leads 24/7.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-3 text-left">
+                <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Bot className="w-5 h-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-medium">24/7 Lead Capture</p>
+                    <p className="text-sm text-muted-foreground">AI answers questions and captures leads while you sleep</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                  <MessageCircle className="w-5 h-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-medium">Knows Your Inventory</p>
+                    <p className="text-sm text-muted-foreground">Trained on your listings, pricing, and business details</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                  <TrendingUp className="w-5 h-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-medium">Qualify Leads Automatically</p>
+                    <p className="text-sm text-muted-foreground">Captures contact info, budget, and timeline from visitors</p>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 border-t">
+                <Button className="w-full" size="lg" asChild>
+                  <Link href="/dashboard/billing">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Upgrade to Pro - $79/mo
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </main>

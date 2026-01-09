@@ -86,6 +86,11 @@ export default function StorefrontSettingsPage() {
         .single();
 
       if (profile) {
+        // Redirect non-dealers to become-a-dealer page
+        if (!profile.is_dealer) {
+          router.push('/become-a-dealer');
+          return;
+        }
         setIsDealer(profile.is_dealer || false);
 
         const socialLinks = profile.social_links || {};

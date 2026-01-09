@@ -24,7 +24,10 @@ import {
   MessageSquare,
   Heart,
   Menu,
-  X,
+  Store,
+  Bot,
+  Bell,
+  Search,
 } from 'lucide-react';
 
 interface NavItem {
@@ -66,14 +69,19 @@ const navItems: NavItem[] = [
     icon: <Upload className="w-5 h-5" />,
   },
   {
+    href: '/dashboard/storefront',
+    label: 'Storefront',
+    icon: <Store className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/conversations',
+    label: 'AI Chats',
+    icon: <Bot className="w-5 h-5" />,
+  },
+  {
     href: '/dashboard/messages',
     label: 'Messages',
     icon: <MessageSquare className="w-5 h-5" />,
-  },
-  {
-    href: '/dashboard/saved',
-    label: 'Saved',
-    icon: <Heart className="w-5 h-5" />,
   },
   {
     href: '/dashboard/settings',
@@ -157,7 +165,7 @@ export function MobileSidebar({
           })}
         </nav>
 
-        {/* Upgrade Banner */}
+        {/* Bottom Banner */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
           <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-4">
             <p className="font-medium text-sm mb-1">Upgrade to Pro</p>

@@ -22,6 +22,17 @@ export default async function ListingsPage() {
     redirect('/login?redirect=/dashboard/listings');
   }
 
+  // Check if user is a dealer
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_dealer')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile?.is_dealer) {
+    redirect('/become-a-dealer');
+  }
+
   const { data: listings } = await supabase
     .from('listings')
     .select(`
