@@ -171,6 +171,10 @@
   }
 }
 
+.animate-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+
 .ai-shimmer {
   background: linear-gradient(
     90deg,

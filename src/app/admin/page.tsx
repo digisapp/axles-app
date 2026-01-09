@@ -18,6 +18,7 @@ import {
   Phone,
   UserPlus,
   PhoneCall,
+  Mic,
 } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
@@ -431,6 +432,20 @@ export default async function AdminDashboardPage() {
                   <div>
                     <p className="font-medium">AI Phone Agent</p>
                     <p className="text-sm text-muted-foreground">Voice & settings</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/admin/voice-agents">
+              <Card className="hover:border-primary transition-colors cursor-pointer">
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="p-3 bg-indigo-100 rounded-lg">
+                    <Mic className="w-6 h-6 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Dealer Voice Agents</p>
+                    <p className="text-sm text-muted-foreground">Multi-tenant AI agents</p>
                   </div>
                 </CardContent>
               </Card>

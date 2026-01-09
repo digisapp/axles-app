@@ -25,7 +25,16 @@ from livekit.agents import (
 )
 from livekit.plugins import xai
 
-from tools import InventoryTools, LeadTools, CallLogTools, get_ai_agent_settings, update_lead_with_recording
+from tools import (
+    InventoryTools,
+    LeadTools,
+    CallLogTools,
+    get_ai_agent_settings,
+    get_dealer_voice_agent_by_phone,
+    build_dealer_instructions,
+    increment_dealer_minutes,
+    update_lead_with_recording,
+)
 
 load_dotenv()
 
@@ -39,15 +48,27 @@ active_calls = {}
 class AxlesAgent(Agent):
     """Voice AI agent for AxlesAI marketplace."""
 
-    def __init__(self, settings: dict, room_name: str, caller_phone: str = None) -> None:
+    def __init__(
+        self,
+        settings: dict,
+        room_name: str,
+        caller_phone: str = None,
+        dealer_id: str = None,
+        business_name: str = None,
+    ) -> None:
         super().__init__(
             instructions=settings.get('instructions', 'You are a helpful AI assistant.'),
         )
         self.settings = settings
         self.room_name = room_name
         self.caller_phone = caller_phone
-        self.inventory_tools = InventoryTools()
-        self.lead_tools = LeadTools()
+        self.dealer_id = dealer_id
+        self.business_name = business_name
+
+        # Initialize tools with dealer context if this is a dealer call
+        self.inventory_tools = InventoryTools(dealer_id=dealer_id)
+        self.lead_tools = LeadTools(dealer_id=dealer_id, business_name=business_name)
+
         self.captured_lead_id = None
         self.caller_name = None
         self.interest = None
@@ -245,8 +266,51 @@ def get_caller_phone(ctx: JobContext) -> str | None:
     return None
 
 
+def get_called_number(ctx: JobContext) -> str | None:
+    """Extract the called number (DID) from SIP participant metadata.
+
+    This is the number the caller dialed - used for multi-tenant routing.
+    """
+    for participant in ctx.room.remote_participants.values():
+        if participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
+            # Try to get from metadata first
+            if participant.metadata:
+                import json
+                try:
+                    metadata = json.loads(participant.metadata)
+                    # LiveKit SIP typically includes called number in metadata
+                    if 'sip.calledNumber' in metadata:
+                        return metadata['sip.calledNumber']
+                    if 'calledNumber' in metadata:
+                        return metadata['calledNumber']
+                except json.JSONDecodeError:
+                    pass
+
+            # Try to get from name (some setups put DID there)
+            if participant.name and participant.name.startswith('+'):
+                return participant.name
+
+    # Check room metadata as fallback
+    if ctx.room.metadata:
+        import json
+        try:
+            room_meta = json.loads(ctx.room.metadata)
+            if 'sip.calledNumber' in room_meta:
+                return room_meta['sip.calledNumber']
+        except json.JSONDecodeError:
+            pass
+
+    return None
+
+
 async def entrypoint(ctx: JobContext):
-    """Main entrypoint for the voice agent."""
+    """Main entrypoint for the voice agent.
+
+    Supports multi-tenant operation:
+    - Detects the called number (DID) to determine if this is a dealer's line
+    - If dealer line: uses dealer's custom settings, filters inventory to dealer only
+    - If main line: uses global AxlesAI settings, searches all inventory
+    """
 
     logger.info(f"Agent starting in room: {ctx.room.name}")
     call_start_time = time.time()
@@ -254,8 +318,46 @@ async def entrypoint(ctx: JobContext):
     call_log_id = None
     call_log_tools = CallLogTools()
 
-    # Load settings from database
-    settings = get_ai_agent_settings()
+    # Connect to the room first to access participant info
+    await ctx.connect()
+
+    # Get caller phone from SIP participant
+    caller_phone = get_caller_phone(ctx)
+    logger.info(f"Caller phone: {caller_phone}")
+
+    # Get the called number (DID) to determine which agent to use
+    called_number = get_called_number(ctx)
+    logger.info(f"Called number (DID): {called_number}")
+
+    # Check if this is a dealer's dedicated line
+    dealer_agent = None
+    dealer_id = None
+    dealer_voice_agent_id = None
+    business_name = None
+
+    if called_number:
+        dealer_agent = get_dealer_voice_agent_by_phone(called_number)
+
+    if dealer_agent:
+        # This is a dealer's dedicated line
+        dealer_id = dealer_agent.get('dealer_id')
+        dealer_voice_agent_id = dealer_agent.get('id')
+        business_name = dealer_agent.get('business_name') or dealer_agent.get('dealer', {}).get('company_name')
+
+        logger.info(f"Dealer call detected: {business_name} (dealer_id: {dealer_id})")
+
+        # Build settings from dealer agent config
+        settings = {
+            'voice': dealer_agent.get('voice', 'Sal'),
+            'greeting_message': dealer_agent.get('greeting', 'Thanks for calling! How can I help you today?'),
+            'instructions': build_dealer_instructions(dealer_agent),
+            'is_active': dealer_agent.get('is_active', True),
+        }
+    else:
+        # This is the main AxlesAI line - use global settings
+        logger.info("Main line call - using global AxlesAI settings")
+        settings = get_ai_agent_settings()
+
     logger.info(f"Using voice: {settings.get('voice')}")
 
     # Check if agent is active
@@ -263,18 +365,13 @@ async def entrypoint(ctx: JobContext):
         logger.warning("AI agent is disabled in settings")
         return
 
-    # Connect to the room
-    await ctx.connect()
-
-    # Get caller phone from SIP participant
-    caller_phone = get_caller_phone(ctx)
-    logger.info(f"Caller phone: {caller_phone}")
-
-    # Create call log entry
+    # Create call log entry with dealer info if applicable
     if caller_phone:
         call_log_id = await call_log_tools.create_call_log(
             caller_phone=caller_phone,
             call_sid=ctx.room.name,
+            dealer_id=dealer_id,
+            dealer_voice_agent_id=dealer_voice_agent_id,
         )
 
     # Initialize call tracking
@@ -284,6 +381,8 @@ async def entrypoint(ctx: JobContext):
         'egress_id': None,
         'call_log_id': call_log_id,
         'caller_phone': caller_phone,
+        'dealer_id': dealer_id,
+        'dealer_voice_agent_id': dealer_voice_agent_id,
     }
 
     # Start recording if Supabase is configured
@@ -300,8 +399,14 @@ async def entrypoint(ctx: JobContext):
         api_key=os.getenv("XAI_API_KEY"),
     )
 
-    # Create agent with instructions from settings and caller phone
-    agent = AxlesAgent(settings, ctx.room.name, caller_phone)
+    # Create agent with dealer context if applicable
+    agent = AxlesAgent(
+        settings=settings,
+        room_name=ctx.room.name,
+        caller_phone=caller_phone,
+        dealer_id=dealer_id,
+        business_name=business_name,
+    )
 
     # Create session with xAI model
     session = AgentSession(llm=model)
@@ -313,7 +418,8 @@ async def entrypoint(ctx: JobContext):
     greeting = settings.get('greeting_message', 'Hello! How can I help you today?')
     await session.generate_reply(instructions=greeting)
 
-    logger.info("xAI voice agent session started successfully")
+    logger.info(f"xAI voice agent session started successfully" +
+               (f" for {business_name}" if business_name else ""))
 
     # Wait for the session to end
     try:
@@ -323,7 +429,8 @@ async def entrypoint(ctx: JobContext):
     finally:
         # Calculate call duration
         call_duration = int(time.time() - call_start_time)
-        logger.info(f"Call ended. Duration: {call_duration}s")
+        call_minutes = max(1, (call_duration + 59) // 60)  # Round up to nearest minute
+        logger.info(f"Call ended. Duration: {call_duration}s ({call_minutes} min)")
 
         # Stop recording and get URL
         recording_url = None
@@ -331,11 +438,17 @@ async def entrypoint(ctx: JobContext):
         egress_id = call_info.get('egress_id')
         lead_id = call_info.get('lead_id') or agent.captured_lead_id
         call_log_id = call_info.get('call_log_id')
+        dealer_voice_agent_id = call_info.get('dealer_voice_agent_id')
 
         if egress_id:
             recording_url, recorded_duration = await stop_recording(egress_id)
             if recorded_duration:
                 call_duration = recorded_duration
+                call_minutes = max(1, (call_duration + 59) // 60)
+
+        # Update dealer minutes used (for billing)
+        if dealer_voice_agent_id:
+            await increment_dealer_minutes(dealer_voice_agent_id, call_minutes)
 
         # Update lead with recording info
         if lead_id and (recording_url or call_duration):

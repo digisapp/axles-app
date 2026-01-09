@@ -75,8 +75,137 @@ def get_ai_agent_settings() -> Dict[str, Any]:
         return DEFAULT_SETTINGS
 
 
+def get_dealer_voice_agent_by_phone(phone_number: str) -> Optional[Dict[str, Any]]:
+    """Fetch dealer voice agent settings by their dedicated phone number (DID).
+
+    Args:
+        phone_number: The called number (DID) in E.164 format
+
+    Returns:
+        Dealer voice agent settings dict or None if not found
+    """
+    try:
+        supabase = get_supabase()
+
+        # Clean the phone number for lookup
+        clean_number = phone_number.strip()
+        if clean_number.startswith("sip:"):
+            clean_number = clean_number[4:]
+        if "@" in clean_number:
+            clean_number = clean_number.split("@")[0]
+
+        # Look up by phone number
+        result = supabase.table("dealer_voice_agents").select(
+            """
+            *,
+            dealer:profiles!dealer_id(
+                id, company_name, phone, email
+            )
+            """
+        ).eq("phone_number", clean_number).eq("is_active", True).single().execute()
+
+        if result.data:
+            logger.info(f"Found dealer voice agent for {clean_number}: {result.data.get('business_name')}")
+            return result.data
+
+        # Try alternate format (+1 vs 1 prefix)
+        if clean_number.startswith("+1"):
+            alt_number = clean_number[1:]  # Remove +
+        elif clean_number.startswith("1") and len(clean_number) == 11:
+            alt_number = "+" + clean_number
+        else:
+            alt_number = None
+
+        if alt_number:
+            result = supabase.table("dealer_voice_agents").select(
+                """
+                *,
+                dealer:profiles!dealer_id(
+                    id, company_name, phone, email
+                )
+                """
+            ).eq("phone_number", alt_number).eq("is_active", True).single().execute()
+
+            if result.data:
+                logger.info(f"Found dealer voice agent for {alt_number}: {result.data.get('business_name')}")
+                return result.data
+
+        logger.info(f"No dealer voice agent found for {phone_number}")
+        return None
+
+    except Exception as e:
+        logger.error(f"Error fetching dealer voice agent: {e}")
+        return None
+
+
+def build_dealer_instructions(dealer_agent: Dict[str, Any]) -> str:
+    """Build custom instructions for a dealer's voice agent."""
+    business_name = dealer_agent.get('business_name') or dealer_agent.get('dealer', {}).get('company_name') or 'the dealership'
+    business_desc = dealer_agent.get('business_description') or ''
+    custom_instructions = dealer_agent.get('instructions') or ''
+
+    base_instructions = f"""You are {dealer_agent.get('agent_name', 'an AI assistant')} for {business_name}.
+
+{f"About the business: {business_desc}" if business_desc else ""}
+
+Your role is to:
+1. Answer questions about {business_name}'s available inventory (trucks, trailers, equipment)
+2. Help callers find equipment that matches their needs
+3. Provide pricing and specification information from their inventory
+4. Capture lead information for follow-up by the {business_name} team
+5. Transfer calls to the team when requested
+
+Guidelines:
+- Be friendly, professional, and knowledgeable about commercial trucks and trailers
+- Ask clarifying questions to understand what the caller is looking for
+- When discussing equipment, mention key specs like year, make, model, price, and condition
+- If a caller is interested in a specific unit, offer to capture their information for a callback
+- Keep responses concise for phone conversation (2-3 sentences max)
+- You only have access to {business_name}'s inventory, not all marketplace listings
+
+{f"Additional instructions: {custom_instructions}" if custom_instructions else ""}
+"""
+    return base_instructions
+
+
+async def increment_dealer_minutes(dealer_agent_id: str, minutes: int) -> bool:
+    """Increment minutes used for a dealer voice agent."""
+    try:
+        supabase = get_supabase()
+
+        # Get current usage
+        result = supabase.table("dealer_voice_agents").select(
+            "minutes_used, minutes_included"
+        ).eq("id", dealer_agent_id).single().execute()
+
+        if result.data:
+            new_minutes = (result.data.get('minutes_used') or 0) + minutes
+
+            # Update minutes used
+            supabase.table("dealer_voice_agents").update({
+                "minutes_used": new_minutes
+            }).eq("id", dealer_agent_id).execute()
+
+            logger.info(f"Updated dealer {dealer_agent_id} minutes: {new_minutes}/{result.data.get('minutes_included')}")
+            return True
+
+        return False
+
+    except Exception as e:
+        logger.error(f"Error updating dealer minutes: {e}")
+        return False
+
+
 class InventoryTools:
     """Tools for searching and retrieving inventory from Supabase."""
+
+    def __init__(self, dealer_id: Optional[str] = None):
+        """Initialize with optional dealer_id to filter inventory.
+
+        Args:
+            dealer_id: If provided, only search this dealer's inventory
+        """
+        self.dealer_id = dealer_id
 
     async def search(
         self,
@@ -95,6 +224,10 @@ class InventoryTools:
             query = supabase.table("listings").select(
                 "id, title, price, year, make, model, condition, mileage, city, state"
             ).eq("status", "active")
+
+            # If dealer_id is set, filter to only their inventory
+            if self.dealer_id:
+                query = query.eq("user_id", self.dealer_id)
 
             # Apply filters
             if category:
@@ -117,6 +250,8 @@ class InventoryTools:
             result = query.order("created_at", desc=True).limit(limit).execute()
 
             if not result.data:
+                if self.dealer_id:
+                    return "I don't have any listings matching that criteria in our inventory right now. Would you like to try different filters or leave your information for a callback?"
                 return "No listings found matching your criteria. Would you like to try different filters?"
 
             # Format results for voice
@@ -220,6 +355,16 @@ class InventoryTools:
 class LeadTools:
     """Tools for capturing and managing leads."""
 
+    def __init__(self, dealer_id: Optional[str] = None, business_name: Optional[str] = None):
+        """Initialize with optional dealer_id to assign leads directly.
+
+        Args:
+            dealer_id: If provided, assign all leads to this dealer
+            business_name: Name of the business for response messages
+        """
+        self.dealer_id = dealer_id
+        self.business_name = business_name
+
     async def capture(
         self,
         name: str,
@@ -256,9 +401,11 @@ class LeadTools:
         try:
             supabase = get_supabase()
 
-            # If we have a listing_id, get the dealer's user_id
-            user_id = None
-            if listing_id:
+            # Determine user_id (dealer to assign lead to)
+            user_id = self.dealer_id  # Start with pre-set dealer_id if any
+
+            # If we have a listing_id and no dealer_id set, get from listing
+            if listing_id and not user_id:
                 listing_result = supabase.table("listings").select(
                     "user_id"
                 ).eq("id", listing_id).single().execute()
@@ -287,8 +434,12 @@ class LeadTools:
 
             if result.data:
                 lead_id = result.data[0].get('id') if result.data else None
-                logger.info(f"Lead captured successfully: {name} - {phone} - intent: {intent} - id: {lead_id}")
+                logger.info(f"Lead captured successfully: {name} - {phone} - intent: {intent} - dealer: {user_id} - id: {lead_id}")
                 intent_str = f" to {intent}" if intent else ""
+
+                # Customize response if we have a business name
+                if self.business_name:
+                    return f"I've captured your information. Someone from {self.business_name} will reach out to you at {phone} soon about {interest}{intent_str}.", lead_id
                 return f"I've captured your information. A dealer will reach out to you at {phone} soon about {interest}{intent_str}.", lead_id
             else:
                 return "I've noted your information. A team member will follow up with you shortly.", None
@@ -355,20 +506,37 @@ class CallLogTools:
         self,
         caller_phone: str,
         call_sid: str,
+        dealer_id: Optional[str] = None,
+        dealer_voice_agent_id: Optional[str] = None,
     ) -> Optional[str]:
-        """Create a call log entry when call starts. Returns call_log_id."""
+        """Create a call log entry when call starts. Returns call_log_id.
+
+        Args:
+            caller_phone: The phone number of the caller
+            call_sid: Unique call identifier (room name)
+            dealer_id: If this is a dealer call, the dealer's user ID
+            dealer_voice_agent_id: If this is a dealer call, their voice agent ID
+        """
         try:
             supabase = get_supabase()
 
-            result = supabase.table("call_logs").insert({
+            log_data = {
                 "caller_phone": caller_phone,
                 "call_sid": call_sid,
                 "status": "in_progress",
-            }).execute()
+            }
+
+            if dealer_id:
+                log_data["dealer_id"] = dealer_id
+            if dealer_voice_agent_id:
+                log_data["dealer_voice_agent_id"] = dealer_voice_agent_id
+
+            result = supabase.table("call_logs").insert(log_data).execute()
 
             if result.data:
                 call_log_id = result.data[0].get('id')
-                logger.info(f"Created call log: {call_log_id} for {caller_phone}")
+                logger.info(f"Created call log: {call_log_id} for {caller_phone}" +
+                           (f" (dealer: {dealer_id})" if dealer_id else ""))
                 return call_log_id
             return None
 

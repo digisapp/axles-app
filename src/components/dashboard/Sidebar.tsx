@@ -28,6 +28,7 @@ import {
   Bot,
   Bell,
   Search,
+  Phone,
 } from 'lucide-react';
 
 interface NavItem {
@@ -77,6 +78,11 @@ const navItems: NavItem[] = [
     href: '/dashboard/conversations',
     label: 'AI Chats',
     icon: <Bot className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/voice-agent',
+    label: 'Voice Agent',
+    icon: <Phone className="w-5 h-5" />,
   },
   {
     href: '/dashboard/messages',

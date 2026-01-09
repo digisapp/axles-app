@@ -189,6 +189,39 @@ export interface Manufacturer {
   updated_at: string;
 }
 
+// Dealer Voice Agent (Multi-tenant AI Phone System)
+export interface DealerVoiceAgent {
+  id: string;
+  dealer_id: string;
+  phone_number?: string;
+  phone_number_id?: string;
+  agent_name: string;
+  voice: string;
+  greeting: string;
+  instructions?: string;
+  business_name?: string;
+  business_description?: string;
+  business_hours?: {
+    timezone: string;
+    hours: Record<string, string>;
+  };
+  after_hours_message?: string;
+  can_search_inventory: boolean;
+  can_capture_leads: boolean;
+  can_transfer_calls: boolean;
+  transfer_phone_number?: string;
+  plan_tier: 'starter' | 'pro' | 'unlimited' | 'trial';
+  minutes_included: number;
+  minutes_used: number;
+  billing_cycle_start: string;
+  stripe_subscription_id?: string;
+  is_active: boolean;
+  is_provisioned: boolean;
+  created_at: string;
+  updated_at: string;
+  activated_at?: string;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
   data?: T;

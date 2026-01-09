@@ -108,10 +108,16 @@ export default function HomePage() {
       <div className="noise-overlay" />
 
       {/* Top Banner */}
-      <div className="relative z-10 w-full bg-primary/10 border-b border-primary/20 py-2 px-4">
-        <p className="text-center text-sm text-foreground/80">
-          The <span className="font-semibold text-primary">AI-powered</span> marketplace for trucks, trailers & heavy equipment
-        </p>
+      <div className="relative z-10 w-full bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-b border-primary/20 py-2.5 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent)] animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+        <div className="relative flex items-center justify-center gap-2">
+          <div className="hidden sm:flex items-center justify-center w-5 h-5 rounded-full bg-primary/20">
+            <Zap className="w-3 h-3 text-primary" />
+          </div>
+          <p className="text-center text-sm text-foreground/90">
+            The <span className="font-semibold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">AI-powered</span> marketplace for trucks, trailers & equipment
+          </p>
+        </div>
       </div>
 
       {/* Header */}
