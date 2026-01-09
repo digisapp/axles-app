@@ -55,8 +55,8 @@ export default async function AdminDashboardPage() {
     .select('*', { count: 'exact', head: true })
     .eq('status', 'active');
 
-  const { count: totalMessages } = await supabase
-    .from('messages')
+  const { count: totalCalls } = await supabase
+    .from('call_logs')
     .select('*', { count: 'exact', head: true });
 
   // Get recent users
@@ -194,10 +194,10 @@ export default async function AdminDashboardPage() {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <MessageSquare className="w-5 h-5 text-cyan-500" />
+                <Phone className="w-5 h-5 text-cyan-500" />
               </div>
-              <p className="text-3xl font-bold">{totalMessages || 0}</p>
-              <p className="text-sm text-muted-foreground">Messages Sent</p>
+              <p className="text-3xl font-bold">{totalCalls || 0}</p>
+              <p className="text-sm text-muted-foreground">Total Calls</p>
             </CardContent>
           </Card>
         </div>
