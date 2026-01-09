@@ -347,6 +347,7 @@ export default function HomePage() {
           <div className="flex flex-wrap justify-center gap-4 md:gap-6">
             <FooterLink href="/trade-in">Trade-In</FooterLink>
             <FooterLink href="/tools/axle-weight-calculator">Weight Calculator</FooterLink>
+            <FooterLink href="/become-a-dealer">Become a Seller</FooterLink>
             <FooterLink href="/dealers">Dealers</FooterLink>
             <FooterLink href="/about">About</FooterLink>
             <FooterLink href="/privacy">Privacy</FooterLink>
