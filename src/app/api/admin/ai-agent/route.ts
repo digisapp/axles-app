@@ -13,11 +13,11 @@ export async function GET() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('is_admin')
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  if (!profile?.is_admin) {
     return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
   }
 
@@ -47,11 +47,11 @@ export async function PUT(request: Request) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('is_admin')
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  if (!profile?.is_admin) {
     return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
   }
 
