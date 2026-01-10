@@ -178,7 +178,7 @@ async function getAllListingUrls(page) {
   for (let pageNum = 2; pageNum <= 5; pageNum++) {
     try {
       console.log(`Checking page ${pageNum}...`);
-      await page.goto(BASE_URL + `/all-equipment?page=${pageNum}`, { waitUntil: 'networkidle2', timeout: 30000 });
+      await page.goto(BASE_URL + `/all-equipment?p=${pageNum}`, { waitUntil: 'networkidle2', timeout: 30000 });
       await sleep(2000);
 
       for (let i = 0; i < 10; i++) {
