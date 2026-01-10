@@ -1,0 +1,861 @@
+{
+  "dealer": {
+    "email": "info@jbpavelkainc.com",
+    "company_name": "J & B Pavelka, Inc.",
+    "phone": "(361) 387-5010",
+    "toll_free": "844-694-2368",
+    "website": "https://www.jbpavelkainc.com",
+    "address": "3205 Highway 44",
+    "city": "Robstown",
+    "state": "TX",
+    "zip": "78380",
+    "about": "J & B Pavelka, Inc. is a premier South Texas pre-owned truck and new/pre-owned trailer dealer since 1997. With locations in Robstown (Corpus Christi), Houston, and Burnet Texas, we offer a full line of Doonan, Manac CPS, Kalyn/Siebert, Talbert, Viking, Eager Beaver, Interstate, Holden, and Protrak trailers. We specialize in Heavy Haul, Oilfield, Wind Energy, Construction, and Railroad industries, with trailers ranging from 25 to 100 ton capacity. Our service department offers complete customization, laser alignments, DOT inspections, and more. We are members of the Used Truck Association (UTA), National Trailer Dealer Association (NTDA), SC&RA, and NATDA.",
+    "is_dealer": true,
+    "locations": [
+      {
+        "name": "Robstown",
+        "address": "3205 Highway 44",
+        "city": "Robstown",
+        "state": "TX",
+        "zip": "78380",
+        "phone": "844-694-2368"
+      },
+      {
+        "name": "Houston",
+        "address": "11113 Wallisville RD",
+        "city": "Houston",
+        "state": "TX",
+        "zip": "77013",
+        "phone": "844-759-6907"
+      },
+      {
+        "name": "Burnet",
+        "address": "1103 S Water ST",
+        "city": "Burnet",
+        "state": "TX",
+        "zip": "78611",
+        "phone": "844-764-3370"
+      }
+    ]
+  },
+  "listings": [
+    {
+      "title": "2025 AIR-TOW PRO 16 Other Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8021491058&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=9ghOebCMRhT83om5mg6Q0gKg6x%2fuco3ep%2f7cG0xAwwY%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/232441201/2025-air-tow-pro-16-other-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW S12-55 Other Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8002134618&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=fputUjQVdR1RxMnt0O85DEcByBw3QLyAcBI6bn2Dppg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871715/2025-air-tow-s12-55-other-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW S12-55 Other Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8041187274&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=V4mYXKUITYc326M6VFss3cAbDHIn1GWu90p3QTddO9E%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/217985025/2025-air-tow-s12-55-other-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Burnet, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW 12 ft x 74 in Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=10017176598&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=dpXbNUqND0Thk7bZHS8facoH8CABXsTJseg0HJnm2Z0%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/250136773/2025-air-tow-12-ft-x-74-in-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW 12 ft x 75 in Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8002134618&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=fputUjQVdR1RxMnt0O85DEcByBw3QLyAcBI6bn2Dppg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/248649293/2025-air-tow-12-ft-x-75-in-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Burnet, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW 16 ft x 75 in Enclosed Car Hauler Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9036048538&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=SmNuu8qWVsBIbIGp5Na0KCQQHgxUaKqe6fxKjNS7ccQ%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244892467/2025-air-tow-16-ft-x-75-in-enclosed-car-hauler-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW 12 ft x 75 in Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8002134618&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=fputUjQVdR1RxMnt0O85DEcByBw3QLyAcBI6bn2Dppg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871725/2025-air-tow-12-ft-x-75-in-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW 16 ft x 74 in Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8021491058&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=9ghOebCMRhT83om5mg6Q0gKg6x%2fuco3ep%2f7cG0xAwwY%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871637/2025-air-tow-16-ft-x-74-in-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8021491061&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=9ghOebCMRhTaB8aBB2%2f3K3WUae7%2fwETwDvKtrk7x8pE%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871623/2025-air-tow-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW 14 ft x 75 in Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9049381192&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=Vb8KFFeFCv7vuywrsRiyUeRkh%2fqNADA3aLrFcc5lMTo%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/243330707/2025-air-tow-14-ft-x-75-in-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8021491061&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=9ghOebCMRhTaB8aBB2%2f3K3WUae7%2fwETwDvKtrk7x8pE%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/240970927/2025-air-tow-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 AIR-TOW 16 ft x 75 in Cargo / Enclosed Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9052603263&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vJNa0LatAZF1jTk9qP%2bWYsSWDZfyw7OcxsrGnEd%2bBXY%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/221774835/2025-air-tow-16-ft-x-75-in-cargo-slash-enclosed-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2024 AIR-TOW 16 ft x 74 in Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9021498148&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=7vV3g4fGfRSfKX7UElFmk7WhtMruxz7xcn6K33EY70w%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871681/2024-air-tow-16-ft-x-74-in-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2024 AIR-TOW 16 ft x 74 in Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9021498148&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=7vV3g4fGfRSfKX7UElFmk7WhtMruxz7xcn6K33EY70w%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871671/2024-air-tow-16-ft-x-74-in-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2024 AIR-TOW Dump Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8055177022&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=UM9n%2fxsbU5h3c9nFJwYWSAR8RQ4ZbGWCGSfnVw3%2bnl4%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/230551207/2024-air-tow-dump-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "location": "Location: Burnet, Texas"
+    },
+    {
+      "title": "2024 AIR-TOW 16 ft x 74 in Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=7172280449&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=MjjP4rmA9TY08TNkBam6ibPeUbL8JQEq98RQytklels%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/227698539/2024-air-tow-16-ft-x-74-in-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2023 AIR-TOW 12 ft Dump Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=10014834873&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=h7K6BXmqHhvw2WOX4PfOPnkByXTxZePdXmp5u%2bY7cR8%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/249230773/2023-air-tow-12-ft-dump-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2023,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2023 AIR-TOW 10 ft x 74 in Other Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8012510251&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=CdObvl5AM0%2blEGyKeYjBexzuZ%2bdUOnhoaF4x8ojURcU%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871741/2023-air-tow-10-ft-x-74-in-other-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2023,
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2023 AIR-TOW 12 ft x 75 in Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8002134618&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=fputUjQVdR1RxMnt0O85DEcByBw3QLyAcBI6bn2Dppg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/241919965/2023-air-tow-12-ft-x-75-in-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2023,
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2023 AIR-TOW 12 ft x 75 in Flatbed / Tag Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8002134618&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=fputUjQVdR1RxMnt0O85DEcByBw3QLyAcBI6bn2Dppg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/241919899/2023-air-tow-12-ft-x-75-in-flatbed-slash-tag-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2023,
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2026 ALPHA HD A110HDG-SF Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8022952020&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=MzErpj3cPRUyfNa28fs5LDpAiu4ECpzz5P636frIMv0%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/250117839/2026-alpha-hd-a110hdg-sf-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "ALPHA",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 ALPHA HD A110HDG-SF Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=10016792794&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=mAkgE9nFlI2V3GWt%2b7QfGQpNWh32LTyjf46Qk9QPngM%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/250117245/2026-alpha-hd-a110hdg-sf-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "ALPHA",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 ALPHA HD A110HDG-SF Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9070306682&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=KOkLgXJXy%2foK56krOaSnc1%2fYbgNjOn3r6fOPMvdCWXQ%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/245362341/2026-alpha-hd-a110hdg-sf-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "ALPHA",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 ALPHA HD A110HDG-SF Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8056013799&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=GC%2bkZ9WFZC3qaNFGmYtJMcQfzQyDRAFlGOEwtH%2bpyNE%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/230781579/2025-alpha-hd-a110hdg-sf-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "ALPHA",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2026 ALPHA HD 48 ft x 102 in Double Drop Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9062431603&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=o6eXhndi5EyyyOE%2fv2iF4IJ444T%2bXnLZFCnAFANo33o%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244744351/2026-alpha-hd-48-ft-x-102-in-double-drop-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "ALPHA",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 ALPHA HD 48 ft x 102 in Double Drop Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8046517009&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=%2bKk7wBKbqHaTPoa5u9wbGqQPNJnY1zWTA7FBYSA%2fYmQ%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/243996803/2026-alpha-hd-48-ft-x-102-in-double-drop-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "ALPHA",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 ALPHA HD 53 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9023050388&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=qJEE2e3ztrXapBVEbWrvoRz3IYtbOYmSAySAFW3p1sw%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/242680563/2026-alpha-hd-53-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "ALPHA",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 ALPHA HD 57 ft x 108 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9040360492&wid=4326209787&rwl=False&p=&ext=&w=350&h=220&t=&lp=&c=True&wt=False&sz=Max&rt=0&checksum=vhEi0e4IMiFIPYk7SR2sovG1DPfXr%2bbu956UhQnr8sU%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/242155231/2026-alpha-hd-57-ft-x-108-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "ALPHA",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2016 CAPACITY TJ5000 Yard Spotter Trucks",
+      "price": "USD $38,900",
+      "image": "https://media.sandhills.com/img.axd?id=10026237567&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=Ft%2bbZjks5PyR39MJpK5VO9Beqb7eUNlcDcua99GLFuk%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251703211/2016-capacity-tj5000-yard-spotter-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2016,
+      "make": "CAPACITY",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2014 CATERPILLAR CT660S Day Cab Trucks",
+      "price": "USD $29,500",
+      "image": "https://media.sandhills.com/img.axd?id=10026236377&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=UlDefgLNNJxoxlwzqXuzwQvd2vuBIPPjo%2f8a9FyeaG0%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251685195/2014-caterpillar-ct660s-day-cab-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2014,
+      "make": "CATERPILLAR",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2024 CHEVROLET SILVERADO 4500HD Flatbed Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=10023434843&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=s%2bf1ivyGXA5vWHUux8fG%2bt91lFadloNQOigrO0Yu0TI%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251217953/2024-chevrolet-silverado-4500hd-flatbed-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "make": "CHEVROLET",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2024 DEWEZE XRT84 Flatbed Truck Bodies Only Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9023587514&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=uTRamuudPNDo4IBqyTnoKwR4vZZT7T08yyJVVZ2HXis%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244892501/2024-deweze-xrt84-flatbed-truck-bodies-only-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "make": "DEWEZE",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2024 DEWEZE XRT84 Flatbed Truck Bodies Only Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9023587514&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=uTRamuudPNDo4IBqyTnoKwR4vZZT7T08yyJVVZ2HXis%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244892483/2024-deweze-xrt84-flatbed-truck-bodies-only-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "make": "DEWEZE",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2024 DEWEZE XRT84 Flatbed Truck Bodies Only Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9024518115&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=MjXA6OJ0hKtrlIexYlmk0R3FDtqoOjP6eKOqtIJvawA%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/237914891/2024-deweze-xrt84-flatbed-truck-bodies-only-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "make": "DEWEZE",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2024 DEWEZE XRT84 Flatbed Truck Bodies Only Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9024518115&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=MjXA6OJ0hKtrlIexYlmk0R3FDtqoOjP6eKOqtIJvawA%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/237914655/2024-deweze-xrt84-flatbed-truck-bodies-only-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "make": "DEWEZE",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2015 FORD F550 XL Cab & Chassis Trucks",
+      "price": "USD $8,000",
+      "image": "https://media.sandhills.com/img.axd?id=9068088585&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=XAjQHCjeIHyh%2b2n5rxlddt5WR9Sk3DY2qaf1VMndV9Y%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244994849/2015-ford-f550-xl-cab-and-chassis-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2015,
+      "make": "FORD",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 FORD F600 Fuel Trucks / Lube Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9039811731&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=1PKRHGXcCqBFaLrxN%2btmq3Zrtmlp233wTmDOXaeZ7Tg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251904273/2025-ford-f600-fuel-trucks-slash-lube-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "FORD",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 FORD F600 Fuel Trucks / Lube Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9039811731&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=1PKRHGXcCqBFaLrxN%2btmq3Zrtmlp233wTmDOXaeZ7Tg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251904251/2025-ford-f600-fuel-trucks-slash-lube-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "FORD",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 FORD F600 Fuel Trucks / Lube Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9039811731&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=1PKRHGXcCqBFaLrxN%2btmq3Zrtmlp233wTmDOXaeZ7Tg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251904243/2025-ford-f600-fuel-trucks-slash-lube-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "FORD",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 FORD F600 Fuel Trucks / Lube Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9040464123&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=arETclJ9Ae%2fViUJ8cv5ZP3xd1H%2bLSrkq%2b66H5TjckZU%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244897559/2025-ford-f600-fuel-trucks-slash-lube-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "FORD",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 FORD F600 Fuel Trucks / Lube Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9039811731&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=1PKRHGXcCqBFaLrxN%2btmq3Zrtmlp233wTmDOXaeZ7Tg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244484053/2025-ford-f600-fuel-trucks-slash-lube-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "FORD",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 FORD F600 Fuel Trucks / Lube Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9039811731&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=1PKRHGXcCqBFaLrxN%2btmq3Zrtmlp233wTmDOXaeZ7Tg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244484043/2025-ford-f600-fuel-trucks-slash-lube-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "FORD",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2016 FREIGHTLINER 114SD Water Tank Trucks",
+      "price": "USD $89,500",
+      "image": "https://media.sandhills.com/img.axd?id=9000011192&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=iI%2fefOoNIl7LVTcLrTNlMD9G8LN0dOFeIB37XXHMt7I%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871881/2016-freightliner-114sd-water-tank-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2016,
+      "make": "FREIGHTLINER",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2018 FREIGHTLINER 122SD Dump Trucks",
+      "price": "USD $79,000",
+      "image": "https://media.sandhills.com/img.axd?id=8054579166&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=iW6ga%2bg7ZE6k%2bMA8DopqHyMO0%2fuv7OBTI%2f0dny02qxU%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251734169/2018-freightliner-122sd-dump-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2018,
+      "make": "FREIGHTLINER",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2016 FREIGHTLINER BUSINESS CLASS M2 106 Service Trucks / Utility Trucks / Mechanic Trucks",
+      "price": "USD $59,900",
+      "image": "https://media.sandhills.com/img.axd?id=9022974099&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=VcKrE5HjrQviaaNMWgg%2fSPnjQ1%2fa7Sn3DY3ddVhjekU%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/237732585/2016-freightliner-business-class-m2-106-service-trucks-slash-utility-trucks-slash-mechanic-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2016,
+      "make": "FREIGHTLINER",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2010 FREIGHTLINER BUSINESS CLASS M2 106 Cab & Chassis Trucks",
+      "price": "USD $12,000",
+      "image": "https://media.sandhills.com/img.axd?id=10014466537&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=3i30Qo5BW8T40Wg9D5Gge836job5Wwpu%2f8bple3Gxd8%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/249606687/2010-freightliner-business-class-m2-106-cab-and-chassis-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2010,
+      "make": "FREIGHTLINER",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2015 FREIGHTLINER CASCADIA 125 Sleeper Trucks",
+      "price": "USD $12,900",
+      "image": "https://media.sandhills.com/img.axd?id=9052063500&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=EYcEADEAc32AaA0Mx0%2fmGhmPNg7I9Aq2OO5hNDUPTy4%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/243885991/2015-freightliner-cascadia-125-sleeper-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2015,
+      "make": "FREIGHTLINER",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2024 GODWIN 14 FT Dump Truck Bodies Only Trucks",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9038904684&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=eYaX00JIo79IWBzZAyqbW95%2bAY7kyYtljoHIpL9zEUw%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/240732145/2024-godwin-14-ft-dump-truck-bodies-only-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "make": "GODWIN",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2017 HINO 258LP Rollback Tow Trucks",
+      "price": "USD $41,500",
+      "image": "https://media.sandhills.com/img.axd?id=10017396816&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=7eGfzEfE%2f%2bjwKBz61t2kwysJn2QweuFY0WfzD5X1aAo%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/250264487/2017-hino-258lp-rollback-tow-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2017,
+      "make": "HINO",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2014 HINO 268 Flatbed Trucks",
+      "price": "USD $10,900",
+      "image": "https://media.sandhills.com/img.axd?id=8060786514&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=9o2CzExZchJ2oGT0kbBeJx0EOz63%2fiBHRos32skEWuQ%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871921/2014-hino-268-flatbed-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2014,
+      "make": "HINO",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2018 INTERNATIONAL DURASTAR 4300 Service Trucks / Utility Trucks / Mechanic Trucks",
+      "price": "USD $43,500",
+      "image": "https://media.sandhills.com/img.axd?id=9031129580&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=QIjZNClJakwB%2fOOAQ8VOwBTwBLBLBDgESpZHCvdiyak%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871851/2018-international-durastar-4300-service-trucks-slash-utility-trucks-slash-mechanic-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2018,
+      "make": "INTERNATIONAL",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2020 KENWORTH T270 Dump Trucks",
+      "price": "USD $59,500",
+      "image": "https://media.sandhills.com/img.axd?id=9067975681&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=Zob1rYZhA0IoYIUr7FBEG2acDhf3Po2PgKdQ3PYNm%2fw%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244892287/2020-kenworth-t270-dump-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2020,
+      "make": "KENWORTH",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2014 KENWORTH T800 Sleeper Trucks",
+      "price": "USD $28,500",
+      "image": "https://media.sandhills.com/img.axd?id=10027593896&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=vPkC%2fyF1oNIcQ3OSKVrXOF9B8csXOwNExE4N8eR1Dtc%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/249923995/2014-kenworth-t800-sleeper-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2014,
+      "make": "KENWORTH",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "1999 KENWORTH W900B Winch / Oil Field Trucks",
+      "price": "USD $88,000",
+      "image": "https://media.sandhills.com/img.axd?id=10006502966&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=BI2%2fQFIcuEpzIulaaThVzzcJH0%2fKuSoE2sRRi1RyTBc%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/248167029/1999-kenworth-w900b-winch-slash-oil-field-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 1999,
+      "make": "KENWORTH",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2022 KENWORTH W990 Sleeper Trucks",
+      "price": "USD $88,900",
+      "image": "https://media.sandhills.com/img.axd?id=10000755266&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=PaI8GPeDvQP%2bnn5jq%2fVU7Z6h5W9KFTpVbXigAr%2fabB8%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/246993815/2022-kenworth-w990-sleeper-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2022,
+      "make": "KENWORTH",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2020 KENWORTH W990 Day Cab Trucks",
+      "price": "USD $139,500",
+      "image": "https://media.sandhills.com/img.axd?id=9047110861&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=XHdKaIxVFYBmM3fVdyNzd%2bGqRFvP2vzukfpqo5MuB%2fs%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/243265033/2020-kenworth-w990-day-cab-trucks?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2020,
+      "make": "KENWORTH",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2024 ALPHA HD 14 ft 1 in Lowboy Trailers",
+      "price": "USD $13,500",
+      "image": "https://media.sandhills.com/img.axd?id=8021366127&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=rTrPodl%2bxYpLnpY0yTovWOxBHC%2bcYrCTn5c%2bEbWDs7o%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871567/2024-alpha-hd-14-ft-1-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "make": "ALPHA",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2022 ALPHA HD 14 ft 1 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=7255097189&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=MRheiaDyeuj5s8Bo2RWPsn1qRBpZLbQLOBD4yl0dIhE%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/209075277/2022-alpha-hd-14-ft-1-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2022,
+      "make": "ALPHA",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 ASPEN 57 ft x 108 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9005251238&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=MzcpvZZb8%2bh%2bVs5VFOJ6Vlx45Iud1Gk2ZXdlmdkWTuY%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/250585175/2025-aspen-57-ft-x-108-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "ASPEN",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 ASPEN Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8035662082&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=pygMuhdtZibul2xYOwCLbNp8T%2fZFsTOHKAMWADvef9M%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871281/2025-aspen-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "ASPEN",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2024 ASPEN 53 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9068082849&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=DYdoehqIzBjVyzAox0dpbI2Gcs%2b4W52YGOJ43D1TrPQ%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244993681/2024-aspen-53-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "make": "ASPEN",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2007 ATOKA 53 ft x 102 in Lowboy Trailers",
+      "price": "USD $28,500",
+      "image": "https://media.sandhills.com/img.axd?id=10025891327&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=I%2fkMsjaEzyqF14MBe9JATk4KgHf4sOLimb8eW%2bMBWE0%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251624745/2007-atoka-53-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2007,
+      "make": "ATOKA",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2008 DRAGON PRODUCTS 48 ft x 102 in Lowboy Trailers",
+      "price": "USD $37,500",
+      "image": "https://media.sandhills.com/img.axd?id=10004737858&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=gqdbChtqEPkhid3lQNN2AOZ75IoqrxDhvX0wrBMNoJQ%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/247821637/2008-dragon-products-48-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2008,
+      "make": "DRAGON",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 EAGER BEAVER 5 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=10023185130&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=oN9oDk9AYkupWQUNOfZmRrGtNbIM5sqsaegA8WpuO60%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251168041/2025-eager-beaver-5-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "EAGER",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 EAGER BEAVER 53 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8044183170&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=VS4CFmekVjGCx07YWrF3Iz3vuNXttRTs4Aiw5%2fHWbE4%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244886451/2025-eager-beaver-53-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "EAGER",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 GLOBE 102 in Lowboy Trailers",
+      "price": "USD $22,000",
+      "image": "https://media.sandhills.com/img.axd?id=10010548260&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=9Ckn5zStHrixzCKQaaqYeRZoFstXZaQ%2bFg%2bBhjb3Eog%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/248861073/2026-globe-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "GLOBE",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 GLOBE 56 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=4146824075&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=ZTpkp%2fO3viFn7hfFpQcNMZ6QYo72rSShRQSrSHXTyI0%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251931729/2026-globe-56-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "GLOBE",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 GLOBE 56 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=4146824075&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=ZTpkp%2fO3viFn7hfFpQcNMZ6QYo72rSShRQSrSHXTyI0%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251931707/2026-globe-56-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "GLOBE",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 GLOBE 53 ft x 108 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=10015961043&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=JfERWDBHFnBpS%2bp7yDnnBikUe7II573ri7PsFtPo2sw%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/249167511/2026-globe-53-ft-x-108-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "GLOBE",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 GLOBE 53 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9072849872&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=6oMvvGMoGkHKyF2Ik7xBfqevpf27Ak65mwjt51cU4NY%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/248649221/2026-globe-53-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "GLOBE",
+      "location": "Location: Burnet, Texas"
+    },
+    {
+      "title": "2026 GLOBE 56 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=4146824075&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=ZTpkp%2fO3viFn7hfFpQcNMZ6QYo72rSShRQSrSHXTyI0%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/248649183/2026-globe-56-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "GLOBE",
+      "location": "Location: Burnet, Texas"
+    },
+    {
+      "title": "2026 GLOBE 53 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9072849872&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=6oMvvGMoGkHKyF2Ik7xBfqevpf27Ak65mwjt51cU4NY%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/245990417/2026-globe-53-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "GLOBE",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 GLOBE 53 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9073012862&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=IQS15qSGJoI35NMhODUTzBa8RS8otrzY7Slz71it7c8%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/245989035/2026-globe-53-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "GLOBE",
+      "location": "Location: Burnet, Texas"
+    },
+    {
+      "title": "2026 GLOBE 53 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9072849872&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=6oMvvGMoGkHKyF2Ik7xBfqevpf27Ak65mwjt51cU4NY%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/245961521/2026-globe-53-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "GLOBE",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2026 GLOBE 56 ft x 102 in Lowboy Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=4146823707&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=OEEvqLbE8qIEqa6eixhG5IBLO3W6nJm5j5QZ9v8ymUA%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/243550511/2026-globe-56-ft-x-102-in-lowboy-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "GLOBE",
+      "location": "Location: Burnet, Texas"
+    },
+    {
+      "title": "2026 DOONAN 48 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9071892850&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=FyZPyqLbPCCuzc%2brJm2DdjOkh26D%2bk%2fvlJtjqiCHIfU%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/245695421/2026-doonan-48-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "DOONAN",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 DOONAN 53 ft x 102 in Drop Deck Trailers",
+      "price": "USD $47,900",
+      "image": "https://media.sandhills.com/img.axd?id=9011436638&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=PRTId8UxBedxv4BPc8DeEJdo4lEkRzbcgtq%2f%2bqaBTkU%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/235341471/2025-doonan-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DOONAN",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 DOONAN 53 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9032406718&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=RTE1W4TYjaJF455Fq7xaIC69twdsf9BBGJ%2foJ%2fODAfQ%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244892439/2025-doonan-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DOONAN",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 DOONAN Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9032404955&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=QmWUSip88VewFVM9rfDCoAXQCvloZZe6H%2ft7GTuRCUY%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244892401/2025-doonan-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DOONAN",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 DOONAN 53 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9032403224&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=qkxwSN1ENa5ZBgW4SSeo26yo8K08JHg0Toi41UvRUvk%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244892369/2025-doonan-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DOONAN",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 DOONAN 53 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9011255123&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=z4tj%2fKKX6OJOr7KUbxS6iaKsng7ILc0BnNnfCinZKm8%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/244871363/2025-doonan-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DOONAN",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2025 DOONAN 48 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9050404405&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=g3sqrE5JL8SJg%2fWgaQ9eWSQu2piP21fpSO56z%2bhlHwc%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/243561605/2025-doonan-48-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DOONAN",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 DOONAN 53 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9046448170&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=fhdBCx89WH%2b638kuyqrWuzO9sVufjGKSNj7NELlV%2fig%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/242666009/2025-doonan-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DOONAN",
+      "location": "Location: Robstown, Texas"
+    },
+    {
+      "title": "2024 DOONAN 53 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9050234727&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=gHCWITyI6DDkGMQ2L705%2f8sTUei6RtjIWUs5G1ln5gw%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/225393945/2024-doonan-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2024,
+      "make": "DOONAN",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2026 DOONAN SPECIALIZED 53 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=10025270116&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=MxHmdWL3ZSfxlJE3cMWcfbLi6OiOYb9PeGLk%2bw%2b9FzA%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251521011/2026-doonan-specialized-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "DOONAN",
+      "location": "Location: Burnet, Texas"
+    },
+    {
+      "title": "2026 DOONAN SPECIALIZED 48 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=10004846940&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=CVS%2bIjsEBpRWaOfnAVkoAeD6pwAxVKC4dgCaDBNDhfs%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/247842693/2026-doonan-specialized-48-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "DOONAN",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2026 DOONAN SPECIALIZED 48 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8057402450&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=sOg%2f29liasGJ2jk2y65uGaodlRgoCn8WOX99CwRkQns%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/231073497/2026-doonan-specialized-48-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2026,
+      "make": "DOONAN",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 DOONAN SPECIALIZED 53 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9001780756&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=MffhinXS5zbaiADk9XUnWod79mbmRk%2bO01UAysr4VLY%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251518935/2025-doonan-specialized-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DOONAN",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 DOONAN SPECIALIZED 57 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9007759363&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=vNgSDISgoBi4BVJh%2bj0JIpqgvtbfV6Q0R5EFVewNEPg%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/234462703/2025-doonan-specialized-57-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DOONAN",
+      "location": "Location: Burnet, Texas"
+    },
+    {
+      "title": "2025 DOONAN SPECIALIZED 53 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=9001780752&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=MffhinXS5zb%2fPdipzWRXw3NSCTHmVAQFyb8CZn7Va64%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/233218145/2025-doonan-specialized-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DOONAN",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2025 DURA HAUL 53 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8055189828&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=OSRTXxg%2fswGdx4CvmHw2GLMsCv9YAech9F8gkmkbvqE%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/230556013/2025-dura-haul-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DURA",
+      "location": "Location: Burnet, Texas"
+    },
+    {
+      "title": "2025 DURA HAUL 53 ft x 102 in Drop Deck Trailers",
+      "price": "Call for price",
+      "image": "https://media.sandhills.com/img.axd?id=8054540164&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=jrqr0oBYXjHafmiR1QezYvCAzpBjyIUUCKqVtrfFUEs%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/230391685/2025-dura-haul-53-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2025,
+      "make": "DURA",
+      "location": "Location: Houston, Texas"
+    },
+    {
+      "title": "2014 FONTAINE 48 ft x 102 in Drop Deck Trailers",
+      "price": "USD $19,500",
+      "image": "https://media.sandhills.com/img.axd?id=10025252649&wid=4326209787&rwl=False&p=&ext=&w=250&h=220&t=&lp=&c=True&wt=False&sz=Cover&rt=0&checksum=fZ0BUAAp9OuuuBeqD6V%2ft%2by0kRpjr%2fVBHQZiguSk8s0%3d",
+      "link": "https://www.jbpavelkainc.com/inventory/?/listing/for-sale/251518697/2014-fontaine-48-ft-x-102-in-drop-deck-trailers-semi-trailers?dlr=1&accountcrmid=361604&settingscrmid=361605",
+      "year": 2014,
+      "make": "FONTAINE",
+      "location": "Location: Houston, Texas"
+    }
+  ],
+  "scraped_at": "2026-01-10T00:57:20.408Z"
+}

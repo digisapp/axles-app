@@ -191,7 +191,7 @@ async function main() {
   if (!dealerId) return;
 
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080']
   });
 
