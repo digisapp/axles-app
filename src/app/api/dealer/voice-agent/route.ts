@@ -1,6 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+/**
+ * Validate and normalize phone number to E.164 format
+ */
+function validateE164Phone(phone: string): { valid: boolean; normalized: string } {
+  if (!phone) return { valid: false, normalized: '' };
+
+  // Strip all non-digit characters except leading +
+  const cleaned = phone.replace(/[^\d+]/g, '');
+
+  // Handle various formats
+  if (cleaned.startsWith('+')) {
+    const digits = cleaned.slice(1);
+    if (digits.length === 11 && digits.startsWith('1')) {
+      return { valid: true, normalized: cleaned };
+    } else if (digits.length === 10) {
+      return { valid: true, normalized: `+1${digits}` };
+    }
+  } else if (cleaned.startsWith('1') && cleaned.length === 11) {
+    return { valid: true, normalized: `+${cleaned}` };
+  } else if (cleaned.length === 10) {
+    return { valid: true, normalized: `+1${cleaned}` };
+  }
+
+  return { valid: false, normalized: cleaned };
+}
+
 // GET /api/dealer/voice-agent - Get dealer's voice agent settings
 export async function GET(request: NextRequest) {
   try {
@@ -126,6 +152,18 @@ export async function PATCH(request: NextRequest) {
       if (body[field] !== undefined) {
         updates[field] = body[field];
       }
+    }
+
+    // Validate and normalize transfer phone number if provided
+    if (updates.transfer_phone_number && typeof updates.transfer_phone_number === 'string') {
+      const { valid, normalized } = validateE164Phone(updates.transfer_phone_number);
+      if (!valid) {
+        return NextResponse.json(
+          { error: 'Invalid transfer phone number. Please use format: +1-XXX-XXX-XXXX' },
+          { status: 400 }
+        );
+      }
+      updates.transfer_phone_number = normalized;
     }
 
     if (Object.keys(updates).length === 0) {

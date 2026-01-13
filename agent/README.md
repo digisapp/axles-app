@@ -1,14 +1,26 @@
 # AxlesAI Voice Agent
 
-Voice AI agent powered by LiveKit and xAI (Grok) for handling phone calls about truck and trailer inventory.
+Voice AI agent powered by LiveKit and xAI (Grok) for handling phone calls about truck and trailer inventory. Uses xAI's native Grok Voice API for speech-to-speech conversation.
+
+## Architecture
+
+```
+Phone Call → LiveKit SIP → Agent Room → AxlesAgent
+                                              ↓
+                                         xAI (Grok Voice API)
+                                              ↓
+                                    Supabase (Inventory/Leads)
+```
 
 ## Features
 
 - **Inbound Calls**: Answer calls and help callers find equipment
+- **Multi-Tenant**: Route calls to dealer-specific agents based on called number (DID)
 - **Inventory Search**: Query live Supabase inventory by category, make, price, condition
 - **Lead Capture**: Save caller information for dealer follow-up
-- **Call Transfer**: Transfer calls to dealers when requested
-- **xAI Powered**: Uses Grok for natural conversation
+- **Call Recording**: Automatic recording to Supabase Storage via LiveKit Egress
+- **Staff Authentication**: PIN-based verification for internal dealership data access
+- **xAI Powered**: Uses Grok Voice API for natural speech-to-speech conversation
 
 ## Setup
 
@@ -30,10 +42,9 @@ cp .env.example .env
 ```
 
 Required credentials:
-- **LiveKit**: Get from [LiveKit Cloud](https://cloud.livekit.io)
-- **xAI**: Get from [x.ai](https://x.ai)
-- **Deepgram**: Get from [Deepgram](https://deepgram.com)
-- **Supabase**: Use same credentials as the Next.js app
+- **LiveKit**: `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` from [LiveKit Cloud](https://cloud.livekit.io)
+- **xAI**: `XAI_API_KEY` from [x.ai](https://x.ai)
+- **Supabase**: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (same as Next.js app)
 
 ### 3. Get a Phone Number
 
@@ -104,50 +115,42 @@ lk dispatch create \
 
 ### Change the Voice
 
-In `agent.py`, modify the TTS configuration:
+The voice is configured in the database via the admin panel, or you can modify it directly in `agent.py`:
 
 ```python
-# Deepgram voices
-tts=deepgram.TTS(voice="aura-asteria-en")  # Female
-tts=deepgram.TTS(voice="aura-orion-en")    # Male
-
-# Or use ElevenLabs for more natural voices
-from livekit.plugins import elevenlabs
-tts=elevenlabs.TTS(voice_id="your-voice-id")
+# xAI Grok Voice options
+model = xai.realtime.RealtimeModel(
+    voice="Sal",  # Available: Sal, Chloe, etc.
+    api_key=os.getenv("XAI_API_KEY"),
+)
 ```
 
 ### Modify Agent Behavior
 
-Edit the `instructions` in `AxlesAssistant.__init__()` to change how the agent behaves.
+Agent behavior is configured per-dealer in the database (`dealer_voice_agents` table) or globally via AI agent settings. The instructions are built dynamically based on dealer configuration.
 
 ### Add More Tools
 
-Add new `@function_tool()` methods to `AxlesAssistant` class for additional capabilities.
-
-## Architecture
-
-```
-Phone Call → LiveKit SIP → Agent Room → AxlesAssistant
-                                              ↓
-                                         xAI (Grok)
-                                              ↓
-                                    Supabase (Inventory/Leads)
-```
+Add new `@function_tool()` methods to the `AxlesAgent` class for additional capabilities.
 
 ## Troubleshooting
 
 **Agent doesn't answer**
 - Check that dispatch rule is created
-- Verify LIVEKIT_* credentials are correct
+- Verify `LIVEKIT_*` credentials are correct
 - Check agent logs for errors
 
 **Can't hear agent**
-- Verify DEEPGRAM_API_KEY is set
-- Check TTS configuration
+- Verify `XAI_API_KEY` is set and valid
+- Check xAI API status
 
 **Inventory search not working**
-- Verify SUPABASE_* credentials
+- Verify `SUPABASE_*` credentials
 - Check that listings table has data with status='active'
+
+**Recording not working**
+- Verify `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set
+- Ensure `call-recordings` bucket exists in Supabase Storage
 
 ## Deployment
 

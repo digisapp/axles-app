@@ -1,6 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+/**
+ * Validate and normalize phone number to E.164 format
+ */
+function validateE164Phone(phone: string): { valid: boolean; normalized: string } {
+  if (!phone) return { valid: false, normalized: '' };
+
+  // Strip all non-digit characters except leading +
+  const cleaned = phone.replace(/[^\d+]/g, '');
+
+  // Handle various formats
+  if (cleaned.startsWith('+')) {
+    const digits = cleaned.slice(1);
+    if (digits.length === 11 && digits.startsWith('1')) {
+      return { valid: true, normalized: cleaned };
+    } else if (digits.length === 10) {
+      return { valid: true, normalized: `+1${digits}` };
+    }
+  } else if (cleaned.startsWith('1') && cleaned.length === 11) {
+    return { valid: true, normalized: `+${cleaned}` };
+  } else if (cleaned.length === 10) {
+    return { valid: true, normalized: `+1${cleaned}` };
+  }
+
+  return { valid: false, normalized: cleaned };
+}
+
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
@@ -131,6 +157,29 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       if (body[field] !== undefined) {
         updates[field] = body[field];
       }
+    }
+
+    // Validate and normalize phone numbers if provided
+    if (updates.phone_number && typeof updates.phone_number === 'string') {
+      const { valid, normalized } = validateE164Phone(updates.phone_number);
+      if (!valid) {
+        return NextResponse.json(
+          { error: 'Invalid phone number. Please use format: +1-XXX-XXX-XXXX' },
+          { status: 400 }
+        );
+      }
+      updates.phone_number = normalized;
+    }
+
+    if (updates.transfer_phone_number && typeof updates.transfer_phone_number === 'string') {
+      const { valid, normalized } = validateE164Phone(updates.transfer_phone_number);
+      if (!valid) {
+        return NextResponse.json(
+          { error: 'Invalid transfer phone number. Please use format: +1-XXX-XXX-XXXX' },
+          { status: 400 }
+        );
+      }
+      updates.transfer_phone_number = normalized;
     }
 
     // Auto-set provisioned if phone number added

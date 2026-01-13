@@ -35,6 +35,10 @@ from tools import (
     build_dealer_instructions,
     increment_dealer_minutes,
     update_lead_with_recording,
+    is_within_business_hours,
+    validate_e164_phone,
+    transcribe_call_recording,
+    summarize_call,
 )
 
 load_dotenv()
@@ -56,6 +60,8 @@ class AxlesAgent(Agent):
         caller_phone: str = None,
         dealer_id: str = None,
         business_name: str = None,
+        can_transfer: bool = False,
+        transfer_number: str = None,
     ) -> None:
         super().__init__(
             instructions=settings.get('instructions', 'You are a helpful AI assistant.'),
@@ -65,6 +71,8 @@ class AxlesAgent(Agent):
         self.caller_phone = caller_phone
         self.dealer_id = dealer_id
         self.business_name = business_name
+        self.can_transfer = can_transfer
+        self.transfer_number = transfer_number
 
         # Initialize tools with dealer context if this is a dealer call
         self.inventory_tools = InventoryTools(dealer_id=dealer_id)
@@ -77,6 +85,7 @@ class AxlesAgent(Agent):
         self.equipment_type = None
         self.intent = None
         self.is_staff_authenticated = False
+        self.session = None  # Will be set after session starts
 
     @function_tool()
     async def search_inventory(
@@ -265,6 +274,70 @@ class AxlesAgent(Agent):
 
         return result
 
+    @function_tool()
+    async def transfer_call(
+        self,
+        ctx: RunContext,
+        reason: str = "Caller requested to speak with a person",
+    ) -> str:
+        """Transfer the call to a human representative.
+
+        Use this when the caller explicitly asks to speak with a person,
+        or when you cannot adequately help them with their request.
+
+        Args:
+            reason: Brief reason for the transfer
+        """
+        if not self.can_transfer or not self.transfer_number:
+            return "I'm sorry, call transfers are not available right now. Would you like me to take your information so someone can call you back?"
+
+        # Validate transfer number
+        is_valid, normalized = validate_e164_phone(self.transfer_number)
+        if not is_valid:
+            logger.error(f"Invalid transfer number configured: {self.transfer_number}")
+            return "I'm sorry, I'm unable to transfer the call right now. Would you like me to take your information for a callback?"
+
+        try:
+            # Create SIP participant for transfer
+            livekit_api = api.LiveKitAPI(
+                url=os.getenv("LIVEKIT_URL"),
+                api_key=os.getenv("LIVEKIT_API_KEY"),
+                api_secret=os.getenv("LIVEKIT_API_SECRET"),
+            )
+
+            # Create outbound SIP call to transfer number
+            sip_trunk_id = os.getenv("LIVEKIT_SIP_TRUNK_ID", "")
+            if not sip_trunk_id:
+                logger.error("LIVEKIT_SIP_TRUNK_ID not configured for transfers")
+                await livekit_api.aclose()
+                return "I'm sorry, call transfers are not configured. Would you like me to take your information for a callback?"
+
+            # Create SIP participant (dial out to transfer number)
+            await livekit_api.sip.create_sip_participant(
+                api.CreateSIPParticipantRequest(
+                    sip_trunk_id=sip_trunk_id,
+                    sip_call_to=normalized,
+                    room_name=self.room_name,
+                    participant_identity=f"transfer-{normalized}",
+                    participant_name=self.business_name or "Transfer",
+                )
+            )
+
+            await livekit_api.aclose()
+
+            logger.info(f"Call transfer initiated to {normalized}: {reason}")
+
+            # Update call log with transfer info
+            if self.room_name in active_calls:
+                active_calls[self.room_name]['transferred'] = True
+                active_calls[self.room_name]['transfer_reason'] = reason
+
+            return f"I'm connecting you now. Please hold while I transfer your call."
+
+        except Exception as e:
+            logger.error(f"Error transferring call: {e}")
+            return "I'm sorry, I wasn't able to complete the transfer. Would you like me to take your information so someone can call you back?"
+
 
 async def start_recording(ctx: JobContext) -> str | None:
     """Start recording the call using LiveKit Egress."""
@@ -278,16 +351,24 @@ async def start_recording(ctx: JobContext) -> str | None:
         # Get Supabase project ref from URL (e.g., https://abc123.supabase.co -> abc123)
         supabase_url = os.getenv("SUPABASE_URL", "")
         project_ref = supabase_url.replace("https://", "").split(".")[0] if supabase_url else ""
+        service_role_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
         # Configure S3-compatible upload for Supabase Storage
+        # Supabase S3 uses project_ref as access_key and service_role_key as secret
+        # See: https://supabase.com/docs/guides/storage/s3/authentication
         s3_upload = api.S3Upload(
-            access_key=project_ref,  # Supabase project ref as access key
-            secret=os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""),
-            bucket="call-recordings",  # Supabase storage bucket name
-            region="us-east-1",  # Required but not used by Supabase
-            endpoint=f"{supabase_url}/storage/v1/s3",  # Supabase S3-compatible endpoint
+            access_key=project_ref,
+            secret=service_role_key,
+            bucket="call-recordings",
+            region="us-east-1",  # Required by S3 protocol but Supabase ignores it
+            endpoint=f"{supabase_url}/storage/v1/s3",
             force_path_style=True,
         )
+
+        if not project_ref or not service_role_key:
+            logger.warning("Missing Supabase credentials for recording - skipping")
+            await livekit_api.aclose()
+            return None
 
         # Start room composite egress (records audio)
         filename = f"{ctx.room.name}-{int(time.time())}.mp3"
@@ -436,6 +517,11 @@ async def entrypoint(ctx: JobContext):
     if called_number:
         dealer_agent = get_dealer_voice_agent_by_phone(called_number)
 
+    # Transfer settings (will be set for dealer calls)
+    can_transfer = False
+    transfer_number = None
+    is_after_hours = False
+
     if dealer_agent:
         # This is a dealer's dedicated line
         dealer_id = dealer_agent.get('dealer_id')
@@ -444,13 +530,42 @@ async def entrypoint(ctx: JobContext):
 
         logger.info(f"Dealer call detected: {business_name} (dealer_id: {dealer_id})")
 
+        # Check business hours
+        business_hours = dealer_agent.get('business_hours')
+        if business_hours:
+            is_after_hours = not is_within_business_hours(business_hours)
+            logger.info(f"Business hours check: {'CLOSED' if is_after_hours else 'OPEN'}")
+
+        # Get transfer settings
+        can_transfer = dealer_agent.get('can_transfer_calls', False)
+        transfer_number = dealer_agent.get('transfer_phone_number')
+
         # Build settings from dealer agent config
-        settings = {
-            'voice': dealer_agent.get('voice', 'Sal'),
-            'greeting_message': dealer_agent.get('greeting', 'Thanks for calling! How can I help you today?'),
-            'instructions': build_dealer_instructions(dealer_agent),
-            'is_active': dealer_agent.get('is_active', True),
-        }
+        if is_after_hours:
+            # Use after-hours greeting and simplified instructions
+            after_hours_msg = dealer_agent.get('after_hours_message',
+                'We are currently closed. Please leave your name and number and we will call you back.')
+            settings = {
+                'voice': dealer_agent.get('voice', 'Sal'),
+                'greeting_message': after_hours_msg,
+                'instructions': f"""You are {dealer_agent.get('agent_name', 'an AI assistant')} for {business_name}.
+
+The business is currently CLOSED. Your role is to:
+1. Let the caller know we are closed
+2. Capture their name, phone number, and what they're interested in
+3. Assure them someone will call them back during business hours
+
+Keep the conversation brief and focused on capturing their information for a callback.
+Do not search inventory or provide detailed information - just capture the lead.""",
+                'is_active': dealer_agent.get('is_active', True),
+            }
+        else:
+            settings = {
+                'voice': dealer_agent.get('voice', 'Sal'),
+                'greeting_message': dealer_agent.get('greeting', 'Thanks for calling! How can I help you today?'),
+                'instructions': build_dealer_instructions(dealer_agent),
+                'is_active': dealer_agent.get('is_active', True),
+            }
     else:
         # This is the main AxlesAI line - use global settings
         logger.info("Main line call - using global AxlesAI settings")
@@ -504,6 +619,8 @@ async def entrypoint(ctx: JobContext):
         caller_phone=caller_phone,
         dealer_id=dealer_id,
         business_name=business_name,
+        can_transfer=can_transfer,
+        transfer_number=transfer_number,
     )
 
     # Create session with xAI model
@@ -573,9 +690,29 @@ async def entrypoint(ctx: JobContext):
             )
             logger.info(f"Updated call log {call_log_id}")
 
+            # Transcribe recording in background (don't block cleanup)
+            if recording_url and call_duration and call_duration > 5:
+                # Only transcribe calls longer than 5 seconds
+                asyncio.create_task(
+                    transcribe_and_summarize(call_log_id, recording_url)
+                )
+
         # Cleanup
         if ctx.room.name in active_calls:
             del active_calls[ctx.room.name]
+
+
+async def transcribe_and_summarize(call_log_id: str, recording_url: str):
+    """Background task to transcribe and summarize a call."""
+    try:
+        logger.info(f"Starting transcription for call {call_log_id}")
+        transcript = await transcribe_call_recording(call_log_id, recording_url)
+
+        if transcript:
+            logger.info(f"Generating summary for call {call_log_id}")
+            await summarize_call(call_log_id, transcript)
+    except Exception as e:
+        logger.error(f"Error in transcription task: {e}")
 
 
 if __name__ == "__main__":

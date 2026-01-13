@@ -32,8 +32,33 @@ import {
   Shield,
   Zap,
   Building2,
+  AlertTriangle,
+  PhoneIncoming,
+  PhoneMissed,
+  Play,
+  UserPlus,
+  TrendingUp,
 } from 'lucide-react';
 import { DealerVoiceAgent } from '@/types';
+
+interface CallLog {
+  id: string;
+  caller_phone: string;
+  caller_name: string | null;
+  duration_seconds: number | null;
+  status: string;
+  recording_url: string | null;
+  interest: string | null;
+  lead_id: string | null;
+  started_at: string;
+}
+
+interface CallStats {
+  totalCalls: number;
+  totalMinutes: number;
+  leadsCapture: number;
+  avgDuration: number;
+}
 
 const VOICE_OPTIONS = [
   { value: 'Sal', label: 'Sal', description: 'Warm, professional male voice' },
@@ -53,6 +78,9 @@ export default function VoiceAgentPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [agent, setAgent] = useState<DealerVoiceAgent | null>(null);
   const [isDealer, setIsDealer] = useState(false);
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [callStats, setCallStats] = useState<CallStats | null>(null);
+  const [isLoadingCalls, setIsLoadingCalls] = useState(false);
 
   const [formData, setFormData] = useState({
     agent_name: 'AI Assistant',
@@ -71,6 +99,56 @@ export default function VoiceAgentPage() {
   useEffect(() => {
     fetchVoiceAgent();
   }, []);
+
+  useEffect(() => {
+    if (agent) {
+      fetchCallLogs();
+    }
+  }, [agent]);
+
+  const fetchCallLogs = async () => {
+    setIsLoadingCalls(true);
+    try {
+      const response = await fetch('/api/dealer/call-logs?limit=10');
+      if (response.ok) {
+        const data = await response.json();
+        setCallLogs(data.data || []);
+        setCallStats(data.stats || null);
+      }
+    } catch (error) {
+      console.error('Error fetching call logs:', error);
+    }
+    setIsLoadingCalls(false);
+  };
+
+  const formatDuration = (seconds: number | null) => {
+    if (!seconds) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatPhoneNumber = (phone: string) => {
+    if (!phone) return 'Unknown';
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 11 && cleaned.startsWith('1')) {
+      return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
+    }
+    return phone;
+  };
+
+  const getUsagePercentage = () => {
+    if (!agent) return 0;
+    return Math.round((agent.minutes_used / agent.minutes_included) * 100);
+  };
+
+  const isNearingLimit = () => {
+    return getUsagePercentage() >= 80;
+  };
+
+  const isOverLimit = () => {
+    return getUsagePercentage() >= 100;
+  };
 
   const fetchVoiceAgent = async () => {
     setIsLoading(true);
@@ -344,6 +422,32 @@ export default function VoiceAgentPage() {
         ) : (
           /* Agent Configuration */
           <>
+            {/* Usage Alert */}
+            {isNearingLimit() && (
+              <Card className={isOverLimit() ? 'border-red-500 bg-red-50' : 'border-yellow-500 bg-yellow-50'}>
+                <CardContent className="py-4">
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className={`w-5 h-5 ${isOverLimit() ? 'text-red-600' : 'text-yellow-600'}`} />
+                    <div className="flex-1">
+                      <p className={`font-medium ${isOverLimit() ? 'text-red-700' : 'text-yellow-700'}`}>
+                        {isOverLimit()
+                          ? 'You\'ve used all your minutes!'
+                          : `You've used ${getUsagePercentage()}% of your minutes`}
+                      </p>
+                      <p className={`text-sm ${isOverLimit() ? 'text-red-600' : 'text-yellow-600'}`}>
+                        {isOverLimit()
+                          ? 'Upgrade now to continue receiving calls.'
+                          : `${agent.minutes_included - agent.minutes_used} minutes remaining this billing cycle.`}
+                      </p>
+                    </div>
+                    <Button size="sm" variant={isOverLimit() ? 'destructive' : 'outline'} asChild>
+                      <Link href="/dashboard/billing">Upgrade Plan</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Status Card */}
             <Card>
               <CardContent className="py-6">
@@ -373,13 +477,71 @@ export default function VoiceAgentPage() {
                       <span className="font-medium">{agent.minutes_used || 0}</span>
                       <span className="text-muted-foreground">/ {agent.minutes_included} min</span>
                     </div>
-                    <Badge variant="outline" className="mt-1 capitalize">
+                    <div className="w-32 h-2 bg-gray-200 rounded-full mt-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          isOverLimit() ? 'bg-red-500' : isNearingLimit() ? 'bg-yellow-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${Math.min(getUsagePercentage(), 100)}%` }}
+                      />
+                    </div>
+                    <Badge variant="outline" className="mt-2 capitalize">
                       {agent.plan_tier} plan
                     </Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Call Stats */}
+            {callStats && callStats.totalCalls > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="py-4">
+                    <div className="flex items-center gap-3">
+                      <PhoneIncoming className="w-5 h-5 text-blue-500" />
+                      <div>
+                        <p className="text-2xl font-bold">{callStats.totalCalls}</p>
+                        <p className="text-xs text-muted-foreground">Total Calls</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="py-4">
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-5 h-5 text-green-500" />
+                      <div>
+                        <p className="text-2xl font-bold">{callStats.totalMinutes}</p>
+                        <p className="text-xs text-muted-foreground">Minutes Used</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="py-4">
+                    <div className="flex items-center gap-3">
+                      <UserPlus className="w-5 h-5 text-purple-500" />
+                      <div>
+                        <p className="text-2xl font-bold">{callStats.leadsCapture}</p>
+                        <p className="text-xs text-muted-foreground">Leads Captured</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="py-4">
+                    <div className="flex items-center gap-3">
+                      <TrendingUp className="w-5 h-5 text-orange-500" />
+                      <div>
+                        <p className="text-2xl font-bold">{formatDuration(callStats.avgDuration)}</p>
+                        <p className="text-xs text-muted-foreground">Avg Duration</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Settings */}
             <Card>
@@ -474,10 +636,24 @@ export default function VoiceAgentPage() {
                     placeholder="Always mention our financing options. Direct warranty questions to the service department..."
                     value={formData.instructions}
                     onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
-                    rows={3}
+                    rows={4}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     Special instructions for how the agent should behave
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="after_hours_message">After-Hours Message</Label>
+                  <Textarea
+                    id="after_hours_message"
+                    placeholder="We are currently closed. Please leave your name and number and we will call you back."
+                    value={formData.after_hours_message}
+                    onChange={(e) => setFormData({ ...formData, after_hours_message: e.target.value })}
+                    rows={2}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Greeting message when calling outside business hours
                   </p>
                 </div>
 
@@ -549,6 +725,97 @@ export default function VoiceAgentPage() {
                 Save Changes
               </Button>
             </div>
+
+            {/* Recent Calls */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PhoneIncoming className="w-5 h-5" />
+                  Recent Calls
+                </CardTitle>
+                <CardDescription>
+                  Your last 10 incoming calls handled by the AI agent
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingCalls ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : callLogs.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Phone className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>No calls yet</p>
+                    <p className="text-sm">Calls will appear here once your agent starts receiving them</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {callLogs.map((call) => (
+                      <div
+                        key={call.id}
+                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            call.status === 'completed' ? 'bg-green-100' : 'bg-gray-100'
+                          }`}>
+                            {call.status === 'completed' ? (
+                              <PhoneIncoming className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <PhoneMissed className="w-5 h-5 text-gray-400" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">
+                              {call.caller_name || formatPhoneNumber(call.caller_phone)}
+                            </p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span>{new Date(call.started_at).toLocaleDateString()}</span>
+                              <span>at</span>
+                              <span>{new Date(call.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              {call.lead_id && (
+                                <Badge variant="secondary" className="text-xs">
+                                  <UserPlus className="w-3 h-3 mr-1" />
+                                  Lead
+                                </Badge>
+                              )}
+                            </div>
+                            {call.interest && (
+                              <p className="text-sm text-muted-foreground mt-1 truncate max-w-md">
+                                {call.interest}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="font-medium">{formatDuration(call.duration_seconds)}</p>
+                            <p className="text-xs text-muted-foreground">duration</p>
+                          </div>
+                          {call.recording_url && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-muted-foreground hover:text-foreground"
+                              onClick={() => window.open(call.recording_url!, '_blank')}
+                            >
+                              <Play className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {callLogs.length >= 10 && (
+                      <div className="text-center pt-2">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href="/dashboard/calls">View All Calls</Link>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Upgrade CTA */}
             {agent.plan_tier === 'trial' && (

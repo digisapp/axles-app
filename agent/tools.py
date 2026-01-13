@@ -5,12 +5,133 @@ Provides inventory search, lead capture, and settings functionality via Supabase
 """
 
 import os
+import re
+import hashlib
 import logging
-from datetime import datetime
-from typing import Optional, Dict, Any
+from datetime import datetime, timedelta, timezone
+from typing import Optional, Dict, Any, Tuple
 from supabase import create_client, Client
 
 logger = logging.getLogger("axles-agent.tools")
+
+# Security settings
+MAX_PIN_ATTEMPTS = 5
+PIN_LOCKOUT_MINUTES = 15
+
+
+def hash_pin(pin: str, salt: str = "") -> str:
+    """Hash a PIN using SHA-256 with optional salt.
+
+    Args:
+        pin: The plaintext PIN
+        salt: Optional salt (e.g., staff ID or dealer ID)
+
+    Returns:
+        Hex-encoded hash
+    """
+    data = f"{salt}:{pin}".encode('utf-8')
+    return hashlib.sha256(data).hexdigest()
+
+
+def verify_pin_hash(pin: str, pin_hash: str, salt: str = "") -> bool:
+    """Verify a PIN against its hash.
+
+    Args:
+        pin: The plaintext PIN to verify
+        pin_hash: The stored hash
+        salt: The salt used when hashing
+
+    Returns:
+        True if PIN matches
+    """
+    return hash_pin(pin, salt) == pin_hash
+
+
+def validate_e164_phone(phone: str) -> Tuple[bool, str]:
+    """Validate and normalize a phone number to E.164 format.
+
+    Args:
+        phone: Phone number in any format
+
+    Returns:
+        Tuple of (is_valid, normalized_number)
+    """
+    if not phone:
+        return False, ""
+
+    # Strip all non-digit characters except leading +
+    cleaned = re.sub(r'[^\d+]', '', phone)
+
+    # Handle various formats
+    if cleaned.startswith('+'):
+        # Already has country code
+        digits = cleaned[1:]
+        if len(digits) == 11 and digits.startswith('1'):
+            return True, cleaned
+        elif len(digits) == 10:
+            return True, f"+1{digits}"
+    elif cleaned.startswith('1') and len(cleaned) == 11:
+        # US number with country code but no +
+        return True, f"+{cleaned}"
+    elif len(cleaned) == 10:
+        # US number without country code
+        return True, f"+1{cleaned}"
+
+    # Invalid format
+    return False, cleaned
+
+
+def is_within_business_hours(business_hours: Dict[str, Any]) -> bool:
+    """Check if current time is within business hours.
+
+    Args:
+        business_hours: Dict with 'timezone' and 'hours' keys
+            hours: dict mapping day abbreviations to time ranges
+            e.g., {"mon": "8:00-18:00", "tue": "8:00-18:00", ...}
+
+    Returns:
+        True if currently within business hours
+    """
+    try:
+        import pytz
+    except ImportError:
+        # If pytz not available, assume open (fail-open for calls)
+        logger.warning("pytz not installed - skipping business hours check")
+        return True
+
+    try:
+        tz_name = business_hours.get('timezone', 'America/Chicago')
+        hours = business_hours.get('hours', {})
+
+        tz = pytz.timezone(tz_name)
+        now = datetime.now(tz)
+
+        # Get day abbreviation (mon, tue, wed, thu, fri, sat, sun)
+        day_abbrev = now.strftime('%a').lower()
+
+        day_hours = hours.get(day_abbrev)
+        if not day_hours or day_hours.lower() == 'closed':
+            return False
+
+        # Parse hours (e.g., "8:00-18:00")
+        if '-' not in day_hours:
+            return False
+
+        open_time, close_time = day_hours.split('-')
+
+        open_hour, open_min = map(int, open_time.split(':'))
+        close_hour, close_min = map(int, close_time.split(':'))
+
+        current_minutes = now.hour * 60 + now.minute
+        open_minutes = open_hour * 60 + open_min
+        close_minutes = close_hour * 60 + close_min
+
+        return open_minutes <= current_minutes < close_minutes
+
+    except Exception as e:
+        logger.error(f"Error checking business hours: {e}")
+        # Fail open - don't reject calls due to config errors
+        return True
 
 
 # Default settings if database fetch fails
@@ -531,7 +652,7 @@ class StaffAuthTools:
         pin: str,
         caller_phone: Optional[str] = None,
     ) -> tuple[bool, Optional[Dict[str, Any]], str]:
-        """Verify staff member's name and PIN.
+        """Verify staff member's name and PIN with rate limiting.
 
         Args:
             name: Staff member's name
@@ -544,61 +665,116 @@ class StaffAuthTools:
         try:
             supabase = get_supabase()
 
-            # Query for matching staff
+            # First, find staff by name (case-insensitive exact match preferred)
             result = supabase.table("dealer_staff").select("*").eq(
                 "dealer_id", self.dealer_id
-            ).eq("voice_pin", pin).eq("is_active", True).execute()
+            ).eq("is_active", True).execute()
 
             if not result.data:
-                # Log failed attempt
-                supabase.table("dealer_staff_access_logs").insert({
-                    "dealer_id": self.dealer_id,
-                    "caller_phone": caller_phone,
-                    "auth_success": False,
-                    "auth_method": "pin",
-                    "query": "PIN verification attempt - invalid PIN",
-                }).execute()
+                logger.warning(f"No active staff found for dealer {self.dealer_id}")
+                return False, None, "No staff accounts found. Please contact your administrator."
 
-                logger.warning(f"Staff auth failed for dealer {self.dealer_id}")
-                return False, None, "Invalid PIN. Please try again."
-
-            # Check if name matches (case-insensitive partial match)
+            # Find matching staff by name (exact match first, then partial)
             staff = None
+            name_lower = name.lower().strip()
+
+            # Try exact match first
             for s in result.data:
-                if name.lower() in s.get('name', '').lower():
+                if s.get('name', '').lower().strip() == name_lower:
                     staff = s
                     break
 
+            # Fall back to partial match only if no exact match
             if not staff:
-                # PIN matched but name didn't
+                for s in result.data:
+                    staff_name = s.get('name', '').lower().strip()
+                    # Require name to start with provided name or vice versa
+                    if staff_name.startswith(name_lower) or name_lower.startswith(staff_name):
+                        staff = s
+                        break
+
+            if not staff:
+                # Log failed attempt - name not found
                 supabase.table("dealer_staff_access_logs").insert({
                     "dealer_id": self.dealer_id,
                     "caller_phone": caller_phone,
                     "auth_success": False,
-                    "auth_method": "name_and_pin",
-                    "query": f"PIN verification attempt - name mismatch: {name}",
+                    "auth_method": "name_lookup",
+                    "query": f"Name not found: {name}",
                 }).execute()
 
-                logger.warning(f"Staff auth failed - name mismatch for dealer {self.dealer_id}")
-                return False, None, "I couldn't verify that name and PIN combination. Please try again."
+                logger.warning(f"Staff auth failed - name not found for dealer {self.dealer_id}")
+                return False, None, "I couldn't find a staff member with that name. Please try again."
 
             # Check if account is locked
             if staff.get('locked_until'):
-                locked_until = datetime.fromisoformat(staff['locked_until'].replace('Z', '+00:00'))
-                if locked_until > datetime.now(locked_until.tzinfo):
-                    return False, None, "This account is temporarily locked. Please try again later."
+                try:
+                    locked_until = datetime.fromisoformat(staff['locked_until'].replace('Z', '+00:00'))
+                    if locked_until > datetime.now(timezone.utc):
+                        remaining = int((locked_until - datetime.now(timezone.utc)).total_seconds() / 60)
+                        return False, None, f"This account is temporarily locked. Please try again in {remaining} minutes."
+                except (ValueError, TypeError):
+                    pass  # Invalid date format, ignore lock
 
-            # Success - update access tracking
+            # Verify PIN - check hash first, fall back to plaintext for migration
+            pin_valid = False
+            staff_id = staff.get('id', '')
+
+            if staff.get('pin_hash'):
+                # Use hashed PIN (preferred)
+                pin_valid = verify_pin_hash(pin, staff['pin_hash'], salt=staff_id)
+            elif staff.get('voice_pin'):
+                # Fall back to plaintext PIN (legacy - should migrate)
+                pin_valid = staff['voice_pin'] == pin
+                if pin_valid:
+                    # Migrate to hashed PIN on successful auth
+                    new_hash = hash_pin(pin, salt=staff_id)
+                    supabase.table("dealer_staff").update({
+                        "pin_hash": new_hash,
+                    }).eq("id", staff_id).execute()
+                    logger.info(f"Migrated staff {staff_id} to hashed PIN")
+
+            if not pin_valid:
+                # Increment failed attempts
+                failed_attempts = (staff.get('failed_attempts') or 0) + 1
+                update_data = {"failed_attempts": failed_attempts}
+
+                # Lock account after too many failures
+                if failed_attempts >= MAX_PIN_ATTEMPTS:
+                    lock_until = datetime.now(timezone.utc) + timedelta(minutes=PIN_LOCKOUT_MINUTES)
+                    update_data["locked_until"] = lock_until.isoformat()
+                    logger.warning(f"Staff account {staff_id} locked after {failed_attempts} failed attempts")
+
+                supabase.table("dealer_staff").update(update_data).eq("id", staff_id).execute()
+
+                # Log failed attempt
+                supabase.table("dealer_staff_access_logs").insert({
+                    "dealer_id": self.dealer_id,
+                    "staff_id": staff_id,
+                    "caller_phone": caller_phone,
+                    "auth_success": False,
+                    "auth_method": "pin",
+                    "query": f"Invalid PIN (attempt {failed_attempts}/{MAX_PIN_ATTEMPTS})",
+                }).execute()
+
+                if failed_attempts >= MAX_PIN_ATTEMPTS:
+                    return False, None, f"Too many failed attempts. Account locked for {PIN_LOCKOUT_MINUTES} minutes."
+
+                remaining = MAX_PIN_ATTEMPTS - failed_attempts
+                return False, None, f"Invalid PIN. {remaining} attempts remaining."
+
+            # Success - reset failed attempts and update access tracking
             supabase.table("dealer_staff").update({
                 "last_access_at": datetime.utcnow().isoformat(),
                 "access_count": (staff.get('access_count') or 0) + 1,
                 "failed_attempts": 0,
-            }).eq("id", staff['id']).execute()
+                "locked_until": None,
+            }).eq("id", staff_id).execute()
 
             # Log successful access
             supabase.table("dealer_staff_access_logs").insert({
                 "dealer_id": self.dealer_id,
-                "staff_id": staff['id'],
+                "staff_id": staff_id,
                 "caller_phone": caller_phone,
                 "auth_success": True,
                 "auth_method": "name_and_pin",
@@ -846,6 +1022,170 @@ class StaffAuthTools:
             f"Leads: {new_leads.count or 0} new leads, {today_leads.count or 0} received today, "
             f"{total_leads.count or 0} total."
         )
+
+
+async def transcribe_call_recording(
+    call_log_id: str,
+    recording_url: str,
+) -> Optional[str]:
+    """Transcribe a call recording using xAI and update the call log.
+
+    Args:
+        call_log_id: The call log ID to update
+        recording_url: URL to the MP3 recording
+
+    Returns:
+        Transcript text or None if failed
+    """
+    import httpx
+
+    try:
+        supabase = get_supabase()
+
+        # Mark as processing
+        supabase.table("call_logs").update({
+            "transcript_status": "processing"
+        }).eq("id", call_log_id).execute()
+
+        # Download the recording
+        async with httpx.AsyncClient() as client:
+            response = await client.get(recording_url, timeout=60.0)
+            if response.status_code != 200:
+                logger.error(f"Failed to download recording: {response.status_code}")
+                supabase.table("call_logs").update({
+                    "transcript_status": "failed"
+                }).eq("id", call_log_id).execute()
+                return None
+
+            audio_data = response.content
+
+        # Use xAI for transcription via their API
+        xai_api_key = os.getenv("XAI_API_KEY")
+        if not xai_api_key:
+            logger.error("XAI_API_KEY not set for transcription")
+            supabase.table("call_logs").update({
+                "transcript_status": "failed"
+            }).eq("id", call_log_id).execute()
+            return None
+
+        # xAI transcription endpoint
+        async with httpx.AsyncClient() as client:
+            # Upload audio and get transcription
+            response = await client.post(
+                "https://api.x.ai/v1/audio/transcriptions",
+                headers={
+                    "Authorization": f"Bearer {xai_api_key}",
+                },
+                files={
+                    "file": ("recording.mp3", audio_data, "audio/mpeg"),
+                },
+                data={
+                    "model": "whisper-1",  # xAI uses whisper-compatible API
+                },
+                timeout=120.0,
+            )
+
+            if response.status_code != 200:
+                logger.error(f"Transcription failed: {response.status_code} - {response.text}")
+                supabase.table("call_logs").update({
+                    "transcript_status": "failed"
+                }).eq("id", call_log_id).execute()
+                return None
+
+            result = response.json()
+            transcript = result.get("text", "")
+
+        if transcript:
+            # Update call log with transcript
+            supabase.table("call_logs").update({
+                "transcript": transcript,
+                "transcript_status": "completed"
+            }).eq("id", call_log_id).execute()
+
+            logger.info(f"Transcription completed for call {call_log_id}")
+            return transcript
+        else:
+            supabase.table("call_logs").update({
+                "transcript_status": "failed"
+            }).eq("id", call_log_id).execute()
+            return None
+
+    except Exception as e:
+        logger.error(f"Error transcribing call: {e}")
+        try:
+            supabase = get_supabase()
+            supabase.table("call_logs").update({
+                "transcript_status": "failed"
+            }).eq("id", call_log_id).execute()
+        except:
+            pass
+        return None
+
+
+async def summarize_call(
+    call_log_id: str,
+    transcript: str,
+) -> Optional[str]:
+    """Generate a brief summary of a call using xAI.
+
+    Args:
+        call_log_id: The call log ID to update
+        transcript: The call transcript
+
+    Returns:
+        Summary text or None if failed
+    """
+    import httpx
+
+    try:
+        xai_api_key = os.getenv("XAI_API_KEY")
+        if not xai_api_key:
+            return None
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.x.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {xai_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "grok-2-latest",
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "You are a helpful assistant that summarizes phone calls. Create a brief 2-3 sentence summary of the call, highlighting the caller's main interest and any key outcomes."
+                        },
+                        {
+                            "role": "user",
+                            "content": f"Please summarize this phone call transcript:\n\n{transcript[:4000]}"
+                        }
+                    ],
+                    "max_tokens": 200,
+                },
+                timeout=30.0,
+            )
+
+            if response.status_code != 200:
+                logger.error(f"Summary generation failed: {response.status_code}")
+                return None
+
+            result = response.json()
+            summary = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+            if summary:
+                supabase = get_supabase()
+                supabase.table("call_logs").update({
+                    "summary": summary
+                }).eq("id", call_log_id).execute()
+
+                logger.info(f"Summary generated for call {call_log_id}")
+                return summary
+
+    except Exception as e:
+        logger.error(f"Error generating call summary: {e}")
+
+    return None
 
 
 class CallLogTools:
