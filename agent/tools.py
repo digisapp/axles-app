@@ -168,12 +168,29 @@ Common equipment types:
 
 
 def get_supabase() -> Client:
-    """Get Supabase client."""
-    url = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+    """Get Supabase client.
 
-    if not url or not key:
+    Prefers SUPABASE_SERVICE_ROLE_KEY for full access (bypasses RLS).
+    Falls back to SUPABASE_ANON_KEY if service role not available.
+    """
+    url = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+
+    # Prefer service role key for full database access
+    service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    anon_key = os.getenv("SUPABASE_ANON_KEY")
+
+    key = service_key or anon_key
+
+    if not url:
+        logger.error("Missing SUPABASE_URL environment variable")
+        raise ValueError("Missing Supabase URL")
+
+    if not key:
+        logger.error("Missing Supabase key - need SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY")
         raise ValueError("Missing Supabase credentials")
+
+    if not service_key:
+        logger.warning("Using anon key instead of service role key - RLS restrictions will apply")
 
     return create_client(url, key)
 
@@ -355,9 +372,9 @@ class InventoryTools:
         try:
             supabase = get_supabase()
 
-            # Build query
+            # Build query with category join
             query = supabase.table("listings").select(
-                "id, title, price, year, make, model, condition, mileage, city, state"
+                "id, title, price, year, make, model, condition, mileage, city, state, category:categories(slug)"
             ).eq("status", "active")
 
             # If dealer_id is set, filter to only their inventory
@@ -366,8 +383,16 @@ class InventoryTools:
 
             # Apply filters
             if category:
-                # Join with categories table
-                query = query.eq("category_slug", category)
+                # First look up category ID by slug
+                cat_result = supabase.table("categories").select("id").eq("slug", category).single().execute()
+                if cat_result.data:
+                    query = query.eq("category_id", cat_result.data['id'])
+                else:
+                    # Try partial match on category name
+                    cat_result = supabase.table("categories").select("id").ilike("slug", f"%{category}%").execute()
+                    if cat_result.data:
+                        cat_ids = [c['id'] for c in cat_result.data]
+                        query = query.in_("category_id", cat_ids)
 
             if make:
                 query = query.ilike("make", f"%{make}%")
@@ -409,7 +434,9 @@ class InventoryTools:
             return " ".join(response_parts)
 
         except Exception as e:
-            logger.error(f"Error searching inventory: {e}")
+            logger.error(f"Error searching inventory: {e}", exc_info=True)
+            # Log additional context for debugging
+            logger.error(f"Search params: dealer_id={self.dealer_id}, category={category}, make={make}")
             return "I'm having trouble searching our inventory right now. Would you like me to take your information for a callback?"
 
     async def get_details(self, listing_id: str) -> str:
