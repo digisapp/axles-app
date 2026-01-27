@@ -8,6 +8,7 @@ import {
   CACHE_TTL,
   isRedisConfigured,
 } from '@/lib/cache';
+import { createListingSchema, validateBody, ValidationError } from '@/lib/validations/api';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -231,8 +232,22 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Extract industries from the request body
-    const { industries, ...listingData } = body;
+    // Validate input with Zod
+    let validatedData;
+    try {
+      validatedData = validateBody(createListingSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
+
+    // Extract industries from the validated data
+    const { industries, ...listingData } = validatedData;
 
     const { data, error } = await supabase
       .from('listings')

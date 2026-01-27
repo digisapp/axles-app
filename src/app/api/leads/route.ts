@@ -1,13 +1,49 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateLeadScoreWithAI } from '@/lib/leads/scoring';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { z } from 'zod';
 
 const AXLESAI_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axles.ai';
 
+// Validation schema for lead creation
+const createLeadSchema = z.object({
+  listing_id: z.string().uuid().optional().nullable(),
+  seller_id: z.string().uuid().optional().nullable(),
+  buyer_name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+  buyer_email: z.string().email('Invalid email format'),
+  buyer_phone: z.string().max(20).optional().nullable(),
+  message: z.string().max(2000, 'Message too long').optional().nullable(),
+});
+
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting to prevent spam (10 leads per minute per IP)
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.leads,
+      prefix: 'ratelimit:leads',
+    });
+
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
     const body = await request.json();
+
+    // Validate input with Zod
+    const parseResult = createLeadSchema.safeParse(body);
+    if (!parseResult.success) {
+      const errors = parseResult.error.issues.map(e => ({
+        field: e.path.join('.'),
+        message: e.message,
+      }));
+      return NextResponse.json(
+        { error: 'Validation failed', details: errors },
+        { status: 400 }
+      );
+    }
 
     const {
       listing_id,
@@ -16,27 +52,10 @@ export async function POST(request: NextRequest) {
       buyer_email,
       buyer_phone,
       message,
-    } = body;
+    } = parseResult.data;
 
     // Check if routing to AxlesAI (no seller specified)
     const isAxlesAILead = !seller_id;
-
-    // Validate required fields
-    if (!buyer_name || !buyer_email) {
-      return NextResponse.json(
-        { error: 'Name and email are required' },
-        { status: 400 }
-      );
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(buyer_email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
-    }
 
     // Get listing info for scoring
     let listingState: string | null = null;
