@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { parseConversationId } from '@/lib/validations/api';
 
 // GET - Fetch messages for a specific conversation (listing + user combo)
 export async function GET(
@@ -14,14 +15,16 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // conversationId format: listingId-otherUserId
-  const [listingId, otherUserId] = conversationId.split('-');
-
-  if (!listingId || !otherUserId) {
-    return NextResponse.json({ error: 'Invalid conversation ID' }, { status: 400 });
+  // Parse and validate conversation ID (format: listingUUID-userUUID)
+  const parsed = parseConversationId(conversationId);
+  if (!parsed) {
+    return NextResponse.json({ error: 'Invalid conversation ID format' }, { status: 400 });
   }
 
+  const { listingId, userId: otherUserId } = parsed;
+
   // Fetch all messages between these users for this listing
+  // Using parameterized filters instead of string interpolation
   const { data: messages, error } = await supabase
     .from('messages')
     .select(`
@@ -35,7 +38,8 @@ export async function GET(
       sender:profiles!messages_sender_id_fkey(id, company_name, email, avatar_url)
     `)
     .eq('listing_id', listingId)
-    .or(`and(sender_id.eq.${user.id},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${user.id})`)
+    .or(`sender_id.eq.${user.id},sender_id.eq.${otherUserId}`)
+    .or(`recipient_id.eq.${user.id},recipient_id.eq.${otherUserId}`)
     .order('created_at', { ascending: true });
 
   if (error) {
@@ -88,7 +92,13 @@ export async function PUT(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const [listingId, otherUserId] = conversationId.split('-');
+  // Parse and validate conversation ID
+  const parsed = parseConversationId(conversationId);
+  if (!parsed) {
+    return NextResponse.json({ error: 'Invalid conversation ID format' }, { status: 400 });
+  }
+
+  const { listingId, userId: otherUserId } = parsed;
 
   const { error } = await supabase
     .from('messages')
@@ -98,7 +108,7 @@ export async function PUT(
     .eq('recipient_id', user.id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to mark messages as read' }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

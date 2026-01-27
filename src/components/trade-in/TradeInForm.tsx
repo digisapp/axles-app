@@ -371,7 +371,7 @@ export function TradeInForm({ interestedListingId, interestedCategoryId }: Trade
           <div className="space-y-4">
             <h3 className="font-semibold">What Are You Looking For?</h3>
             <p className="text-sm text-muted-foreground">
-              Let us know if you're interested in trading towards a specific listing or category.
+              Let us know if you&apos;re interested in trading towards a specific listing or category.
             </p>
 
             <div>

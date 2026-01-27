@@ -28,20 +28,22 @@ const CompareContext = createContext<CompareContextType | undefined>(undefined);
 
 const MAX_COMPARE = 4;
 
-export function CompareProvider({ children }: { children: ReactNode }) {
-  const [listings, setListings] = useState<CompareListing[]>([]);
-
-  // Load from localStorage on mount
-  useEffect(() => {
+// Helper to safely load from localStorage (runs only on client)
+function loadFromStorage(): CompareListing[] {
+  if (typeof window === 'undefined') return [];
+  try {
     const saved = localStorage.getItem('compare-listings');
     if (saved) {
-      try {
-        setListings(JSON.parse(saved));
-      } catch {
-        localStorage.removeItem('compare-listings');
-      }
+      return JSON.parse(saved);
     }
-  }, []);
+  } catch {
+    localStorage.removeItem('compare-listings');
+  }
+  return [];
+}
+
+export function CompareProvider({ children }: { children: ReactNode }) {
+  const [listings, setListings] = useState<CompareListing[]>(loadFromStorage);
 
   // Save to localStorage on change
   useEffect(() => {

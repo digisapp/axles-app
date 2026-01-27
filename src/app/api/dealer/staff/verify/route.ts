@@ -1,32 +1,95 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { verifyPinSchema, validateBody, ValidationError } from '@/lib/validations/api';
+import crypto from 'crypto';
+
+/**
+ * Hash a PIN using SHA-256 with salt (matches admin route)
+ */
+function hashPin(pin: string, salt: string): string {
+  const data = `${salt}:${pin}`;
+  return crypto.createHash('sha256').update(data).digest('hex');
+}
+
+/**
+ * Securely compare PIN - supports both hashed and legacy plaintext
+ * Returns true if PIN matches either the hash or plaintext (for migration)
+ */
+function verifyPin(inputPin: string, staff: { id: string; voice_pin?: string; pin_hash?: string }): boolean {
+  // First, try hashed comparison (secure)
+  if (staff.pin_hash) {
+    const inputHash = hashPin(inputPin, staff.id);
+    // Use timing-safe comparison
+    try {
+      return crypto.timingSafeEqual(
+        Buffer.from(inputHash),
+        Buffer.from(staff.pin_hash)
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  // Fallback to plaintext comparison for legacy data (will be migrated)
+  // Note: This should be removed once all PINs are migrated to hashed
+  if (staff.voice_pin) {
+    // Use timing-safe comparison even for plaintext
+    try {
+      return crypto.timingSafeEqual(
+        Buffer.from(inputPin),
+        Buffer.from(staff.voice_pin)
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
 
 // POST - Verify staff PIN for voice authentication
 // This endpoint is called by the AI voice agent to authenticate staff
 export async function POST(request: NextRequest) {
   try {
+    // Apply strict rate limiting to prevent brute force attacks
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.pinVerify,
+      prefix: 'ratelimit:pin',
+    });
+
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
     const body = await request.json();
 
-    const { dealer_id, pin, name, caller_phone } = body;
-
-    // Validate required fields
-    if (!dealer_id || !pin) {
-      return NextResponse.json(
-        { error: 'Dealer ID and PIN are required' },
-        { status: 400 }
-      );
+    // Validate input with Zod
+    let validatedData;
+    try {
+      validatedData = validateBody(verifyPinSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Invalid input', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
     }
 
-    // Build query to find matching staff
+    const { dealer_id, pin, name, caller_phone } = validatedData;
+
+    // Fetch staff members for this dealer (we'll verify PIN in code for security)
     let query = supabase
       .from('dealer_staff')
       .select('*')
       .eq('dealer_id', dealer_id)
-      .eq('voice_pin', pin)
       .eq('is_active', true);
 
-    // If name provided, match it (case-insensitive)
+    // If name provided, filter by name (case-insensitive)
     if (name) {
       query = query.ilike('name', `%${name}%`);
     }
@@ -34,7 +97,10 @@ export async function POST(request: NextRequest) {
     // Check for lockout
     query = query.or('locked_until.is.null,locked_until.lt.now()');
 
-    const { data: staff, error } = await query.single();
+    const { data: staffMembers, error } = await query;
+
+    // Find staff member with matching PIN (verified securely)
+    const staff = staffMembers?.find(s => verifyPin(pin, s));
 
     if (error || !staff) {
       // Log failed attempt

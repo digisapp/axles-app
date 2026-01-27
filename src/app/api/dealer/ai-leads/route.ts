@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { verifyInternalRequest } from '@/lib/security/internal-auth';
 
 // Get dealer's AI leads
 export async function GET(request: NextRequest) {
@@ -144,18 +145,19 @@ export async function PATCH(request: NextRequest) {
 }
 
 // Send notification email for new lead (called internally)
+// Requires HMAC signature verification via x-internal-signature header
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { dealerId, leadId, internal } = body;
-
-    // Only allow internal calls
-    if (!internal) {
+    // Verify this is an authenticated internal request
+    if (!verifyInternalRequest(request)) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized - internal requests only' },
         { status: 401 }
       );
     }
+
+    const body = await request.json();
+    const { dealerId, leadId } = body;
 
     const supabase = await createClient();
 

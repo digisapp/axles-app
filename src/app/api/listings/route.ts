@@ -13,9 +13,13 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const supabase = await createClient();
 
-  // Parse query parameters
-  const page = parseInt(searchParams.get('page') || '1');
-  const perPage = parseInt(searchParams.get('per_page') || '20');
+  // Parse and validate pagination parameters with limits
+  const rawPage = parseInt(searchParams.get('page') || '1');
+  const rawPerPage = parseInt(searchParams.get('per_page') || '20');
+
+  // Enforce limits to prevent resource exhaustion
+  const page = Math.max(1, Math.min(rawPage, 1000)); // Max 1000 pages
+  const perPage = Math.max(1, Math.min(rawPerPage, 100)); // Max 100 items per page
   const category = searchParams.get('category');
   const minPrice = searchParams.get('min_price');
   const maxPrice = searchParams.get('max_price');

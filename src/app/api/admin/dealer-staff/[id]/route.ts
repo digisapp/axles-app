@@ -67,6 +67,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .order('accessed_at', { ascending: false })
       .limit(20);
 
+    // Check for PIN presence before removing sensitive data
+    const hasPin = !!staff.voice_pin;
+    const hasHashedPin = !!staff.pin_hash;
+
     // Don't expose PIN or hash to frontend
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { voice_pin: _pin, pin_hash: _hash, ...safeStaff } = staff;
@@ -74,8 +78,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({
       data: {
         ...safeStaff,
-        has_pin: !!voice_pin,
-        has_hashed_pin: !!pin_hash,
+        has_pin: hasPin,
+        has_hashed_pin: hasHashedPin,
         access_logs: accessLogs || [],
       },
     });

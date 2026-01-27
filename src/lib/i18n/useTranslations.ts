@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { detectLocale, getTranslations, type SearchTranslations, type SupportedLocale } from './translations';
 
-export function useSearchTranslations() {
-  const [translations, setTranslations] = useState<SearchTranslations>(() => getTranslations('en'));
-  const [locale, setLocale] = useState<SupportedLocale>('en');
+// Helper to get the locale (client-side only)
+function getInitialLocale(): SupportedLocale {
+  if (typeof window === 'undefined') return 'en';
+  return detectLocale();
+}
 
-  useEffect(() => {
-    const detectedLocale = detectLocale();
-    setLocale(detectedLocale);
-    setTranslations(getTranslations(detectedLocale));
-  }, []);
+export function useSearchTranslations() {
+  const locale = useMemo<SupportedLocale>(() => getInitialLocale(), []);
+  const translations = useMemo<SearchTranslations>(() => getTranslations(locale), [locale]);
 
   return { translations, locale };
 }
