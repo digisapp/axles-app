@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 import { CompareProvider } from "@/context/CompareContext";
@@ -149,14 +150,21 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
-        <NotificationProvider>
-          <CompareProvider>
-            {children}
-            <CompareBar />
-            <FloatingCallButton />
-            <Toaster position="top-right" richColors closeButton />
-          </CompareProvider>
-        </NotificationProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NotificationProvider>
+            <CompareProvider>
+              {children}
+              <CompareBar />
+              <FloatingCallButton />
+              <Toaster position="top-right" richColors closeButton />
+            </CompareProvider>
+          </NotificationProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sheet,
@@ -124,6 +125,7 @@ export function Header() {
                   </Link>
                 </Button>
 
+                <ThemeToggle />
                 <NotificationBell />
 
                 <Link href="/dashboard/messages" className="relative">
@@ -177,6 +179,7 @@ export function Header() {
               </>
             ) : (
               <>
+                <ThemeToggle />
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/login">Sign In</Link>
                 </Button>

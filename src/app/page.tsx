@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Zap, ArrowRight, LayoutDashboard, Package, Settings, LogOut, RefreshCw, CalendarDays, Flame, TrendingDown, Calculator } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -137,6 +138,8 @@ export default function HomePage() {
             {isLoading ? (
               <div className="w-20 h-8" />
             ) : user ? (
+              <>
+              <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full">
@@ -179,8 +182,10 @@ export default function HomePage() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </>
             ) : (
               <>
+                <ThemeToggle />
                 <Link href="/login">
                   <Button variant="ghost" size="sm" className="glass-button rounded-full">
                     Sign In
