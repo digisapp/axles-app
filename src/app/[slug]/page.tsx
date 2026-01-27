@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Metadata } from 'next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,8 @@ import { ChatWidget } from '@/components/storefront/ChatWidget';
 import { DealerFilters } from '@/components/storefront/DealerFilters';
 import { MobileContactBar } from '@/components/storefront/MobileContactBar';
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axles.ai';
+
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{
@@ -49,7 +52,7 @@ interface PageProps {
   }>;
 }
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const supabase = await createClient();
 
@@ -64,10 +67,104 @@ export async function generateMetadata({ params }: PageProps) {
     return { title: 'Not Found' };
   }
 
+  const title = `${dealer.company_name} | AxlesAI`;
+  const description = dealer.tagline || `Browse inventory from ${dealer.company_name} in ${dealer.city}, ${dealer.state}`;
+
   return {
-    title: `${dealer.company_name} | AxlesAI`,
-    description: dealer.tagline || `Browse inventory from ${dealer.company_name} in ${dealer.city}, ${dealer.state}`,
+    title,
+    description,
+    alternates: {
+      canonical: `${baseUrl}/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${baseUrl}/${slug}`,
+      type: 'website',
+    },
   };
+}
+
+// JSON-LD AutoDealer schema for rich search results
+interface DealerForSchema {
+  company_name: string;
+  tagline?: string;
+  about?: string;
+  city?: string;
+  state?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  avatar_url?: string;
+  social_links?: { facebook?: string; instagram?: string };
+}
+
+function DealerJsonLd({ dealer, slug }: { dealer: DealerForSchema; slug: string }) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'AutoDealer',
+    name: dealer.company_name,
+    description: dealer.about || dealer.tagline,
+    url: `${baseUrl}/${slug}`,
+    ...(dealer.avatar_url && { logo: dealer.avatar_url }),
+    ...(dealer.phone && { telephone: dealer.phone }),
+    ...(dealer.email && { email: dealer.email }),
+    ...((dealer.city || dealer.state) && {
+      address: {
+        '@type': 'PostalAddress',
+        ...(dealer.city && { addressLocality: dealer.city }),
+        ...(dealer.state && { addressRegion: dealer.state }),
+        addressCountry: 'US',
+      },
+    }),
+    sameAs: [
+      dealer.website,
+      dealer.social_links?.facebook,
+      dealer.social_links?.instagram,
+    ].filter(Boolean),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+// BreadcrumbList JSON-LD for navigation
+function DealerBreadcrumbJsonLd({ dealerName, slug }: { dealerName: string; slug: string }) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: baseUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Dealers',
+        item: `${baseUrl}/dealers`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: dealerName,
+        item: `${baseUrl}/${slug}`,
+      },
+    ],
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
 }
 
 export default async function DealerStorefrontPage({ params, searchParams }: PageProps) {
@@ -190,6 +287,10 @@ export default async function DealerStorefrontPage({ params, searchParams }: Pag
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* JSON-LD Structured Data */}
+      <DealerJsonLd dealer={dealer as DealerForSchema} slug={slug} />
+      <DealerBreadcrumbJsonLd dealerName={dealer.company_name} slug={slug} />
+
       {/* Subtle Background Pattern */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:48px_48px]" />

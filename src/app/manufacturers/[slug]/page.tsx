@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Metadata } from 'next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,17 +24,19 @@ import {
 } from 'lucide-react';
 import { Manufacturer } from '@/types';
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axles.ai';
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const supabase = await createClient();
 
   const { data: manufacturer } = await supabase
     .from('manufacturers')
-    .select('name, short_description, equipment_types')
+    .select('name, short_description, equipment_types, logo_url')
     .eq('slug', slug)
     .eq('is_active', true)
     .single();
@@ -43,11 +46,80 @@ export async function generateMetadata({ params }: PageProps) {
   }
 
   const types = manufacturer.equipment_types.join(', ');
+  const title = `${manufacturer.name} ${types.charAt(0).toUpperCase() + types.slice(1)} | AxlesAI`;
+  const description = manufacturer.short_description || `Browse ${manufacturer.name} equipment on AxlesAI. Find trucks, trailers, and equipment.`;
 
   return {
-    title: `${manufacturer.name} ${types.charAt(0).toUpperCase() + types.slice(1)} | AxlesAI`,
-    description: manufacturer.short_description || `Browse ${manufacturer.name} equipment on AxlesAI. Find trucks, trailers, and equipment.`,
+    title,
+    description,
+    alternates: {
+      canonical: `${baseUrl}/manufacturers/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${baseUrl}/manufacturers/${slug}`,
+      ...(manufacturer.logo_url && {
+        images: [{ url: manufacturer.logo_url, alt: manufacturer.name }],
+      }),
+    },
   };
+}
+
+// JSON-LD Brand schema for rich search results
+function ManufacturerJsonLd({ manufacturer, slug }: { manufacturer: Manufacturer; slug: string }) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Brand',
+    name: manufacturer.name,
+    description: manufacturer.description || manufacturer.short_description,
+    url: `${baseUrl}/manufacturers/${slug}`,
+    ...(manufacturer.logo_url && { logo: manufacturer.logo_url }),
+    ...(manufacturer.website && { sameAs: [manufacturer.website] }),
+    ...(manufacturer.founded_year && { foundingDate: manufacturer.founded_year.toString() }),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+// BreadcrumbList JSON-LD for navigation
+function BreadcrumbJsonLd({ manufacturerName, slug }: { manufacturerName: string; slug: string }) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: baseUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Manufacturers',
+        item: `${baseUrl}/manufacturers`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: manufacturerName,
+        item: `${baseUrl}/manufacturers/${slug}`,
+      },
+    ],
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
 }
 
 const EQUIPMENT_TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -111,6 +183,10 @@ export default async function ManufacturerPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-gray-50 to-white">
+      {/* JSON-LD Structured Data */}
+      <ManufacturerJsonLd manufacturer={manufacturer as Manufacturer} slug={slug} />
+      <BreadcrumbJsonLd manufacturerName={manufacturer.name} slug={slug} />
+
       {/* Background Pattern */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />

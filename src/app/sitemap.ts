@@ -25,6 +25,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/manufacturers`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/dealers`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/login`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -85,5 +97,60 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Error generating sitemap categories:', error);
   }
 
-  return [...staticPages, ...listingPages, ...categoryPages];
+  // Manufacturer pages
+  let manufacturerPages: MetadataRoute.Sitemap = [];
+
+  try {
+    const supabase = await createClient();
+
+    const { data: manufacturers } = await supabase
+      .from('manufacturers')
+      .select('slug, updated_at')
+      .eq('is_active', true)
+      .order('name', { ascending: true });
+
+    if (manufacturers) {
+      manufacturerPages = manufacturers.map((mfr) => ({
+        url: `${baseUrl}/manufacturers/${mfr.slug}`,
+        lastModified: mfr.updated_at ? new Date(mfr.updated_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }));
+    }
+  } catch (error) {
+    console.error('Error generating sitemap manufacturers:', error);
+  }
+
+  // Dealer storefront pages
+  let dealerPages: MetadataRoute.Sitemap = [];
+
+  try {
+    const supabase = await createClient();
+
+    const { data: dealers } = await supabase
+      .from('profiles')
+      .select('slug, updated_at')
+      .eq('is_dealer', true)
+      .not('slug', 'is', null)
+      .order('company_name', { ascending: true });
+
+    if (dealers) {
+      dealerPages = dealers.map((dealer) => ({
+        url: `${baseUrl}/${dealer.slug}`,
+        lastModified: dealer.updated_at ? new Date(dealer.updated_at) : new Date(),
+        changeFrequency: 'daily' as const,
+        priority: 0.7,
+      }));
+    }
+  } catch (error) {
+    console.error('Error generating sitemap dealers:', error);
+  }
+
+  return [
+    ...staticPages,
+    ...listingPages,
+    ...categoryPages,
+    ...manufacturerPages,
+    ...dealerPages,
+  ];
 }

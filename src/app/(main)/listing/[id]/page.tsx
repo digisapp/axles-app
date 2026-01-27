@@ -78,13 +78,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? listing.description.slice(0, 155) + (listing.description.length > 155 ? '...' : '')
     : `${metaTitle} - ${priceText}${locationText ? ` in ${locationText}` : ''}. Browse trucks, trailers, and equipment on AxlesAI.`;
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axles.ai';
+
   return {
     title: metaTitle,
     description: metaDescription,
+    alternates: {
+      canonical: `${baseUrl}/listing/${id}`,
+    },
     openGraph: {
       title: metaTitle,
       description: metaDescription,
       type: 'website',
+      url: `${baseUrl}/listing/${id}`,
       images: [
         {
           url: imageUrl,
