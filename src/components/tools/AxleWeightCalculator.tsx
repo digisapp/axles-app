@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -64,30 +64,28 @@ export function AxleWeightCalculator() {
   // Results
   const [result, setResult] = useState<CalculationResult | null>(null);
 
-  // Apply truck preset
-  useEffect(() => {
-    if (truckPreset) {
-      const preset = PRESET_TRUCKS.find(p => p.name === truckPreset);
-      if (preset) {
-        setTruckEmptyWeight(preset.emptyWeight);
-        setSteerAxleEmpty(preset.steerWeight);
-        setDriveAxleEmpty(preset.driveWeight);
-        setWheelbase(preset.wheelbase);
-      }
+  // Handle truck preset selection
+  const handleTruckPresetChange = (presetName: string) => {
+    setTruckPreset(presetName);
+    const preset = PRESET_TRUCKS.find(p => p.name === presetName);
+    if (preset) {
+      setTruckEmptyWeight(preset.emptyWeight);
+      setSteerAxleEmpty(preset.steerWeight);
+      setDriveAxleEmpty(preset.driveWeight);
+      setWheelbase(preset.wheelbase);
     }
-  }, [truckPreset]);
+  };
 
-  // Apply trailer preset
-  useEffect(() => {
-    if (trailerPreset) {
-      const preset = PRESET_TRAILERS.find(p => p.name === trailerPreset);
-      if (preset) {
-        setTrailerEmptyWeight(preset.emptyWeight);
-        setTrailerLength(preset.length);
-        setAxleSpread(preset.axleSpread);
-      }
+  // Handle trailer preset selection
+  const handleTrailerPresetChange = (presetName: string) => {
+    setTrailerPreset(presetName);
+    const preset = PRESET_TRAILERS.find(p => p.name === presetName);
+    if (preset) {
+      setTrailerEmptyWeight(preset.emptyWeight);
+      setTrailerLength(preset.length);
+      setAxleSpread(preset.axleSpread);
     }
-  }, [trailerPreset]);
+  };
 
   const calculateWeights = () => {
     // Simplified bridge formula calculation
@@ -154,17 +152,6 @@ export function AxleWeightCalculator() {
     });
   };
 
-  const getWeightPercentage = (weight: number, limit: number) => {
-    return Math.min((weight / limit) * 100, 100);
-  };
-
-  const getWeightColor = (weight: number, limit: number) => {
-    const percentage = (weight / limit) * 100;
-    if (percentage > 100) return 'bg-red-500';
-    if (percentage > 90) return 'bg-yellow-500';
-    return 'bg-green-500';
-  };
-
   return (
     <div className="space-y-6">
       {/* Info Banner */}
@@ -197,7 +184,7 @@ export function AxleWeightCalculator() {
           <CardContent className="space-y-4">
             <div>
               <Label>Preset Configuration</Label>
-              <Select value={truckPreset} onValueChange={setTruckPreset}>
+              <Select value={truckPreset} onValueChange={handleTruckPresetChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select or enter custom" />
                 </SelectTrigger>
@@ -263,7 +250,7 @@ export function AxleWeightCalculator() {
           <CardContent className="space-y-4">
             <div>
               <Label>Preset Configuration</Label>
-              <Select value={trailerPreset} onValueChange={setTrailerPreset}>
+              <Select value={trailerPreset} onValueChange={handleTrailerPresetChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select or enter custom" />
                 </SelectTrigger>

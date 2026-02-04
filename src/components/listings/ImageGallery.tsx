@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,38 @@ import {
   Expand,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Touch swipe hook
+function useSwipe(onSwipeLeft: () => void, onSwipeRight: () => void) {
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    if (!touchStartX.current || !touchEndX.current) return;
+
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      onSwipeLeft();
+    } else if (isRightSwipe) {
+      onSwipeRight();
+    }
+  }, [onSwipeLeft, onSwipeRight]);
+
+  return { onTouchStart, onTouchMove, onTouchEnd };
+}
 
 interface ImageItem {
   id: string;
@@ -45,6 +77,9 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
     setSelectedIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
     setZoom(1);
   }, [images.length]);
+
+  // Swipe handlers for mobile (must be after handleNext/handlePrevious)
+  const swipeHandlers = useSwipe(handleNext, handlePrevious);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -118,7 +153,12 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
     <>
       <div className={cn('space-y-3', className)}>
         {/* Main Image */}
-        <div className="relative aspect-[4/3] md:aspect-[16/9] rounded-xl overflow-hidden bg-muted group">
+        <div
+          className="relative aspect-[4/3] md:aspect-[16/9] rounded-xl overflow-hidden bg-muted group"
+          onTouchStart={swipeHandlers.onTouchStart}
+          onTouchMove={swipeHandlers.onTouchMove}
+          onTouchEnd={swipeHandlers.onTouchEnd}
+        >
           <Image
             src={selectedImage.url}
             alt={title || `Image ${selectedIndex + 1}`}
@@ -127,6 +167,7 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
             onClick={() => setIsLightboxOpen(true)}
             priority={selectedIndex === 0}
             unoptimized
+            draggable={false}
           />
 
           {/* Navigation arrows */}
@@ -298,6 +339,9 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
           <div
             className="flex-1 flex items-center justify-center overflow-hidden relative"
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={swipeHandlers.onTouchStart}
+            onTouchMove={swipeHandlers.onTouchMove}
+            onTouchEnd={swipeHandlers.onTouchEnd}
           >
             {/* Navigation arrows */}
             {images.length > 1 && (

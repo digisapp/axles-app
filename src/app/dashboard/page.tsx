@@ -72,6 +72,49 @@ export default async function DashboardPage() {
     .eq('status', 'new');
   const newLeads = leads || 0;
 
+  // Calculate trends (last 7 days vs previous 7 days)
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
+  // Leads in last 7 days
+  const { count: leadsLast7 } = await supabase
+    .from('leads')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gte('created_at', sevenDaysAgo);
+
+  // Leads in previous 7 days (7-14 days ago)
+  const { count: leadsPrev7 } = await supabase
+    .from('leads')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gte('created_at', fourteenDaysAgo)
+    .lt('created_at', sevenDaysAgo);
+
+  // Calculate lead trend percentage
+  const leadsTrend = leadsPrev7 && leadsPrev7 > 0
+    ? Math.round(((leadsLast7 || 0) - leadsPrev7) / leadsPrev7 * 100)
+    : leadsLast7 && leadsLast7 > 0 ? 100 : 0;
+
+  // Views trend - check listing_views if available
+  const { count: viewsLast7 } = await supabase
+    .from('listing_views')
+    .select('*', { count: 'exact', head: true })
+    .in('listing_id', (await supabase.from('listings').select('id').eq('user_id', user.id)).data?.map(l => l.id) || [])
+    .gte('created_at', sevenDaysAgo);
+
+  const { count: viewsPrev7 } = await supabase
+    .from('listing_views')
+    .select('*', { count: 'exact', head: true })
+    .in('listing_id', (await supabase.from('listings').select('id').eq('user_id', user.id)).data?.map(l => l.id) || [])
+    .gte('created_at', fourteenDaysAgo)
+    .lt('created_at', sevenDaysAgo);
+
+  const viewsTrend = viewsPrev7 && viewsPrev7 > 0
+    ? Math.round(((viewsLast7 || 0) - viewsPrev7) / viewsPrev7 * 100)
+    : viewsLast7 && viewsLast7 > 0 ? 100 : 0;
+
   const { data: listings } = await supabase
     .from('listings')
     .select('id, title, price, status, views_count, created_at')
@@ -113,7 +156,8 @@ export default async function DashboardPage() {
           title="Total Views"
           value={totalViews}
           icon={<Eye className="w-5 h-5" />}
-          description="All time"
+          description="Last 7 days"
+          trend={viewsTrend || undefined}
         />
         <StatCard
           title="New Leads"
@@ -121,6 +165,7 @@ export default async function DashboardPage() {
           icon={<Users className="w-5 h-5" />}
           description="Awaiting response"
           highlight={!!newLeads}
+          trend={leadsTrend || undefined}
         />
         <StatCard
           title="Messages"

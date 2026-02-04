@@ -1,6 +1,6 @@
 import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
-import { cacheGet, cacheSet, CACHE_KEYS, CACHE_TTL } from './cache/redis';
+import { cacheGet, cacheSet } from './cache/redis';
 
 // Extend cache keys and TTL for translations
 const TRANSLATION_CACHE_KEY = 'translate:';

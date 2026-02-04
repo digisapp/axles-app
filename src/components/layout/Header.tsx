@@ -33,6 +33,7 @@ import {
   LayoutDashboard,
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { QuickSearchTrigger, QuickSearch } from '@/components/search/QuickSearch';
 
 interface UserProfile {
   id: string;
@@ -116,6 +117,8 @@ export function Header() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
+            <QuickSearchTrigger />
+
             {user ? (
               <>
                 <Button variant="outline" size="sm" asChild>
@@ -189,6 +192,9 @@ export function Header() {
               </>
             )}
           </div>
+
+          {/* Global Quick Search (for Cmd+K on mobile) */}
+          <QuickSearch />
 
           {/* Mobile Menu */}
           <div className="flex md:hidden items-center gap-2">

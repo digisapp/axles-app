@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Heart, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FavoriteButtonProps {
   listingId: string;
@@ -56,17 +57,24 @@ export function FavoriteButton({
       return;
     }
 
+    // Optimistic update - change state immediately
+    const wasLiked = isFavorited;
+    setIsFavorited(!wasLiked);
     setIsToggling(true);
 
     try {
-      if (isFavorited) {
+      if (wasLiked) {
         // Remove favorite
         const response = await fetch(`/api/favorites?listing_id=${listingId}`, {
           method: 'DELETE',
         });
 
         if (response.ok) {
-          setIsFavorited(false);
+          toast.success('Removed from saved listings');
+        } else {
+          // Revert on failure
+          setIsFavorited(true);
+          toast.error('Failed to remove from saved');
         }
       } else {
         // Add favorite
@@ -77,10 +85,22 @@ export function FavoriteButton({
         });
 
         if (response.ok) {
-          setIsFavorited(true);
+          toast.success('Added to saved listings', {
+            action: {
+              label: 'View Saved',
+              onClick: () => router.push('/dashboard/saved'),
+            },
+          });
+        } else {
+          // Revert on failure
+          setIsFavorited(false);
+          toast.error('Failed to save listing');
         }
       }
     } catch (error) {
+      // Revert on error
+      setIsFavorited(wasLiked);
+      toast.error('Something went wrong');
       console.error('Favorite toggle error:', error);
     } finally {
       setIsToggling(false);

@@ -1,5 +1,14 @@
 import { MetadataRoute } from 'next';
-import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+// Use a simple client without cookies for sitemap generation
+// This avoids the dynamic server usage error with cookies
+function createStaticClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axles.ai';
@@ -54,7 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let listingPages: MetadataRoute.Sitemap = [];
 
   try {
-    const supabase = await createClient();
+    const supabase = createStaticClient();
 
     const { data: listings } = await supabase
       .from('listings')
@@ -79,7 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let categoryPages: MetadataRoute.Sitemap = [];
 
   try {
-    const supabase = await createClient();
+    const supabase = createStaticClient();
 
     const { data: categories } = await supabase
       .from('categories')
@@ -101,7 +110,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let manufacturerPages: MetadataRoute.Sitemap = [];
 
   try {
-    const supabase = await createClient();
+    const supabase = createStaticClient();
 
     const { data: manufacturers } = await supabase
       .from('manufacturers')
@@ -125,7 +134,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let dealerPages: MetadataRoute.Sitemap = [];
 
   try {
-    const supabase = await createClient();
+    const supabase = createStaticClient();
 
     const { data: dealers } = await supabase
       .from('profiles')

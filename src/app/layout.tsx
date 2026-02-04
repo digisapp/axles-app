@@ -6,6 +6,7 @@ import { NotificationProvider } from "@/components/notifications/NotificationPro
 import { CompareProvider } from "@/context/CompareContext";
 import { CompareBar } from "@/components/listings/CompareBar";
 import { FloatingCallButton } from "@/components/FloatingCallButton";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import "./globals.css";
 
 // Organization JSON-LD Schema for rich search results
@@ -161,6 +162,7 @@ export default function RootLayout({
               {children}
               <CompareBar />
               <FloatingCallButton />
+              <KeyboardShortcuts />
               <Toaster position="top-right" richColors closeButton />
             </CompareProvider>
           </NotificationProvider>
