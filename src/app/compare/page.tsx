@@ -1,14 +1,29 @@
 'use client';
 
+import { useState } from 'react';
 import { useCompare } from '@/context/CompareContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Scale, X, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Scale, X, ArrowLeft, ExternalLink, Download, Loader2 } from 'lucide-react';
+import { exportComparePdf } from '@/lib/exportComparePdf';
 
 export default function ComparePage() {
   const { listings, removeListing, clearAll } = useCompare();
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPdf = async () => {
+    if (listings.length < 2) return;
+    setIsExporting(true);
+    try {
+      await exportComparePdf(listings);
+    } catch (error) {
+      console.error('Failed to export PDF:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const specs = [
     { key: 'price', label: 'Price', format: (v: number | null) => v ? `$${v.toLocaleString()}` : 'Call' },
@@ -64,9 +79,25 @@ export default function ComparePage() {
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={clearAll}>
-              Clear All
-            </Button>
+            <div className="flex items-center gap-2">
+              {listings.length >= 2 && (
+                <Button
+                  variant="outline"
+                  onClick={handleExportPdf}
+                  disabled={isExporting}
+                >
+                  {isExporting ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  Export PDF
+                </Button>
+              )}
+              <Button variant="outline" onClick={clearAll}>
+                Clear All
+              </Button>
+            </div>
           </div>
         </div>
       </div>

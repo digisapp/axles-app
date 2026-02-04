@@ -43,7 +43,9 @@ import {
   ChevronUp,
   FileText,
   Sparkles,
+  Headphones,
 } from 'lucide-react';
+import { MiniAudioPlayer } from '@/components/dashboard/AudioPlayer';
 
 interface CallLog {
   id: string;
@@ -95,6 +97,7 @@ export default function CallsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isDealer, setIsDealer] = useState(false);
   const [expandedCall, setExpandedCall] = useState<string | null>(null);
+  const [playingRecording, setPlayingRecording] = useState<string | null>(null);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -449,29 +452,37 @@ export default function CallsPage() {
                           </TableCell>
                           <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                             {call.recording_url ? (
-                              <div className="flex items-center justify-end gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => window.open(call.recording_url!, '_blank')}
-                                  title="Play recording"
-                                >
-                                  <Play className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => {
-                                    const a = document.createElement('a');
-                                    a.href = call.recording_url!;
-                                    a.download = `call-${call.id}.mp3`;
-                                    a.click();
-                                  }}
-                                  title="Download recording"
-                                >
-                                  <Download className="w-4 h-4" />
-                                </Button>
-                              </div>
+                              playingRecording === call.id ? (
+                                <MiniAudioPlayer
+                                  src={call.recording_url}
+                                  onClose={() => setPlayingRecording(null)}
+                                />
+                              ) : (
+                                <div className="flex items-center justify-end gap-1">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPlayingRecording(call.id)}
+                                    className="gap-1.5"
+                                  >
+                                    <Headphones className="w-3.5 h-3.5" />
+                                    Listen
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      const a = document.createElement('a');
+                                      a.href = call.recording_url!;
+                                      a.download = `call-${call.id}.mp3`;
+                                      a.click();
+                                    }}
+                                    title="Download recording"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              )
                             ) : (
                               <span className="text-muted-foreground text-sm">No recording</span>
                             )}

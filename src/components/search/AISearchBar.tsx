@@ -2,9 +2,54 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Search, Sparkles, X, Loader2, ArrowUpRight, Mic, MicOff, Calculator, Flame, MapPin } from 'lucide-react';
+import { ArrowRight, Search, Sparkles, X, Loader2, ArrowUpRight, Mic, MicOff, Calculator, Flame, MapPin, Clock, TrendingUp, Tag, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSearchTranslations } from '@/lib/i18n';
+
+// Local storage key for recent searches
+const RECENT_SEARCHES_KEY = 'axlesai-recent-searches';
+const MAX_RECENT_SEARCHES = 5;
+
+// Helper to get recent searches from localStorage
+function getRecentSearches(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+// Helper to save a search to recent searches
+function saveRecentSearch(query: string) {
+  if (typeof window === 'undefined' || !query.trim()) return;
+  try {
+    const recent = getRecentSearches();
+    // Remove duplicates and add to front
+    const filtered = recent.filter(s => s.toLowerCase() !== query.toLowerCase());
+    const updated = [query.trim(), ...filtered].slice(0, MAX_RECENT_SEARCHES);
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore localStorage errors
+  }
+}
+
+// Helper to clear recent searches
+function clearRecentSearches() {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(RECENT_SEARCHES_KEY);
+  } catch {
+    // Ignore
+  }
+}
+
+interface AutocompleteSuggestion {
+  type: 'make' | 'model' | 'category' | 'popular' | 'recent';
+  text: string;
+  subtext?: string;
+}
 
 // Type declarations for Web Speech API
 interface SpeechRecognitionEvent extends Event {
@@ -103,7 +148,8 @@ export function AISearchBar({
   const [query, setQuery] = useState(defaultValue);
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<AutocompleteSuggestion[]>([]);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [chatResponse, setChatResponse] = useState<ChatResponse | null>(null);
@@ -111,14 +157,91 @@ export function AISearchBar({
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const autocompleteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check for speech recognition support
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     setSpeechSupported(!!SpeechRecognitionAPI);
+  }, []);
+
+  // Load recent searches from localStorage
+  useEffect(() => {
+    setRecentSearches(getRecentSearches());
+  }, []);
+
+  // Fetch autocomplete suggestions with debounce
+  const fetchAutocompleteSuggestions = useCallback(async (searchQuery: string) => {
+    if (autocompleteTimeoutRef.current) {
+      clearTimeout(autocompleteTimeoutRef.current);
+    }
+
+    // For empty query, show recent searches + popular
+    if (!searchQuery.trim()) {
+      const recent = getRecentSearches();
+      const recentSuggestions: AutocompleteSuggestion[] = recent.map(text => ({
+        type: 'recent' as const,
+        text,
+        subtext: 'Recent'
+      }));
+      setSuggestions(recentSuggestions);
+      setRecentSearches(recent);
+      return;
+    }
+
+    // Debounce API calls
+    autocompleteTimeoutRef.current = setTimeout(async () => {
+      setIsLoadingSuggestions(true);
+      try {
+        const response = await fetch(`/api/search/autocomplete?q=${encodeURIComponent(searchQuery)}`);
+        if (response.ok) {
+          const data = await response.json();
+
+          // Combine recent searches with API suggestions
+          const recent = getRecentSearches()
+            .filter(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
+            .slice(0, 2)
+            .map(text => ({ type: 'recent' as const, text, subtext: 'Recent' }));
+
+          // Merge, keeping recent at top
+          const combined = [...recent, ...data.suggestions];
+
+          // Dedupe
+          const seen = new Set<string>();
+          const unique = combined.filter(s => {
+            const key = s.text.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          }).slice(0, 8);
+
+          setSuggestions(unique);
+        }
+      } catch (error) {
+        console.error('Autocomplete error:', error);
+        // Fall back to example searches
+        const filtered = t.exampleSearches
+          .filter(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
+          .slice(0, 5)
+          .map(text => ({ type: 'popular' as const, text }));
+        setSuggestions(filtered);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    }, 150); // 150ms debounce
+  }, [t.exampleSearches]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autocompleteTimeoutRef.current) {
+        clearTimeout(autocompleteTimeoutRef.current);
+      }
+    };
   }, []);
 
   // Voice input handler
@@ -247,6 +370,10 @@ export function AISearchBar({
     setChatResponse(null);
     setShowChat(false);
 
+    // Save to recent searches
+    saveRecentSearch(q);
+    setRecentSearches(getRecentSearches());
+
     // Client-side detection: if not a question, go straight to search (faster!)
     if (!isQuestion(q)) {
       router.push(`/search?q=${encodeURIComponent(q.trim())}`);
@@ -289,7 +416,7 @@ export function AISearchBar({
     if (e.key === 'Enter') {
       e.preventDefault();
       if (selectedIndex >= 0 && suggestions[selectedIndex]) {
-        handleSearch(suggestions[selectedIndex]);
+        handleSearch(suggestions[selectedIndex].text);
       } else {
         handleSearch();
       }
@@ -318,25 +445,44 @@ export function AISearchBar({
     // Notify parent about typing state
     onTypingChange?.(value.length > 0);
 
-    // Show example suggestions when typing
-    if (value.length > 0) {
-      const filtered = t.exampleSearches.filter((s) =>
-        s.toLowerCase().includes(value.toLowerCase())
-      );
-      setSuggestions(filtered.length > 0 ? filtered : t.exampleSearches.slice(0, 3));
-      setShowSuggestions(true);
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
+    // Fetch autocomplete suggestions
+    fetchAutocompleteSuggestions(value);
+    setShowSuggestions(true);
   };
 
   const handleFocus = () => {
     setIsFocused(true);
     if (query.length === 0 && !showChat) {
-      setSuggestions(t.exampleSearches);
+      // Show recent searches first, then popular examples
+      const recent = getRecentSearches();
+      const recentSuggestions: AutocompleteSuggestion[] = recent.map(text => ({
+        type: 'recent' as const,
+        text,
+        subtext: 'Recent'
+      }));
+      const popularSuggestions: AutocompleteSuggestion[] = t.exampleSearches
+        .slice(0, Math.max(0, 6 - recent.length))
+        .map(text => ({ type: 'popular' as const, text }));
+      setSuggestions([...recentSuggestions, ...popularSuggestions]);
+      setRecentSearches(recent);
+      setShowSuggestions(true);
+    } else if (query.length > 0 && !showChat) {
+      // Refetch suggestions for current query
+      fetchAutocompleteSuggestions(query);
       setShowSuggestions(true);
     }
+  };
+
+  // Clear recent searches handler
+  const handleClearRecent = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    clearRecentSearches();
+    setRecentSearches([]);
+    // Refresh suggestions without recent
+    const popularSuggestions: AutocompleteSuggestion[] = t.exampleSearches
+      .slice(0, 6)
+      .map(text => ({ type: 'popular' as const, text }));
+    setSuggestions(popularSuggestions);
   };
 
   const closeChatResponse = () => {
@@ -563,34 +709,87 @@ export function AISearchBar({
       {showSuggestions && suggestions.length > 0 && !showChat && (
         <div className="absolute top-full left-0 right-0 bg-white dark:bg-zinc-900 border-2 border-t-0 border-primary/50 rounded-b-2xl shadow-lg shadow-primary/10 z-50 overflow-hidden">
           <div className="p-2">
-            <p className="px-3 py-1.5 text-xs text-zinc-500 font-medium uppercase tracking-wide">
-              {query ? t.ui.suggestions : t.ui.trySearching}
-            </p>
+            {/* Header with clear recent option */}
+            <div className="flex items-center justify-between px-3 py-1.5">
+              <p className="text-xs text-zinc-500 font-medium uppercase tracking-wide">
+                {query ? t.ui.suggestions : (recentSearches.length > 0 ? 'Recent & Suggested' : t.ui.trySearching)}
+              </p>
+              {!query && recentSearches.length > 0 && (
+                <button
+                  onClick={handleClearRecent}
+                  className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                >
+                  Clear recent
+                </button>
+              )}
+            </div>
+
+            {/* Loading indicator */}
+            {isLoadingSuggestions && query && (
+              <div className="flex items-center gap-2 px-3 py-2 text-zinc-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Searching...</span>
+              </div>
+            )}
+
+            {/* Suggestion items */}
             {suggestions.map((suggestion, index) => {
-              const isQuestion = suggestion.includes('?') ||
-                suggestion.toLowerCase().startsWith('what') ||
-                suggestion.toLowerCase().startsWith('how');
+              const isQuestion = suggestion.text.includes('?') ||
+                suggestion.text.toLowerCase().startsWith('what') ||
+                suggestion.text.toLowerCase().startsWith('how');
+
+              // Choose icon based on suggestion type
+              const SuggestionIcon = suggestion.type === 'recent' ? Clock
+                : suggestion.type === 'make' ? Truck
+                : suggestion.type === 'model' ? Truck
+                : suggestion.type === 'category' ? Tag
+                : suggestion.type === 'popular' ? TrendingUp
+                : isQuestion ? Sparkles
+                : Search;
 
               return (
                 <button
-                  key={suggestion}
-                  onClick={() => handleSearch(suggestion)}
+                  key={`${suggestion.type}-${suggestion.text}`}
+                  onClick={() => handleSearch(suggestion.text)}
                   className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors',
+                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors group',
                     selectedIndex === index
                       ? 'bg-primary/10 text-primary'
                       : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                   )}
                 >
-                  {isQuestion ? (
-                    <Sparkles className="w-4 h-4 flex-shrink-0 opacity-50" />
-                  ) : (
-                    <Search className="w-4 h-4 flex-shrink-0 opacity-50" />
-                  )}
-                  <span className="truncate">{suggestion}</span>
+                  <SuggestionIcon className={cn(
+                    'w-4 h-4 flex-shrink-0',
+                    suggestion.type === 'recent' ? 'text-amber-500' :
+                    suggestion.type === 'make' || suggestion.type === 'model' ? 'text-blue-500' :
+                    suggestion.type === 'category' ? 'text-purple-500' :
+                    'opacity-50'
+                  )} />
+                  <div className="flex-1 min-w-0">
+                    <span className="truncate block">{suggestion.text}</span>
+                    {suggestion.subtext && (
+                      <span className="text-xs text-zinc-400 dark:text-zinc-500">{suggestion.subtext}</span>
+                    )}
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity flex-shrink-0" />
                 </button>
               );
             })}
+
+            {/* Keyboard navigation hint */}
+            {suggestions.length > 0 && (
+              <div className="flex items-center gap-4 px-3 pt-2 pb-1 border-t border-zinc-100 dark:border-zinc-800 mt-1">
+                <span className="text-[10px] text-zinc-400 flex items-center gap-1">
+                  <kbd className="px-1 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[9px]">↑↓</kbd> navigate
+                </span>
+                <span className="text-[10px] text-zinc-400 flex items-center gap-1">
+                  <kbd className="px-1 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[9px]">↵</kbd> search
+                </span>
+                <span className="text-[10px] text-zinc-400 flex items-center gap-1">
+                  <kbd className="px-1 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[9px]">esc</kbd> close
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
