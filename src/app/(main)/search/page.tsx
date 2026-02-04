@@ -53,6 +53,7 @@ import {
   TrendingDown,
   Flame,
   Languages,
+  Loader2,
 } from 'lucide-react';
 import { AdvancedFilters, FilterValues } from '@/components/search/AdvancedFilters';
 import { CompareButton } from '@/components/listings/CompareButton';
@@ -78,6 +79,8 @@ function SearchPageContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({});
   const [totalWithoutPriceFilter, setTotalWithoutPriceFilter] = useState<number | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [useInfiniteMode, setUseInfiniteMode] = useState(false);
 
   // Refs to prevent infinite loops
   const fetchIdRef = useRef(0);
@@ -267,10 +270,57 @@ function SearchPageContent() {
   }, [query, category, page, sortBy, advancedFilters]);
 
   const handlePageChange = (newPage: number) => {
+    if (useInfiniteMode) {
+      setUseInfiniteMode(false);
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', newPage.toString());
     router.push(`/search?${params.toString()}`);
   };
+
+  // Load more handler for infinite scroll mode
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || page >= totalPages) return;
+
+    setIsLoadingMore(true);
+    setUseInfiniteMode(true);
+
+    try {
+      const nextPage = page + 1;
+
+      // Build the API URL with current filters
+      const params = new URLSearchParams();
+      params.set('page', nextPage.toString());
+      params.set('sort', sortBy);
+      if (category) params.set('category', category);
+
+      // Add advanced filters
+      if (advancedFilters.priceMin) params.set('min_price', advancedFilters.priceMin.toString());
+      if (advancedFilters.priceMax) params.set('max_price', advancedFilters.priceMax.toString());
+      if (advancedFilters.yearMin) params.set('min_year', advancedFilters.yearMin.toString());
+      if (advancedFilters.yearMax) params.set('max_year', advancedFilters.yearMax.toString());
+      if (advancedFilters.mileageMax) params.set('max_mileage', advancedFilters.mileageMax.toString());
+      if (advancedFilters.makes?.length) params.set('make', advancedFilters.makes.join(','));
+      if (advancedFilters.conditions?.length) params.set('condition', advancedFilters.conditions.join(','));
+      if (advancedFilters.states?.length) params.set('state', advancedFilters.states.join(','));
+      if (advancedFilters.category) params.set('category', advancedFilters.category);
+
+      const response = await fetch(`/api/listings?${params.toString()}`);
+      const data = await response.json();
+
+      if (data.data?.length > 0) {
+        setListings((prev) => [...prev, ...data.data]);
+        // Update URL without full navigation
+        const urlParams = new URLSearchParams(searchParams.toString());
+        urlParams.set('page', nextPage.toString());
+        window.history.replaceState(null, '', `/search?${urlParams.toString()}`);
+      }
+    } catch (error) {
+      console.error('Load more error:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, page, totalPages, sortBy, category, advancedFilters, searchParams]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -527,33 +577,67 @@ function SearchPageContent() {
           </div>
         )}
 
-        {/* Pagination - hide when in map view */}
+        {/* Pagination / Load More - hide when in map view */}
         {totalPages > 1 && viewMode !== 'map' && (
-          <div className="flex items-center justify-center gap-2 mt-6 md:mt-8">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => handlePageChange(page - 1)}
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline ml-1">Previous</span>
-            </Button>
+          <div className="flex flex-col items-center gap-4 mt-6 md:mt-8">
+            {/* Load More Button */}
+            {page < totalPages && (
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-sm text-muted-foreground">
+                  Showing {listings.length} of {totalCount.toLocaleString()} results
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  className="min-w-[200px]"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Load More'
+                  )}
+                </Button>
+              </div>
+            )}
 
-            <span className="text-sm text-muted-foreground px-2 md:px-4">
-              {page} / {totalPages}
-            </span>
+            {/* Traditional Pagination */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => handlePageChange(page - 1)}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline ml-1">Previous</span>
+              </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages}
-              onClick={() => handlePageChange(page + 1)}
-            >
-              <span className="hidden sm:inline mr-1">Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+              <span className="text-sm text-muted-foreground px-2 md:px-4">
+                Page {page} of {totalPages}
+              </span>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => handlePageChange(page + 1)}
+              >
+                <span className="hidden sm:inline mr-1">Next</span>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
+        )}
+
+        {/* Show count when on last page or single page */}
+        {(totalPages === 1 || page >= totalPages) && listings.length > 0 && viewMode !== 'map' && (
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            Showing all {listings.length} results
+          </p>
         )}
       </div>
     </div>

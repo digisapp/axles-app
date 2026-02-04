@@ -7,6 +7,7 @@ import { CompareProvider } from "@/context/CompareContext";
 import { CompareBar } from "@/components/listings/CompareBar";
 import { FloatingCallButton } from "@/components/FloatingCallButton";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
+import { PWAProvider } from "@/components/PWAInstallPrompt";
 import "./globals.css";
 
 // Organization JSON-LD Schema for rich search results
@@ -159,11 +160,13 @@ export default function RootLayout({
         >
           <NotificationProvider>
             <CompareProvider>
-              {children}
-              <CompareBar />
-              <FloatingCallButton />
-              <KeyboardShortcuts />
-              <Toaster position="top-right" richColors closeButton />
+              <PWAProvider>
+                {children}
+                <CompareBar />
+                <FloatingCallButton />
+                <KeyboardShortcuts />
+                <Toaster position="top-right" richColors closeButton />
+              </PWAProvider>
             </CompareProvider>
           </NotificationProvider>
         </ThemeProvider>
