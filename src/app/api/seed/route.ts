@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '@/lib/supabase/server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Security: Only allow seeding in development or by admin users
+const ALLOW_SEED = process.env.NODE_ENV === 'development' || process.env.ALLOW_DATABASE_SEED === 'true';
 
 // Sample truck and trailer listings
 const sampleListings = [
@@ -390,6 +394,28 @@ const sampleListings = [
 
 export async function POST() {
   try {
+    // Security check: Only allow in development or with explicit permission
+    if (!ALLOW_SEED) {
+      // In production, require admin authentication
+      const authClient = await createServerClient();
+      const { data: { user } } = await authClient.auth.getUser();
+
+      if (!user) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      }
+
+      // Check if user is admin
+      const { data: profile } = await authClient
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.is_admin) {
+        return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+      }
+    }
+
     // Initialize admin client
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

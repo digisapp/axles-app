@@ -44,10 +44,11 @@ export function CompareBar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 flex-shrink-0"
+                  className="h-8 w-8 md:h-6 md:w-6 flex-shrink-0 touch-manipulation"
                   onClick={() => removeListing(listing.id)}
+                  aria-label={`Remove ${listing.title} from compare`}
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-4 h-4 md:w-3 md:h-3" />
                 </Button>
               </div>
             ))}

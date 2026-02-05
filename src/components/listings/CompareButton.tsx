@@ -62,8 +62,9 @@ export function CompareButton({ listing, variant = 'default', className }: Compa
         size="icon"
         onClick={handleClick}
         disabled={!inCompare && !canAddMore}
-        className={cn('h-8 w-8', className)}
+        className={cn('h-10 w-10 md:h-8 md:w-8 touch-manipulation', className)}
         title={getTitle()}
+        aria-label={getTitle()}
       >
         {inCompare ? <Check className="w-4 h-4" /> : <Scale className="w-4 h-4" />}
       </Button>

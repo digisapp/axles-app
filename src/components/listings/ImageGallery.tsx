@@ -280,22 +280,24 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity h-12 w-12 md:h-10 md:w-10 touch-manipulation"
                 onClick={(e) => {
                   e.stopPropagation();
                   handlePrevious();
                 }}
+                aria-label="Previous image"
               >
                 <ChevronLeft className="w-6 h-6" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity h-12 w-12 md:h-10 md:w-10 touch-manipulation"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleNext();
                 }}
+                aria-label="Next image"
               >
                 <ChevronRight className="w-6 h-6" />
               </Button>
@@ -306,8 +308,9 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute bottom-2 right-2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute bottom-2 right-2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity h-11 w-11 md:h-9 md:w-9 touch-manipulation"
             onClick={() => setIsLightboxOpen(true)}
+            aria-label="Open fullscreen view"
           >
             <Expand className="w-5 h-5" />
           </Button>
@@ -369,31 +372,33 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 md:gap-2">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/10"
+                className="text-white hover:bg-white/10 h-11 w-11 md:h-10 md:w-10 touch-manipulation"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleZoomOut();
                 }}
                 disabled={zoom <= 0.5}
+                aria-label="Zoom out"
               >
                 <ZoomOut className="w-5 h-5" />
               </Button>
-              <span className="text-white text-sm w-16 text-center">
+              <span className="text-white text-sm w-14 md:w-16 text-center">
                 {Math.round(zoom * 100)}%
               </span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/10"
+                className="text-white hover:bg-white/10 h-11 w-11 md:h-10 md:w-10 touch-manipulation"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleZoomIn();
                 }}
                 disabled={zoom >= 3}
+                aria-label="Zoom in"
               >
                 <ZoomIn className="w-5 h-5" />
               </Button>
@@ -401,52 +406,54 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-white hover:bg-white/10"
+                  className="text-white hover:bg-white/10 h-11 w-11 md:h-10 md:w-10 touch-manipulation"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleResetZoom();
                   }}
-                  title="Reset zoom (0)"
+                  aria-label="Reset zoom"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </Button>
               )}
 
-              <div className="w-px h-6 bg-white/20 mx-2" />
+              <div className="w-px h-6 bg-white/20 mx-1 md:mx-2 hidden md:block" />
 
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/10"
+                className="text-white hover:bg-white/10 h-11 w-11 md:h-10 md:w-10 touch-manipulation hidden md:flex"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleShare();
                 }}
+                aria-label="Share"
               >
                 <Share2 className="w-5 h-5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/10"
+                className="text-white hover:bg-white/10 h-11 w-11 md:h-10 md:w-10 touch-manipulation hidden md:flex"
                 asChild
                 onClick={(e) => e.stopPropagation()}
               >
-                <a href={selectedImage.url} download target="_blank" rel="noopener noreferrer">
+                <a href={selectedImage.url} download target="_blank" rel="noopener noreferrer" aria-label="Download">
                   <Download className="w-5 h-5" />
                 </a>
               </Button>
 
-              <div className="w-px h-6 bg-white/20 mx-2" />
+              <div className="w-px h-6 bg-white/20 mx-1 md:mx-2" />
 
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/10"
+                className="text-white hover:bg-white/10 h-11 w-11 md:h-10 md:w-10 touch-manipulation"
                 onClick={() => {
                   setIsLightboxOpen(false);
                   setZoom(1);
                 }}
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </Button>

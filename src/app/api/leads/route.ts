@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateLeadScoreWithAI } from '@/lib/leads/scoring';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { escapeHtml } from '@/lib/utils/html-escape';
 import { z } from 'zod';
 
 const AXLESAI_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axles.ai';
@@ -140,23 +141,23 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             from: 'AxlesAI <leads@axles.ai>',
             to: notificationEmail,
-            subject: `New Lead: ${buyer_name} interested in ${emailListingTitle}`,
+            subject: `New Lead: ${escapeHtml(buyer_name)} interested in ${escapeHtml(emailListingTitle)}`,
             html: `
               <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #333;">New Lead Received!</h2>
-                <p>You have a new inquiry about <strong>${emailListingTitle}</strong>.</p>
+                <p>You have a new inquiry about <strong>${escapeHtml(emailListingTitle)}</strong>.</p>
 
                 <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
                   <h3 style="margin-top: 0;">Contact Information</h3>
-                  <p><strong>Name:</strong> ${buyer_name}</p>
-                  <p><strong>Email:</strong> <a href="mailto:${buyer_email}">${buyer_email}</a></p>
-                  ${buyer_phone ? `<p><strong>Phone:</strong> <a href="tel:${buyer_phone}">${buyer_phone}</a></p>` : ''}
+                  <p><strong>Name:</strong> ${escapeHtml(buyer_name)}</p>
+                  <p><strong>Email:</strong> <a href="mailto:${escapeHtml(buyer_email)}">${escapeHtml(buyer_email)}</a></p>
+                  ${buyer_phone ? `<p><strong>Phone:</strong> <a href="tel:${escapeHtml(buyer_phone)}">${escapeHtml(buyer_phone)}</a></p>` : ''}
                 </div>
 
                 ${message ? `
                 <div style="background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin: 20px 0;">
                   <h3 style="margin-top: 0;">Message</h3>
-                  <p>${message}</p>
+                  <p>${escapeHtml(message)}</p>
                 </div>
                 ` : ''}
 

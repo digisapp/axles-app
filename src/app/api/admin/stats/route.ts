@@ -1,9 +1,21 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { checkIsAdmin } from '@/lib/admin/check-admin';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    // Apply rate limiting (stats can be expensive)
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin:stats',
+    });
+
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { isAdmin } = await checkIsAdmin();
 
     if (!isAdmin) {

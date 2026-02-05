@@ -20,10 +20,10 @@ export function ThemeToggle() {
       <Button
         variant="ghost"
         size="icon"
-        className="h-9 w-9 rounded-full glass-button"
+        className="h-10 w-10 rounded-full glass-button touch-manipulation"
         disabled
       >
-        <span className="h-4 w-4" />
+        <span className="h-5 w-5" />
       </Button>
     );
   }
@@ -34,14 +34,14 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      className="h-9 w-9 rounded-full glass-button"
+      className="h-10 w-10 rounded-full glass-button touch-manipulation"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {isDark ? (
-        <Sun className="h-4 w-4 transition-transform" />
+        <Sun className="h-5 w-5 transition-transform" />
       ) : (
-        <Moon className="h-4 w-4 transition-transform" />
+        <Moon className="h-5 w-5 transition-transform" />
       )}
     </Button>
   );

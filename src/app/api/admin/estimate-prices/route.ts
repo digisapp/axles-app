@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { backfillEstimates, updateListingEstimate } from '@/lib/price-estimator';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 
 // POST - Backfill estimates for multiple listings
 export async function POST(request: NextRequest) {
+  // Apply rate limiting (AI operations are expensive)
+  const identifier = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.ai,
+    prefix: 'ratelimit:admin:estimates',
+  });
+
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult);
+  }
+
   const supabase = await createClient();
 
   // Check if user is admin
@@ -43,6 +55,17 @@ export async function POST(request: NextRequest) {
 
 // GET - Estimate price for a single listing
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const identifier = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.ai,
+    prefix: 'ratelimit:admin:estimates',
+  });
+
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult);
+  }
+
   const { searchParams } = new URL(request.url);
   const listingId = searchParams.get('listing_id');
 

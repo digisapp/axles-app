@@ -1,8 +1,20 @@
 import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit'
 
 // GET - Fetch AI agent settings
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const identifier = getClientIdentifier(request)
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.standard,
+    prefix: 'ratelimit:admin:ai-agent',
+  })
+
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult)
+  }
+
   const supabase = await createClient()
 
   // Check if user is admin
@@ -36,7 +48,18 @@ export async function GET() {
 }
 
 // PUT - Update AI agent settings
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
+  // Apply rate limiting
+  const identifier = getClientIdentifier(request)
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.standard,
+    prefix: 'ratelimit:admin:ai-agent',
+  })
+
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult)
+  }
+
   const supabase = await createClient()
 
   // Check if user is admin
