@@ -4,8 +4,25 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock, ChevronRight, X } from 'lucide-react';
+import { Clock, ChevronRight, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+// Helper function to format relative time
+function formatRelativeTime(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
+
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days}d ago`;
+  return `${Math.floor(days / 7)}w ago`;
+}
 
 interface RecentListing {
   id: string;
@@ -125,10 +142,15 @@ export function RecentlyViewed({
                     unoptimized
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
-                    No Image
+                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-1">
+                    <ImageOff className="w-5 h-5 opacity-50" />
+                    <span className="text-[10px]">No Image</span>
                   </div>
                 )}
+                {/* Relative time badge */}
+                <span className="absolute top-1 right-1 text-[9px] bg-black/50 text-white px-1.5 py-0.5 rounded">
+                  {formatRelativeTime(listing.viewedAt)}
+                </span>
               </div>
               <CardContent className="p-2 md:p-3">
                 <h3 className="font-medium text-xs md:text-sm line-clamp-1">
@@ -216,15 +238,17 @@ export function RecentlyViewedCompact({ maxItems = 4 }: { maxItems?: number }) {
                   unoptimized
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-[8px] text-muted-foreground">
-                  No img
+                <div className="w-full h-full flex items-center justify-center">
+                  <ImageOff className="w-4 h-4 text-muted-foreground/50" />
                 </div>
               )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium line-clamp-1">{listing.title}</p>
-              <p className="text-xs text-muted-foreground">
-                {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <span>{listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}</span>
+                <span className="text-muted-foreground/50">·</span>
+                <span className="text-muted-foreground/70">{formatRelativeTime(listing.viewedAt)}</span>
               </p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />

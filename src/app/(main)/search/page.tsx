@@ -63,6 +63,8 @@ import { AdvancedFilters, FilterValues } from '@/components/search/AdvancedFilte
 import { CompareButton } from '@/components/listings/CompareButton';
 import { SaveSearchButton } from '@/components/search/SaveSearchButton';
 import { ListingCardWrapper } from '@/components/listings/ListingCardWrapper';
+import { ScrollToTop } from '@/components/ui/scroll-to-top';
+import { ImageOff } from 'lucide-react';
 import type { Listing, AISearchResult, Category } from '@/types';
 
 function SearchPageContent() {
@@ -280,6 +282,8 @@ function SearchPageContent() {
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', newPage.toString());
     router.push(`/search?${params.toString()}`);
+    // Scroll to top when changing pages
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Load more handler for infinite scroll mode
@@ -706,6 +710,9 @@ function SearchPageContent() {
           </p>
         )}
       </div>
+
+      {/* Scroll to top button */}
+      <ScrollToTop />
     </div>
   );
 }
@@ -762,8 +769,9 @@ function ListingCard({
                 unoptimized
               />
             ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <span className="text-muted-foreground text-sm">No Image</span>
+              <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-2">
+                <ImageOff className="w-8 h-8 text-muted-foreground/50" />
+                <span className="text-muted-foreground text-xs">No Image</span>
               </div>
             )}
             {listing.is_featured && (
@@ -874,8 +882,9 @@ function ListingCard({
               unoptimized
             />
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground text-xs md:text-sm">No Image</span>
+            <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-1">
+              <ImageOff className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground/50" />
+              <span className="text-muted-foreground text-[10px] md:text-xs">No Image</span>
             </div>
           )}
           {listing.is_featured && (

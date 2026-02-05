@@ -49,6 +49,12 @@ export function CompareButton({ listing, variant = 'default', className }: Compa
     }
   };
 
+  const getTitle = () => {
+    if (inCompare) return 'Remove from compare';
+    if (!canAddMore) return 'Compare list full (max 4 items)';
+    return 'Add to compare';
+  };
+
   if (variant === 'icon') {
     return (
       <Button
@@ -57,7 +63,7 @@ export function CompareButton({ listing, variant = 'default', className }: Compa
         onClick={handleClick}
         disabled={!inCompare && !canAddMore}
         className={cn('h-8 w-8', className)}
-        title={inCompare ? 'Remove from compare' : 'Add to compare'}
+        title={getTitle()}
       >
         {inCompare ? <Check className="w-4 h-4" /> : <Scale className="w-4 h-4" />}
       </Button>
@@ -71,6 +77,7 @@ export function CompareButton({ listing, variant = 'default', className }: Compa
       onClick={handleClick}
       disabled={!inCompare && !canAddMore}
       className={className}
+      title={getTitle()}
     >
       {inCompare ? (
         <>
