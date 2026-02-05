@@ -54,6 +54,10 @@ import {
   Flame,
   Languages,
   Loader2,
+  DollarSign,
+  Truck,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
 import { AdvancedFilters, FilterValues } from '@/components/search/AdvancedFilters';
 import { CompareButton } from '@/components/listings/CompareButton';
@@ -345,33 +349,72 @@ function SearchPageContent() {
         )}
 
         {/* Quick Filter Chips */}
-        <div className="flex flex-wrap gap-2 mb-4 md:mb-6">
+        <div className="flex flex-wrap gap-2 mb-4 md:mb-6 overflow-x-auto pb-1">
+          {/* Price filters */}
           <QuickFilterChip
-            label="New Trailers"
-            isActive={advancedFilters.category === 'trailers' && (advancedFilters.conditions?.includes('new') || false)}
+            label="Under $50K"
+            icon={<DollarSign className="w-3 h-3" />}
+            isActive={advancedFilters.priceMax === 50000 && !advancedFilters.category}
             onClick={() => {
-              const isActive = advancedFilters.category === 'trailers' && advancedFilters.conditions?.includes('new');
+              const isActive = advancedFilters.priceMax === 50000 && !advancedFilters.category;
               if (isActive) {
                 setAdvancedFilters({});
               } else {
-                setAdvancedFilters({ category: 'trailers', conditions: ['new'] });
+                setAdvancedFilters({ priceMax: 50000 });
               }
             }}
           />
           <QuickFilterChip
-            label="Used Trailers"
-            isActive={advancedFilters.category === 'trailers' && (advancedFilters.conditions?.includes('used') || false)}
+            label="Under $100K"
+            icon={<DollarSign className="w-3 h-3" />}
+            isActive={advancedFilters.priceMax === 100000 && !advancedFilters.category}
             onClick={() => {
-              const isActive = advancedFilters.category === 'trailers' && advancedFilters.conditions?.includes('used');
+              const isActive = advancedFilters.priceMax === 100000 && !advancedFilters.category;
               if (isActive) {
                 setAdvancedFilters({});
               } else {
-                setAdvancedFilters({ category: 'trailers', conditions: ['used'] });
+                setAdvancedFilters({ priceMax: 100000 });
               }
             }}
           />
+
+          {/* Year filter */}
+          <QuickFilterChip
+            label="2020+"
+            icon={<Clock className="w-3 h-3" />}
+            isActive={advancedFilters.yearMin === 2020 && !advancedFilters.category}
+            onClick={() => {
+              const isActive = advancedFilters.yearMin === 2020 && !advancedFilters.category;
+              if (isActive) {
+                setAdvancedFilters({});
+              } else {
+                setAdvancedFilters({ yearMin: 2020 });
+              }
+            }}
+          />
+
+          {/* Low mileage */}
+          <QuickFilterChip
+            label="Low Miles"
+            icon={<Gauge className="w-3 h-3" />}
+            isActive={advancedFilters.mileageMax === 200000 && !advancedFilters.category}
+            onClick={() => {
+              const isActive = advancedFilters.mileageMax === 200000 && !advancedFilters.category;
+              if (isActive) {
+                setAdvancedFilters({});
+              } else {
+                setAdvancedFilters({ mileageMax: 200000 });
+              }
+            }}
+          />
+
+          {/* Divider */}
+          <div className="w-px h-6 bg-border self-center hidden sm:block" />
+
+          {/* Category filters */}
           <QuickFilterChip
             label="New Trucks"
+            icon={<Sparkles className="w-3 h-3" />}
             isActive={advancedFilters.category === 'trucks' && (advancedFilters.conditions?.includes('new') || false)}
             onClick={() => {
               const isActive = advancedFilters.category === 'trucks' && advancedFilters.conditions?.includes('new');
@@ -384,6 +427,7 @@ function SearchPageContent() {
           />
           <QuickFilterChip
             label="Used Trucks"
+            icon={<Truck className="w-3 h-3" />}
             isActive={advancedFilters.category === 'trucks' && (advancedFilters.conditions?.includes('used') || false)}
             onClick={() => {
               const isActive = advancedFilters.category === 'trucks' && advancedFilters.conditions?.includes('used');
@@ -395,7 +439,19 @@ function SearchPageContent() {
             }}
           />
           <QuickFilterChip
-            label="Heavy Equipment"
+            label="Trailers"
+            isActive={advancedFilters.category === 'trailers' && !advancedFilters.conditions?.length}
+            onClick={() => {
+              const isActive = advancedFilters.category === 'trailers' && !advancedFilters.conditions?.length;
+              if (isActive) {
+                setAdvancedFilters({});
+              } else {
+                setAdvancedFilters({ category: 'trailers' });
+              }
+            }}
+          />
+          <QuickFilterChip
+            label="Equipment"
             isActive={advancedFilters.category === 'heavy-equipment'}
             onClick={() => {
               const isActive = advancedFilters.category === 'heavy-equipment';
@@ -406,6 +462,16 @@ function SearchPageContent() {
               }
             }}
           />
+
+          {/* Clear all button when filters are active */}
+          {Object.keys(advancedFilters).length > 0 && (
+            <button
+              onClick={() => setAdvancedFilters({})}
+              className="px-3 py-1.5 text-xs md:text-sm rounded-full border border-destructive/50 text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-1.5"
+            >
+              Clear All
+            </button>
+          )}
         </div>
 
         {/* Results Header */}
@@ -925,20 +991,23 @@ function QuickFilterChip({
   label,
   isActive,
   onClick,
+  icon,
 }: {
   label: string;
   isActive: boolean;
   onClick: () => void;
+  icon?: React.ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 text-xs md:text-sm rounded-full border transition-colors ${
+      className={`px-3 py-1.5 text-xs md:text-sm rounded-full border transition-colors flex items-center gap-1.5 whitespace-nowrap ${
         isActive
           ? 'bg-primary text-primary-foreground border-primary'
           : 'bg-background hover:bg-muted border-border'
       }`}
     >
+      {icon}
       {label}
     </button>
   );

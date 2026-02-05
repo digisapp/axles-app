@@ -13,8 +13,15 @@ import {
   Download,
   Share2,
   Expand,
+  RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Pan position type
+interface PanPosition {
+  x: number;
+  y: number;
+}
 
 // Touch swipe hook
 function useSwipe(onSwipeLeft: () => void, onSwipeRight: () => void) {
@@ -65,8 +72,19 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState<PanPosition>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState<PanPosition>({ x: 0, y: 0 });
+  const lastTapRef = useRef<number>(0);
 
   const selectedImage = images[selectedIndex];
+
+  // Reset pan when zoom changes to 1 or image changes
+  useEffect(() => {
+    if (zoom === 1) {
+      setPan({ x: 0, y: 0 });
+    }
+  }, [zoom, selectedIndex]);
 
   const handlePrevious = useCallback(() => {
     setSelectedIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -103,6 +121,10 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
         case '-':
           setZoom((prev) => Math.max(prev - 0.5, 0.5));
           break;
+        case '0':
+          setZoom(1);
+          setPan({ x: 0, y: 0 });
+          break;
       }
     },
     [isLightboxOpen, handlePrevious, handleNext]
@@ -127,6 +149,88 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.5, 3));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.5, 0.5));
+  const handleResetZoom = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  // Double-click/tap to zoom
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (zoom > 1) {
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
+    } else {
+      setZoom(2);
+    }
+  }, [zoom]);
+
+  // Handle double tap on touch devices
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      // Double tap detected
+      e.preventDefault();
+      if (zoom > 1) {
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+      } else {
+        setZoom(2);
+      }
+    }
+    lastTapRef.current = now;
+  }, [zoom]);
+
+  // Pan handlers for dragging zoomed image
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (zoom <= 1) return;
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+  }, [zoom, pan]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging || zoom <= 1) return;
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    // Limit pan to reasonable bounds
+    const maxPan = 200 * (zoom - 1);
+    setPan({
+      x: Math.max(-maxPan, Math.min(maxPan, newX)),
+      y: Math.max(-maxPan, Math.min(maxPan, newY)),
+    });
+  }, [isDragging, dragStart, zoom]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Touch pan handlers
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (zoom <= 1 || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    if (!isDragging) {
+      setIsDragging(true);
+      setDragStart({ x: touch.clientX - pan.x, y: touch.clientY - pan.y });
+      return;
+    }
+    const newX = touch.clientX - dragStart.x;
+    const newY = touch.clientY - dragStart.y;
+    const maxPan = 200 * (zoom - 1);
+    setPan({
+      x: Math.max(-maxPan, Math.min(maxPan, newX)),
+      y: Math.max(-maxPan, Math.min(maxPan, newY)),
+    });
+  }, [zoom, isDragging, dragStart, pan]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (zoom > 1 && e.touches.length === 1) {
+      const touch = e.touches[0];
+      setDragStart({ x: touch.clientX - pan.x, y: touch.clientY - pan.y });
+    }
+  }, [zoom, pan]);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -293,6 +397,20 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
               >
                 <ZoomIn className="w-5 h-5" />
               </Button>
+              {zoom > 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleResetZoom();
+                  }}
+                  title="Reset zoom (0)"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              )}
 
               <div className="w-px h-6 bg-white/20 mx-2" />
 
@@ -337,11 +455,30 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
 
           {/* Main image container */}
           <div
-            className="flex-1 flex items-center justify-center overflow-hidden relative"
+            className={cn(
+              "flex-1 flex items-center justify-center overflow-hidden relative",
+              zoom > 1 ? "cursor-grab" : "cursor-zoom-in",
+              isDragging && "cursor-grabbing"
+            )}
             onClick={(e) => e.stopPropagation()}
-            onTouchStart={swipeHandlers.onTouchStart}
-            onTouchMove={swipeHandlers.onTouchMove}
-            onTouchEnd={swipeHandlers.onTouchEnd}
+            onDoubleClick={handleDoubleClick}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={(e) => {
+              handleTouchStart(e);
+              if (zoom <= 1) swipeHandlers.onTouchStart(e);
+            }}
+            onTouchMove={(e) => {
+              if (zoom > 1) handleTouchMove(e);
+              else swipeHandlers.onTouchMove(e);
+            }}
+            onTouchEnd={(e) => {
+              handleTouchEnd(e);
+              setIsDragging(false);
+              if (zoom <= 1) swipeHandlers.onTouchEnd();
+            }}
           >
             {/* Navigation arrows */}
             {images.length > 1 && (
@@ -367,9 +504,12 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
 
             {/* Image */}
             <div
-              className="relative max-w-full max-h-full transition-transform duration-200"
+              className={cn(
+                "relative max-w-full max-h-full select-none",
+                !isDragging && "transition-transform duration-200"
+              )}
               style={{
-                transform: `scale(${zoom})`,
+                transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
               }}
             >
               <Image
@@ -377,10 +517,26 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
                 alt={title || `Image ${selectedIndex + 1}`}
                 width={1200}
                 height={800}
-                className="max-h-[calc(100vh-160px)] w-auto object-contain"
-                onClick={(e) => e.stopPropagation()}
+                className="max-h-[calc(100vh-160px)] w-auto object-contain pointer-events-none"
+                draggable={false}
                 unoptimized
               />
+            </div>
+
+            {/* Keyboard hints */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 text-white/50 text-xs">
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px]">←→</kbd> navigate
+              </span>
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px]">+/-</kbd> zoom
+              </span>
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px]">dbl-click</kbd> zoom
+              </span>
+              <span className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px]">esc</kbd> close
+              </span>
             </div>
           </div>
 
