@@ -28,6 +28,7 @@ import {
   Bot,
   Bell,
   Search,
+  Landmark,
 } from 'lucide-react';
 
 interface NavItem {
@@ -62,6 +63,11 @@ const navItems: NavItem[] = [
     href: '/dashboard/inventory',
     label: 'Inventory',
     icon: <Warehouse className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/floor-plan',
+    label: 'Floor Plan',
+    icon: <Landmark className="w-5 h-5" />,
   },
   {
     href: '/dashboard/bulk',
