@@ -31,6 +31,7 @@ import {
   Phone,
   UserCog,
   Landmark,
+  Handshake,
 } from 'lucide-react';
 
 interface NavItem {
@@ -60,6 +61,11 @@ const navItems: NavItem[] = [
     href: '/dashboard/leads',
     label: 'Leads',
     icon: <Users className="w-5 h-5" />,
+  },
+  {
+    href: '/dashboard/deal-desk',
+    label: 'Deal Desk',
+    icon: <Handshake className="w-5 h-5" />,
   },
   {
     href: '/dashboard/inventory',
