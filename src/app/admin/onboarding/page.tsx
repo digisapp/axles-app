@@ -47,7 +47,7 @@ export default async function OnboardingPage() {
       state,
       phone
     `, { count: 'exact' })
-    .like('email', '%@dealers.axles.ai')
+    .like('email', '%@dealers.axlon.ai')
     .eq('is_dealer', false)
     .order('created_at', { ascending: false })
     .limit(100);
@@ -70,7 +70,7 @@ export default async function OnboardingPage() {
   const { count: withListings } = await supabase
     .from('profiles')
     .select('id', { count: 'exact', head: true })
-    .like('email', '%@dealers.axles.ai')
+    .like('email', '%@dealers.axlon.ai')
     .eq('is_dealer', false)
     .in('id',
       (await supabase.from('listings').select('user_id')).data?.map(l => l.user_id) || []
@@ -139,7 +139,7 @@ export default async function OnboardingPage() {
             <p className="text-sm text-orange-800">
               <strong>What is this?</strong> These are placeholder profiles created when scraping listings from TruckPaper and other sources.
               Each profile represents a potential dealer that could be converted to an active account.
-              They have auto-generated emails like <code className="bg-orange-100 px-1 rounded">dealer@dealers.axles.ai</code>.
+              They have auto-generated emails like <code className="bg-orange-100 px-1 rounded">dealer@dealers.axlon.ai</code>.
             </p>
           </CardContent>
         </Card>

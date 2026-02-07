@@ -46,7 +46,7 @@ Identify:
 5. Image quality (lighting, focus, angle)
 6. Relevant tags for searchability
 
-This is for AxlesAI, a marketplace similar to TruckPaper for commercial vehicles and equipment.`,
+This is for AxlonAI, a marketplace similar to TruckPaper for commercial vehicles and equipment.`,
           },
           {
             type: 'image',

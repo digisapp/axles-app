@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useSearchTranslations } from '@/lib/i18n';
 
 // Local storage key for recent searches
-const RECENT_SEARCHES_KEY = 'axlesai-recent-searches';
+const RECENT_SEARCHES_KEY = 'axlon-recent-searches';
 const MAX_RECENT_SEARCHES = 5;
 
 // Helper to get recent searches from localStorage
@@ -592,7 +592,7 @@ export function AISearchBar({
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex items-center gap-2 text-primary">
                 <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-medium">{t.ui.aiAssistant}</span>
+                <span className="text-sm font-medium">Axlon</span>
               </div>
               <button
                 onClick={closeChatResponse}
@@ -728,7 +728,7 @@ export function AISearchBar({
             {isLoadingSuggestions && query && (
               <div className="flex items-center gap-2 px-3 py-2 text-zinc-400">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Searching...</span>
+                <span className="text-sm">Axlon is searching...</span>
               </div>
             )}
 
@@ -798,7 +798,7 @@ export function AISearchBar({
       {showLanguageHint && !showSuggestions && !showChat && (
         <div className="flex items-center justify-center gap-1.5 mt-3 text-xs text-zinc-400 dark:text-zinc-500">
           <Sparkles className="w-3 h-3" />
-          <span>AI speaks:</span>
+          <span>Axlon speaks:</span>
           <span className="font-medium text-zinc-500 dark:text-zinc-400">English</span>
           <span>·</span>
           <span className="font-medium text-zinc-500 dark:text-zinc-400">Español</span>

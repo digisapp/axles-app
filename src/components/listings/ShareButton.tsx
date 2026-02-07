@@ -45,7 +45,7 @@ export function ShareButton({
 
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
   const shareText = price ? `${title} - $${price.toLocaleString()}` : title;
-  const fullDescription = description || `Check out this listing on AxlesAI: ${title}`;
+  const fullDescription = description || `Check out this listing on AxlonAI: ${title}`;
 
   const copyToClipboard = async () => {
     try {

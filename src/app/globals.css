@@ -45,10 +45,10 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* AxlesAI Brand Colors */
-  --color-axles-blue: oklch(0.65 0.2 240);
-  --color-axles-gold: oklch(0.75 0.15 85);
-  --color-axles-dark: oklch(0.15 0.02 260);
+  /* AxlonAI Brand Colors */
+  --color-axlon-blue: oklch(0.65 0.2 240);
+  --color-axlon-gold: oklch(0.75 0.15 85);
+  --color-axlon-dark: oklch(0.15 0.02 260);
 }
 
 :root {
@@ -59,10 +59,10 @@
   --card-foreground: oklch(0.15 0.02 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0.02 260);
-  /* Primary: AxlesAI Blue */
+  /* Primary: AxlonAI Blue */
   --primary: oklch(0.55 0.2 240);
   --primary-foreground: oklch(0.98 0 0);
-  /* Secondary: AxlesAI Gold */
+  /* Secondary: AxlonAI Gold */
   --secondary: oklch(0.75 0.15 85);
   --secondary-foreground: oklch(0.15 0 0);
   --muted: oklch(0.96 0.01 260);

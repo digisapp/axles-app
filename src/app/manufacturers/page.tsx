@@ -18,7 +18,7 @@ import {
 import { Manufacturer } from '@/types';
 
 export const metadata = {
-  title: 'Manufacturer Directory | AxlesAI',
+  title: 'Manufacturer Directory | AxlonAI',
   description: 'Browse leading truck, trailer, and equipment manufacturers. Research brands before you buy.',
 };
 

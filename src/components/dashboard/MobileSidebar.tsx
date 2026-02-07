@@ -136,13 +136,13 @@ export function MobileSidebar({
         <SheetHeader className="h-16 border-b px-4 flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <Image
-              src="/images/axlesai-logo.png"
-              alt="AxlesAI"
+              src="/images/axlonai-logo.png"
+              alt="AxlonAI"
               width={32}
               height={32}
               className="w-8 h-8"
             />
-            <SheetTitle className="font-bold text-lg">AxlesAI</SheetTitle>
+            <SheetTitle className="font-bold text-lg">AxlonAI</SheetTitle>
           </div>
         </SheetHeader>
 

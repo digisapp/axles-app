@@ -41,7 +41,7 @@ export const translations: Record<SupportedLocale, SearchTranslations> = {
       'difference between', 'compare'
     ],
     ui: {
-      aiAssistant: 'AI Assistant',
+      aiAssistant: 'Axlon',
       suggestions: 'Suggestions',
       trySearching: 'Try searching or asking',
       searchListingsFor: 'Search listings for',
@@ -86,7 +86,7 @@ export const translations: Record<SupportedLocale, SearchTranslations> = {
       'diferencia entre', 'comparar'
     ],
     ui: {
-      aiAssistant: 'Asistente IA',
+      aiAssistant: 'Axlon',
       suggestions: 'Sugerencias',
       trySearching: 'Intenta buscar o preguntar',
       searchListingsFor: 'Buscar listados para',
@@ -131,7 +131,7 @@ export const translations: Record<SupportedLocale, SearchTranslations> = {
       'différence entre', 'comparer'
     ],
     ui: {
-      aiAssistant: 'Assistant IA',
+      aiAssistant: 'Axlon',
       suggestions: 'Suggestions',
       trySearching: 'Essayez de rechercher ou demander',
       searchListingsFor: 'Rechercher des annonces pour',
@@ -176,7 +176,7 @@ export const translations: Record<SupportedLocale, SearchTranslations> = {
       'unterschied zwischen', 'vergleiche'
     ],
     ui: {
-      aiAssistant: 'KI-Assistent',
+      aiAssistant: 'Axlon',
       suggestions: 'Vorschläge',
       trySearching: 'Versuchen Sie zu suchen oder zu fragen',
       searchListingsFor: 'Angebote suchen für',
@@ -221,7 +221,7 @@ export const translations: Record<SupportedLocale, SearchTranslations> = {
       'diferença entre', 'comparar'
     ],
     ui: {
-      aiAssistant: 'Assistente IA',
+      aiAssistant: 'Axlon',
       suggestions: 'Sugestões',
       trySearching: 'Tente pesquisar ou perguntar',
       searchListingsFor: 'Pesquisar anúncios para',
@@ -266,7 +266,7 @@ export const translations: Record<SupportedLocale, SearchTranslations> = {
       '区别', '比较'
     ],
     ui: {
-      aiAssistant: 'AI助手',
+      aiAssistant: 'Axlon',
       suggestions: '建议',
       trySearching: '尝试搜索或提问',
       searchListingsFor: '搜索相关列表',
@@ -311,7 +311,7 @@ export const translations: Record<SupportedLocale, SearchTranslations> = {
       '違い', '比較'
     ],
     ui: {
-      aiAssistant: 'AIアシスタント',
+      aiAssistant: 'Axlon',
       suggestions: '提案',
       trySearching: '検索または質問してみてください',
       searchListingsFor: 'リストを検索',
@@ -356,7 +356,7 @@ export const translations: Record<SupportedLocale, SearchTranslations> = {
       '차이', '비교'
     ],
     ui: {
-      aiAssistant: 'AI 어시스턴트',
+      aiAssistant: 'Axlon',
       suggestions: '제안',
       trySearching: '검색하거나 질문해 보세요',
       searchListingsFor: '목록 검색',
@@ -401,7 +401,7 @@ export const translations: Record<SupportedLocale, SearchTranslations> = {
       'الفرق بين', 'قارن'
     ],
     ui: {
-      aiAssistant: 'مساعد الذكاء الاصطناعي',
+      aiAssistant: 'Axlon',
       suggestions: 'اقتراحات',
       trySearching: 'حاول البحث أو السؤال',
       searchListingsFor: 'البحث في القوائم عن',
@@ -446,7 +446,7 @@ export const translations: Record<SupportedLocale, SearchTranslations> = {
       'разница между', 'сравни'
     ],
     ui: {
-      aiAssistant: 'ИИ Ассистент',
+      aiAssistant: 'Axlon',
       suggestions: 'Предложения',
       trySearching: 'Попробуйте искать или спросить',
       searchListingsFor: 'Искать объявления',

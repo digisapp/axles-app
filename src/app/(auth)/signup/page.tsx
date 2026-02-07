@@ -115,8 +115,8 @@ export default function SignupPage() {
         <CardHeader className="text-center">
           <Link href="/" className="flex justify-center mb-4">
             <Image
-              src="/images/axlesai-logo.png"
-              alt="AxlesAI"
+              src="/images/axlonai-logo.png"
+              alt="AxlonAI"
               width={120}
               height={80}
               className="dark:brightness-110"
@@ -124,7 +124,7 @@ export default function SignupPage() {
           </Link>
           <CardTitle>Create Dealer Account</CardTitle>
           <CardDescription>
-            Start selling trucks and trailers on AxlesAI
+            Start selling trucks and trailers on AxlonAI
           </CardDescription>
         </CardHeader>
 

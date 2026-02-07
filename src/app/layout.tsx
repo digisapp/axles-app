@@ -15,23 +15,23 @@ function OrganizationJsonLd() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'AxlesAI',
-    url: 'https://axles.ai',
-    logo: 'https://axles.ai/images/axlesai-logo.png',
+    name: 'AxlonAI',
+    url: 'https://axlon.ai',
+    logo: 'https://axlon.ai/images/axlonai-logo.png',
     description: 'AI-powered marketplace for trucks, trailers, and equipment. Search with AI, get smart pricing, and list your equipment instantly.',
     foundingDate: '2024',
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'sales',
       telephone: '+1-469-421-3536',
-      email: 'sales@axles.ai',
+      email: 'sales@axlon.ai',
       availableLanguage: 'English',
     },
     sameAs: [
-      'https://instagram.com/axlesai',
-      'https://facebook.com/axlesai',
-      'https://twitter.com/axlesai',
-      'https://linkedin.com/company/axlesai',
+      'https://instagram.com/axlonai',
+      'https://facebook.com/axlonai',
+      'https://twitter.com/axlonai',
+      'https://linkedin.com/company/axlonai',
     ],
   };
 
@@ -48,13 +48,13 @@ function WebsiteJsonLd() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'AxlesAI',
-    url: 'https://axles.ai',
+    name: 'AxlonAI',
+    url: 'https://axlon.ai',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://axles.ai/search?q={search_term_string}',
+        urlTemplate: 'https://axlon.ai/search?q={search_term_string}',
       },
       'query-input': 'required name=search_term_string',
     },
@@ -80,33 +80,33 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "AxlesAI - AI-Powered Truck & Equipment Marketplace",
-    template: "%s | AxlesAI",
+    default: "AxlonAI - AI-Powered Truck & Equipment Marketplace",
+    template: "%s | AxlonAI",
   },
   description: "The future of buying and selling trucks, trailers, and equipment. AI-powered search, smart pricing, and instant listings.",
   keywords: ["trucks", "trailers", "heavy equipment", "marketplace", "semi trucks", "commercial vehicles", "Peterbilt", "Freightliner", "Kenworth", "Volvo", "buy trucks", "sell trucks"],
-  authors: [{ name: "AxlesAI" }],
-  creator: "AxlesAI",
-  publisher: "AxlesAI",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://axles.ai"),
+  authors: [{ name: "AxlonAI" }],
+  creator: "AxlonAI",
+  publisher: "AxlonAI",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://axlon.ai"),
   openGraph: {
-    title: "AxlesAI - AI-Powered Truck & Equipment Marketplace",
+    title: "AxlonAI - AI-Powered Truck & Equipment Marketplace",
     description: "The future of buying and selling trucks, trailers, and equipment. Search with AI, get smart pricing, and list your equipment instantly.",
     type: "website",
-    siteName: "AxlesAI",
+    siteName: "AxlonAI",
     locale: "en_US",
     images: [
       {
         url: "/images/og-image.png",
         width: 1200,
         height: 630,
-        alt: "AxlesAI - Find Your Next Truck or Equipment",
+        alt: "AxlonAI - Find Your Next Truck or Equipment",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AxlesAI - AI-Powered Truck & Equipment Marketplace",
+    title: "AxlonAI - AI-Powered Truck & Equipment Marketplace",
     description: "The future of buying and selling trucks, trailers, and equipment.",
     images: ["/images/og-image.png"],
   },

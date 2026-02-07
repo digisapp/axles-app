@@ -173,7 +173,7 @@ function formatListingsForAI(listings: ListingResult[]): string {
     if (listing.hours) {
       context += `   Hours: ${listing.hours.toLocaleString()}\n`;
     }
-    context += `   View: axles.ai/listing/${listing.id}\n\n`;
+    context += `   View: axlon.ai/listing/${listing.id}\n\n`;
   });
 
   return context;

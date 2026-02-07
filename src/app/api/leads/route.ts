@@ -5,7 +5,7 @@ import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } f
 import { escapeHtml } from '@/lib/utils/html-escape';
 import { z } from 'zod';
 
-const AXLESAI_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axles.ai';
+const AXLESAI_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axlon.ai';
 
 // Validation schema for lead creation
 const createLeadSchema = z.object({
@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
       message,
     } = parseResult.data;
 
-    // Check if routing to AxlesAI (no seller specified)
-    const isAxlesAILead = !seller_id;
+    // Check if routing to AxlonAI (no seller specified)
+    const isAxlonAILead = !seller_id;
 
     // Get listing info for scoring
     let listingState: string | null = null;
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       .from('leads')
       .insert({
         listing_id: listing_id || null,
-        user_id: seller_id || null, // null for AxlesAI leads
+        user_id: seller_id || null, // null for AxlonAI leads
         buyer_name,
         buyer_email,
         buyer_phone: buyer_phone || null,
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         priority: priority,
         score: score,
         score_factors: factors,
-        source: isAxlesAILead ? 'axlesai_contact' : 'contact_form',
+        source: isAxlonAILead ? 'axlesai_contact' : 'contact_form',
       })
       .select()
       .single();
@@ -112,8 +112,8 @@ export async function POST(request: NextRequest) {
     // Determine notification recipient
     let notificationEmail: string | null = null;
 
-    if (isAxlesAILead) {
-      // Send to AxlesAI admin
+    if (isAxlonAILead) {
+      // Send to AxlonAI admin
       notificationEmail = AXLESAI_ADMIN_EMAIL;
     } else if (seller_id) {
       // Get seller info for email notification
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     // Send email notification (if Resend is configured)
     if (notificationEmail && process.env.RESEND_API_KEY) {
       try {
-        const dashboardUrl = isAxlesAILead
+        const dashboardUrl = isAxlonAILead
           ? `${process.env.NEXT_PUBLIC_APP_URL}/admin/leads`
           : `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/leads`;
 
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'AxlesAI <leads@axles.ai>',
+            from: 'AxlonAI <leads@axlon.ai>',
             to: notificationEmail,
             subject: `New Lead: ${escapeHtml(buyer_name)} interested in ${escapeHtml(emailListingTitle)}`,
             html: `
@@ -164,12 +164,12 @@ export async function POST(request: NextRequest) {
                 <p>
                   <a href="${dashboardUrl}"
                      style="display: inline-block; background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
-                    View in ${isAxlesAILead ? 'Admin Panel' : 'Dashboard'}
+                    View in ${isAxlonAILead ? 'Admin Panel' : 'Dashboard'}
                   </a>
                 </p>
 
                 <p style="color: #666; font-size: 14px; margin-top: 30px;">
-                  This lead was generated through AxlesAI. Respond promptly to increase your chances of closing the sale.
+                  This lead was generated through AxlonAI. Respond promptly to increase your chances of closing the sale.
                 </p>
               </div>
             `,

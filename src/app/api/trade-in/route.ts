@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axles.ai';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axlon.ai';
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,13 +48,13 @@ export async function POST(request: NextRequest) {
     try {
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
-        from: 'AxlesAI <noreply@axles.ai>',
+        from: 'AxlonAI <noreply@axlon.ai>',
         to: ADMIN_EMAIL,
         subject: `New Trade-In Request: ${equipmentInfo || 'Equipment'}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: #0066cc; padding: 20px; text-align: center;">
-              <img src="https://axles.ai/images/axlesai-logo.png" alt="AxlesAI" height="40" />
+              <img src="https://axlon.ai/images/axlonai-logo.png" alt="AxlonAI" height="40" />
             </div>
             <div style="padding: 30px; background: #ffffff;">
               <h2 style="color: #333; margin-bottom: 20px;">New Trade-In Request</h2>
@@ -83,14 +83,14 @@ export async function POST(request: NextRequest) {
               ` : ''}
 
               <div style="text-align: center; margin-top: 30px;">
-                <a href="https://axles.ai/admin/trade-ins"
+                <a href="https://axlon.ai/admin/trade-ins"
                    style="display: inline-block; background: #0066cc; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">
                   View in Admin Panel
                 </a>
               </div>
             </div>
             <div style="padding: 20px; background: #f9f9f9; text-align: center; color: #888; font-size: 12px;">
-              <p>This is an automated notification from AxlesAI</p>
+              <p>This is an automated notification from AxlonAI</p>
             </div>
           </div>
         `,

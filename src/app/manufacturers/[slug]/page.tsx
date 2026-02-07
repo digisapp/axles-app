@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Manufacturer } from '@/types';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axles.ai';
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axlon.ai';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -46,8 +46,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const types = manufacturer.equipment_types.join(', ');
-  const title = `${manufacturer.name} ${types.charAt(0).toUpperCase() + types.slice(1)} | AxlesAI`;
-  const description = manufacturer.short_description || `Browse ${manufacturer.name} equipment on AxlesAI. Find trucks, trailers, and equipment.`;
+  const title = `${manufacturer.name} ${types.charAt(0).toUpperCase() + types.slice(1)} | AxlonAI`;
+  const description = manufacturer.short_description || `Browse ${manufacturer.name} equipment on AxlonAI. Find trucks, trailers, and equipment.`;
 
   return {
     title,
@@ -380,7 +380,7 @@ export default async function ManufacturerPage({ params }: PageProps) {
                   No Listings Available
                 </h3>
                 <p className="text-slate-500 mb-4">
-                  There are currently no {manufacturer.name} listings on AxlesAI.
+                  There are currently no {manufacturer.name} listings on AxlonAI.
                 </p>
                 <Link href="/search">
                   <Button variant="outline">Browse All Equipment</Button>

@@ -29,7 +29,7 @@ export function MobileContactBar({ phone, email, dealerName }: MobileContactBarP
         )}
         {email && (
           <Button size="lg" variant="outline" className="flex-1 gap-2" asChild>
-            <a href={`mailto:${email}?subject=Inquiry from AxlesAI - ${dealerName}`}>
+            <a href={`mailto:${email}?subject=Inquiry from AxlonAI - ${dealerName}`}>
               <Mail className="w-5 h-5" />
               Email
             </a>

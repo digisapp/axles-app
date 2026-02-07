@@ -216,14 +216,14 @@ export default function BecomeADealerPage() {
           <div>
             <div className="mb-8">
               <Image
-                src="/images/axlesai-logo.png"
-                alt="AxlesAI"
+                src="/images/axlonai-logo.png"
+                alt="AxlonAI"
                 width={120}
                 height={40}
                 className="mb-6"
               />
               <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                Start Selling on AxlesAI
+                Start Selling on AxlonAI
               </h1>
               <p className="text-lg text-muted-foreground">
                 Join the AI-powered marketplace for trucks, trailers, and equipment.

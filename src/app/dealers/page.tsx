@@ -15,8 +15,8 @@ import {
 } from 'lucide-react';
 
 export const metadata = {
-  title: 'Dealer Directory | AxlesAI',
-  description: 'Browse trusted truck and equipment dealers on AxlesAI',
+  title: 'Dealer Directory | AxlonAI',
+  description: 'Browse trusted truck and equipment dealers on AxlonAI',
 };
 
 interface PageProps {

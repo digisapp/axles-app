@@ -145,14 +145,14 @@ export function Sidebar({ unreadMessages = 0, newLeads = 0 }: SidebarProps) {
         <div className="h-16 border-b flex items-center px-4">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/images/axlesai-logo.png"
-              alt="AxlesAI"
+              src="/images/axlonai-logo.png"
+              alt="AxlonAI"
               width={32}
               height={32}
               className="w-8 h-8 flex-shrink-0"
             />
             {!collapsed && (
-              <span className="font-bold text-lg">AxlesAI</span>
+              <span className="font-bold text-lg">AxlonAI</span>
             )}
           </Link>
         </div>

@@ -36,7 +36,7 @@ import { ChatWidget } from '@/components/storefront/ChatWidget';
 import { DealerFilters } from '@/components/storefront/DealerFilters';
 import { MobileContactBar } from '@/components/storefront/MobileContactBar';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axles.ai';
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axlon.ai';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: 'Not Found' };
   }
 
-  const title = `${dealer.company_name} | AxlesAI`;
+  const title = `${dealer.company_name} | AxlonAI`;
   const description = dealer.tagline || `Browse inventory from ${dealer.company_name} in ${dealer.city}, ${dealer.state}`;
 
   return {
@@ -387,7 +387,7 @@ export default async function DealerStorefrontPage({ params, searchParams }: Pag
                   )}
                   {dealer.email && (
                     <Button size="lg" variant="outline" className="gap-2" asChild>
-                      <a href={`mailto:${dealer.email}?subject=Inquiry from AxlesAI`}>
+                      <a href={`mailto:${dealer.email}?subject=Inquiry from AxlonAI`}>
                         <Mail className="w-4 h-4" />
                         Email Dealer
                       </a>

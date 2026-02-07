@@ -110,7 +110,7 @@ export default async function AdminDashboardPage() {
   const { count: pendingOnboarding } = await supabase
     .from('profiles')
     .select('*', { count: 'exact', head: true })
-    .like('email', '%@dealers.axles.ai')
+    .like('email', '%@dealers.axlon.ai')
     .eq('is_dealer', false);
 
   // Get new leads count

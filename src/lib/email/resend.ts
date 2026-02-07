@@ -22,7 +22,7 @@ export async function sendEmail(template: EmailTemplate) {
   const resend = getResend();
 
   const { data, error } = await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL || 'AxlesAI <noreply@axles.ai>',
+    from: process.env.RESEND_FROM_EMAIL || 'AxlonAI <noreply@axlon.ai>',
     to: template.to,
     subject: template.subject,
     html: template.html,

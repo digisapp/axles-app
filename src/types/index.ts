@@ -1,4 +1,4 @@
-// AxlesAI Type Definitions
+// AxlonAI Type Definitions
 
 export interface User {
   id: string;

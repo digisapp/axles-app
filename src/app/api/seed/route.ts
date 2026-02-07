@@ -444,7 +444,7 @@ export async function POST() {
     } else {
       // Create a demo profile
       const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email: 'demo@axles.ai',
+        email: 'demo@axlon.ai',
         password: 'demo-password-123',
         email_confirm: true,
       });
@@ -457,8 +457,8 @@ export async function POST() {
       // Create profile
       await supabase.from('profiles').insert({
         id: authUser.user.id,
-        email: 'demo@axles.ai',
-        company_name: 'AxlesAI Demo',
+        email: 'demo@axlon.ai',
+        company_name: 'AxlonAI Demo',
         phone: '555-123-4567',
         location: 'Dallas, TX',
         is_dealer: true,

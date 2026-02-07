@@ -57,7 +57,7 @@ export function newMessageEmail({
       <body style="${baseStyles} background-color: #f5f5f5; margin: 0; padding: 20px;">
         <div style="${containerStyles} background-color: white; border-radius: 12px;">
           <div style="${headerStyles}">
-            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlesai-logo.png" alt="AxlesAI" height="40" style="height: 40px;">
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlonai-logo.png" alt="AxlonAI" height="40" style="height: 40px;">
           </div>
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">New Message</h1>
@@ -78,8 +78,8 @@ export function newMessageEmail({
           </p>
 
           <div style="${footerStyles}">
-            <p>You received this email because you have an account on AxlesAI.</p>
-            <p>&copy; ${new Date().getFullYear()} AxlesAI. All rights reserved.</p>
+            <p>You received this email because you have an account on AxlonAI.</p>
+            <p>&copy; ${new Date().getFullYear()} AxlonAI. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -106,7 +106,7 @@ export function listingPublishedEmail({
       <body style="${baseStyles} background-color: #f5f5f5; margin: 0; padding: 20px;">
         <div style="${containerStyles} background-color: white; border-radius: 12px;">
           <div style="${headerStyles}">
-            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlesai-logo.png" alt="AxlesAI" height="40" style="height: 40px;">
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlonai-logo.png" alt="AxlonAI" height="40" style="height: 40px;">
           </div>
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">Your Listing is Live!</h1>
@@ -134,7 +134,7 @@ export function listingPublishedEmail({
           </ul>
 
           <div style="${footerStyles}">
-            <p>&copy; ${new Date().getFullYear()} AxlesAI. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} AxlonAI. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -159,14 +159,14 @@ export function welcomeEmail({
       <body style="${baseStyles} background-color: #f5f5f5; margin: 0; padding: 20px;">
         <div style="${containerStyles} background-color: white; border-radius: 12px;">
           <div style="${headerStyles}">
-            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlesai-logo.png" alt="AxlesAI" height="40" style="height: 40px;">
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlonai-logo.png" alt="AxlonAI" height="40" style="height: 40px;">
           </div>
 
-          <h1 style="font-size: 24px; margin-bottom: 16px;">Welcome to AxlesAI!</h1>
+          <h1 style="font-size: 24px; margin-bottom: 16px;">Welcome to AxlonAI!</h1>
 
           <p>Hi ${userName},</p>
 
-          <p>Thank you for joining AxlesAI, the AI-powered marketplace for trucks, trailers, and equipment.</p>
+          <p>Thank you for joining AxlonAI, the AI-powered marketplace for trucks, trailers, and equipment.</p>
 
           <p style="text-align: center; margin: 32px 0;">
             <a href="${dashboardUrl}" style="${buttonStyles}">
@@ -183,7 +183,7 @@ export function welcomeEmail({
           </ul>
 
           <div style="${footerStyles}">
-            <p>&copy; ${new Date().getFullYear()} AxlesAI. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} AxlonAI. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -214,7 +214,7 @@ export function inquiryReceivedEmail({
       <body style="${baseStyles} background-color: #f5f5f5; margin: 0; padding: 20px;">
         <div style="${containerStyles} background-color: white; border-radius: 12px;">
           <div style="${headerStyles}">
-            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlesai-logo.png" alt="AxlesAI" height="40" style="height: 40px;">
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlonai-logo.png" alt="AxlonAI" height="40" style="height: 40px;">
           </div>
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">New Inquiry Received!</h1>
@@ -239,7 +239,7 @@ export function inquiryReceivedEmail({
           </p>
 
           <div style="${footerStyles}">
-            <p>&copy; ${new Date().getFullYear()} AxlesAI. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} AxlonAI. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -268,7 +268,7 @@ export function newChatConversationEmail({
       <body style="${baseStyles} background-color: #f5f5f5; margin: 0; padding: 20px;">
         <div style="${containerStyles} background-color: white; border-radius: 12px;">
           <div style="${headerStyles}">
-            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlesai-logo.png" alt="AxlesAI" height="40" style="height: 40px;">
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlonai-logo.png" alt="AxlonAI" height="40" style="height: 40px;">
           </div>
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">New Chat on Your Storefront</h1>
@@ -291,7 +291,7 @@ export function newChatConversationEmail({
 
           <div style="${footerStyles}">
             <p style="font-size: 12px; color: #999;">You can manage notification preferences in your dashboard settings.</p>
-            <p>&copy; ${new Date().getFullYear()} AxlesAI. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} AxlonAI. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -324,7 +324,7 @@ export function chatLeadCapturedEmail({
       <body style="${baseStyles} background-color: #f5f5f5; margin: 0; padding: 20px;">
         <div style="${containerStyles} background-color: white; border-radius: 12px;">
           <div style="${headerStyles}">
-            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlesai-logo.png" alt="AxlesAI" height="40" style="height: 40px;">
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlonai-logo.png" alt="AxlonAI" height="40" style="height: 40px;">
           </div>
 
           <div style="background-color: #10b981; color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 24px;">
@@ -373,7 +373,7 @@ export function chatLeadCapturedEmail({
 
           <div style="${footerStyles}">
             <p style="font-size: 12px; color: #999;">You can manage notification preferences in your dashboard settings.</p>
-            <p>&copy; ${new Date().getFullYear()} AxlesAI. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} AxlonAI. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -414,7 +414,7 @@ export function savedSearchAlertEmail({
       <body style="${baseStyles} background-color: #f5f5f5; margin: 0; padding: 20px;">
         <div style="${containerStyles} background-color: white; border-radius: 12px;">
           <div style="${headerStyles}">
-            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlesai-logo.png" alt="AxlesAI" height="40" style="height: 40px;">
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlonai-logo.png" alt="AxlonAI" height="40" style="height: 40px;">
           </div>
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">${newListingsCount} New Matches!</h1>
@@ -440,8 +440,8 @@ export function savedSearchAlertEmail({
           </p>
 
           <div style="${footerStyles}">
-            <p style="font-size: 12px; color: #999;">You're receiving this because you saved this search on AxlesAI. Manage your alerts in your dashboard.</p>
-            <p>&copy; ${new Date().getFullYear()} AxlesAI. All rights reserved.</p>
+            <p style="font-size: 12px; color: #999;">You're receiving this because you saved this search on AxlonAI. Manage your alerts in your dashboard.</p>
+            <p>&copy; ${new Date().getFullYear()} AxlonAI. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -476,7 +476,7 @@ export function newLeadEmail({
       <body style="${baseStyles} background-color: #f5f5f5; margin: 0; padding: 20px;">
         <div style="${containerStyles} background-color: white; border-radius: 12px;">
           <div style="${headerStyles}">
-            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlesai-logo.png" alt="AxlesAI" height="40" style="height: 40px;">
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/axlonai-logo.png" alt="AxlonAI" height="40" style="height: 40px;">
           </div>
 
           <div style="background-color: #0066cc; color: white; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 24px;">
@@ -528,7 +528,7 @@ export function newLeadEmail({
 
           <div style="${footerStyles}">
             <p style="font-size: 12px; color: #999;">You can manage notification preferences in your dashboard settings.</p>
-            <p>&copy; ${new Date().getFullYear()} AxlesAI. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} AxlonAI. All rights reserved.</p>
           </div>
         </div>
       </body>

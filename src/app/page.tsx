@@ -126,13 +126,13 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/images/axlesai-logo.png"
-              alt="AxlesAI"
+              src="/images/axlonai-logo.png"
+              alt="AxlonAI"
               width={28}
               height={28}
               className="w-7 h-7"
             />
-            <span className="font-semibold text-sm">AxlesAI</span>
+            <span className="font-semibold text-sm">AxlonAI</span>
           </Link>
           <div className="flex gap-2 items-center">
             {isLoading ? (
@@ -210,8 +210,8 @@ export default function HomePage() {
           isTyping && "logo-glow scale-105"
         )}>
           <Image
-            src="/images/axlesai-logo-eyes.png"
-            alt="AxlesAI"
+            src="/images/axlonai-logo-eyes.png"
+            alt="AxlonAI"
             width={200}
             height={80}
             priority
@@ -339,14 +339,14 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
             <Image
-              src="/images/axlesai-logo.png"
-              alt="AxlesAI"
+              src="/images/axlonai-logo.png"
+              alt="AxlonAI"
               width={20}
               height={20}
               className="w-5 h-5"
             />
             <p className="text-xs md:text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} AxlesAI. All rights reserved.
+              &copy; {new Date().getFullYear()} AxlonAI. All rights reserved.
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-4 md:gap-6">

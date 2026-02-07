@@ -1,5 +1,5 @@
-// AxlesAI Service Worker v1.0.0
-const CACHE_NAME = 'axlesai-v1';
+// AxlonAI Service Worker v1.0.0
+const CACHE_NAME = 'axlonai-v1';
 const OFFLINE_URL = '/offline';
 
 // Assets to cache immediately on install
@@ -9,7 +9,7 @@ const PRECACHE_ASSETS = [
   '/offline',
   '/manifest.json',
   '/favicon.png',
-  '/images/axlesai-logo.png',
+  '/images/axlonai-logo.png',
 ];
 
 // Install event - precache critical assets
@@ -148,7 +148,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'AxlesAI', options)
+    self.registration.showNotification(data.title || 'AxlonAI', options)
   );
 });
 

@@ -1,6 +1,6 @@
 {
-  "name": "AxlesAI - Truck & Equipment Marketplace",
-  "short_name": "AxlesAI",
+  "name": "AxlonAI - Truck & Equipment Marketplace",
+  "short_name": "AxlonAI",
   "description": "AI-powered marketplace for buying and selling trucks, trailers, and equipment",
   "start_url": "/",
   "display": "standalone",

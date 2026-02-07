@@ -330,9 +330,9 @@ export default async function BillingPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button variant="outline" asChild>
-                <a href="mailto:sales@axles.ai">
+                <a href="mailto:sales@axlon.ai">
                   <Mail className="w-4 h-4 mr-2" />
-                  sales@axles.ai
+                  sales@axlon.ai
                 </a>
               </Button>
               <Button variant="outline" asChild>

@@ -125,15 +125,15 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
     );
   }
 
-  // Determine if routing to AxlesAI (when no seller specified)
-  const isAxlesAI = !sellerId;
+  // Determine if routing to AxlonAI (when no seller specified)
+  const isAxlonAI = !sellerId;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Mail className="w-5 h-5" />
-          {isAxlesAI ? 'Contact AxlesAI' : 'Contact Seller'}
+          {isAxlonAI ? 'Contact AxlonAI' : 'Contact Seller'}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -218,7 +218,7 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            {isAxlesAI
+            {isAxlonAI
               ? 'Our team will respond to your inquiry shortly'
               : 'Your contact info will be shared with the seller'}
           </p>

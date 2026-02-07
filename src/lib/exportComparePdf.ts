@@ -49,7 +49,7 @@ export async function exportComparePdf(listings: CompareListing[]) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text('AxlesAI', margin, 15);
+  doc.text('AxlonAI', margin, 15);
 
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
@@ -153,7 +153,7 @@ export async function exportComparePdf(listings: CompareListing[]) {
     doc.setTextColor(0, 102, 204);
 
     listings.forEach((listing, index) => {
-      const url = `https://axles.ai/listing/${listing.id}`;
+      const url = `https://axlon.ai/listing/${listing.id}`;
       const yPos = finalY + 23 + (index * 6);
       if (yPos < pageHeight - 20) {
         doc.textWithLink(`${listing.title.substring(0, 50)}${listing.title.length > 50 ? '...' : ''}`, margin, yPos, { url });
@@ -168,10 +168,10 @@ export async function exportComparePdf(listings: CompareListing[]) {
   doc.setTextColor(100, 100, 100);
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('AxlesAI - AI-Powered Truck & Equipment Marketplace', margin, pageHeight - 7);
-  doc.text('https://axles.ai', pageWidth - margin, pageHeight - 7, { align: 'right' });
+  doc.text('AxlonAI - AI-Powered Truck & Equipment Marketplace', margin, pageHeight - 7);
+  doc.text('https://axlon.ai', pageWidth - margin, pageHeight - 7, { align: 'right' });
 
   // Download the PDF
-  const filename = `axlesai-comparison-${new Date().toISOString().split('T')[0]}.pdf`;
+  const filename = `axlonai-comparison-${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(filename);
 }

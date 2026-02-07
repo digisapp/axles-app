@@ -350,7 +350,7 @@ export async function parseSearchQuery(query: string): Promise<AISearchResult> {
     const { object } = await generateObject({
       model: xai('grok-3-mini'),
       schema: searchResultSchema,
-      prompt: `You are an AI assistant for AxlesAI, a marketplace for buying and selling trucks, trailers, and heavy equipment.
+      prompt: `You are an AI assistant for AxlonAI, a marketplace for buying and selling trucks, trailers, and heavy equipment.
 
 Parse the following natural language search query and extract structured search filters.
 
@@ -419,7 +419,7 @@ export async function generateSearchSuggestions(partialQuery: string): Promise<s
       schema: z.object({
         suggestions: z.array(z.string()).max(5),
       }),
-      prompt: `You are helping users search for trucks, trailers, and heavy equipment on AxlesAI.
+      prompt: `You are helping users search for trucks, trailers, and heavy equipment on AxlonAI.
 
 Based on this partial search query, suggest 5 relevant completions:
 "${partialQuery}"

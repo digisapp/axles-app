@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, Scale } from 'lucide-react';
 
 export const metadata = {
-  title: 'Axle Weight Calculator | AxlesAI',
+  title: 'Axle Weight Calculator | AxlonAI',
   description: 'Calculate axle weight distribution for your truck and trailer combination. Ensure compliance with federal weight limits and avoid overweight fines.',
 };
 

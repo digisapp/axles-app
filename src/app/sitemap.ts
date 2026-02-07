@@ -11,7 +11,7 @@ function createStaticClient() {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axles.ai';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axlon.ai';
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [

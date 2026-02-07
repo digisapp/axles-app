@@ -22,6 +22,7 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 import { FavoriteButton } from '@/components/listings/FavoriteButton';
 import { ContactSeller } from '@/components/listings/ContactSeller';
@@ -76,9 +77,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const metaDescription = listing.description
     ? listing.description.slice(0, 155) + (listing.description.length > 155 ? '...' : '')
-    : `${metaTitle} - ${priceText}${locationText ? ` in ${locationText}` : ''}. Browse trucks, trailers, and equipment on AxlesAI.`;
+    : `${metaTitle} - ${priceText}${locationText ? ` in ${locationText}` : ''}. Browse trucks, trailers, and equipment on AxlonAI.`;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axles.ai';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axlon.ai';
 
   return {
     title: metaTitle,
@@ -233,7 +234,7 @@ export default async function ListingPage({ params }: PageProps) {
     imageUrl: primaryImage?.url || null,
   };
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axles.ai';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axlon.ai';
   const listingUrl = `${baseUrl}/listing/${id}`;
 
   return (
@@ -350,22 +351,22 @@ export default async function ListingPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Mobile Contact CTA - AxlesAI */}
+            {/* Mobile Contact CTA - AxlonAI */}
             <div className="lg:hidden">
               <Card>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Image
-                        src="/images/axlesai-logo.png"
-                        alt="AxlesAI"
+                        src="/images/axlonai-logo.png"
+                        alt="AxlonAI"
                         width={24}
                         height={24}
                       />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold truncate">Listed by AxlesAI</p>
-                      <p className="text-xs text-muted-foreground">AI-powered assistance 24/7</p>
+                      <p className="font-semibold truncate">Listed by AxlonAI</p>
+                      <p className="text-xs text-muted-foreground">Axlon is here to help 24/7</p>
                     </div>
                   </div>
                   <Button className="w-full" size="lg" asChild>
@@ -387,7 +388,7 @@ export default async function ListingPage({ params }: PageProps) {
                       <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm md:text-base">AI Price Analysis</h3>
+                      <h3 className="font-semibold text-sm md:text-base">Axlon&apos;s Price Analysis</h3>
                       <p className="text-xs md:text-sm text-muted-foreground mt-1">
                         Estimated market value:{' '}
                         <strong>${listing.ai_price_estimate.toLocaleString()}</strong>
@@ -511,24 +512,24 @@ export default async function ListingPage({ params }: PageProps) {
 
           {/* Sidebar - Desktop */}
           <div className="hidden lg:block space-y-6">
-            {/* AxlesAI Contact Info */}
+            {/* AxlonAI Contact Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Listed by AxlesAI</CardTitle>
+                <CardTitle>Listed by AxlonAI</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <Image
-                      src="/images/axlesai-logo.png"
-                      alt="AxlesAI"
+                      src="/images/axlonai-logo.png"
+                      alt="AxlonAI"
                       width={32}
                       height={32}
                     />
                   </div>
                   <div>
-                    <p className="font-semibold">AxlesAI</p>
-                    <p className="text-sm text-muted-foreground">AI-powered assistance 24/7</p>
+                    <p className="font-semibold">AxlonAI</p>
+                    <p className="text-sm text-muted-foreground">Axlon is here to help 24/7</p>
                   </div>
                 </div>
 
@@ -543,19 +544,19 @@ export default async function ListingPage({ params }: PageProps) {
                   </Button>
                   <Button variant="outline" className="w-full" asChild>
                     <Link href={`/?ask=${encodeURIComponent(`Tell me about ${listing.title}`)}`}>
-                      <Building2 className="w-4 h-4 mr-2" />
-                      Chat with AI
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Ask Axlon
                     </Link>
                   </Button>
                 </div>
 
                 <p className="text-xs text-muted-foreground text-center">
-                  Questions about this listing? Our AI assistant can help anytime.
+                  Questions about this listing? Ask Axlon anytime.
                 </p>
               </CardContent>
             </Card>
 
-            {/* Contact Form - Routes to AxlesAI */}
+            {/* Contact Form - Routes to AxlonAI */}
             <ContactSeller
               listingId={id}
               sellerId=""
@@ -654,16 +655,16 @@ export default async function ListingPage({ params }: PageProps) {
           {/* Mobile AI Chat */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Chat with AI</CardTitle>
+              <CardTitle className="text-lg">Ask Axlon</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Have questions about this listing? Our AI assistant is available 24/7 to help.
+                Have questions about this listing? Axlon is here to help 24/7.
               </p>
               <Button className="w-full" asChild>
                 <Link href={`/?ask=${encodeURIComponent(`Tell me about ${listing.title}`)}`}>
-                  <Building2 className="w-4 h-4 mr-2" />
-                  Ask AI Assistant
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Ask Axlon
                 </Link>
               </Button>
               <Button variant="outline" className="w-full" asChild>
@@ -675,7 +676,7 @@ export default async function ListingPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
-          {/* Contact Form - Routes to AxlesAI */}
+          {/* Contact Form - Routes to AxlonAI */}
           <ContactSeller
             listingId={id}
             sellerId=""

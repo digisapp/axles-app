@@ -89,7 +89,7 @@ export function PWAInstallPrompt() {
             <Smartphone className="w-6 h-6 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm">Install AxlesAI</h3>
+            <h3 className="font-semibold text-sm">Install AxlonAI</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
               {isIOS
                 ? 'Tap the share button and "Add to Home Screen"'

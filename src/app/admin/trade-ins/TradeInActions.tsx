@@ -54,7 +54,7 @@ export function TradeInActions({
   const [showOfferDialog, setShowOfferDialog] = useState(false);
   const [offerAmount, setOfferAmount] = useState('');
   const [offerMessage, setOfferMessage] = useState(
-    `Hi ${contactName},\n\nThank you for your interest in trading in your ${equipmentInfo}.\n\nAfter reviewing your submission, we'd like to offer you $[AMOUNT] for your equipment.\n\nPlease let us know if you'd like to proceed or if you have any questions.\n\nBest regards,\nAxlesAI Team`
+    `Hi ${contactName},\n\nThank you for your interest in trading in your ${equipmentInfo}.\n\nAfter reviewing your submission, we'd like to offer you $[AMOUNT] for your equipment.\n\nPlease let us know if you'd like to proceed or if you have any questions.\n\nBest regards,\nAxlonAI Team`
   );
   const [isSendingOffer, setIsSendingOffer] = useState(false);
 

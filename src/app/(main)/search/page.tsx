@@ -620,14 +620,24 @@ function SearchPageContent() {
           </div>
         ) : listings.length === 0 ? (
           <div className="text-center py-12 md:py-16">
-            <Filter className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-lg md:text-xl font-semibold mb-2">No listings found</h2>
-            <p className="text-sm md:text-base text-muted-foreground mb-4">
-              Try adjusting your search or filters
+            <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-8 h-8 md:w-10 md:h-10 text-primary" />
+            </div>
+            <h2 className="text-lg md:text-xl font-semibold mb-2">Axlon couldn&apos;t find a match</h2>
+            <p className="text-sm md:text-base text-muted-foreground mb-4 max-w-md mx-auto">
+              No listings match your search. Try different keywords or adjust your filters.
             </p>
-            <Button asChild>
-              <Link href="/search">View All Listings</Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <Button asChild variant="outline">
+                <Link href="/search">Browse All Listings</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Ask Axlon
+                </Link>
+              </Button>
+            </div>
           </div>
         ) : (
           <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4' : 'space-y-4'}>

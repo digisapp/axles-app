@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 
-export const alt = 'AxlesAI - AI-Powered Truck & Equipment Marketplace';
+export const alt = 'AxlonAI - AI-Powered Truck & Equipment Marketplace';
 export const size = {
   width: 1200,
   height: 630,
@@ -82,7 +82,7 @@ export default async function Image() {
               letterSpacing: '-2px',
             }}
           >
-            AxlesAI
+            AxlonAI
           </span>
         </div>
 
@@ -133,7 +133,7 @@ export default async function Image() {
             color: 'rgba(255,255,255,0.4)',
           }}
         >
-          axles.ai
+          axlon.ai
         </div>
       </div>
     ),

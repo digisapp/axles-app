@@ -341,7 +341,7 @@ export default function StorefrontSettingsPage() {
               <CardContent className="space-y-4">
                 <div className="flex gap-2">
                   <div className="flex items-center px-3 bg-muted rounded-l-md border border-r-0 text-sm text-muted-foreground">
-                    axles.ai/
+                    axlon.ai/
                   </div>
                   <Input
                     placeholder="your-company-name"

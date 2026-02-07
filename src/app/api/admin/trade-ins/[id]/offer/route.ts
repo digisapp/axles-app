@@ -39,13 +39,13 @@ export async function POST(
     // Send email
     const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
-      from: 'AxlesAI <noreply@axles.ai>',
+      from: 'AxlonAI <noreply@axlon.ai>',
       to: email,
-      subject: 'Trade-In Offer from AxlesAI',
+      subject: 'Trade-In Offer from AxlonAI',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: #0066cc; padding: 20px; text-align: center;">
-            <img src="https://axles.ai/images/axlesai-logo.png" alt="AxlesAI" height="40" />
+            <img src="https://axlon.ai/images/axlonai-logo.png" alt="AxlonAI" height="40" />
           </div>
           <div style="padding: 30px; background: #ffffff;">
             <h2 style="color: #333; margin-bottom: 20px;">Trade-In Valuation</h2>
@@ -59,7 +59,7 @@ export async function POST(
               </p>
             </div>
             <div style="margin-top: 30px; text-align: center;">
-              <a href="https://axles.ai"
+              <a href="https://axlon.ai"
                  style="display: inline-block; background: #0066cc; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">
                 Browse Equipment
               </a>
@@ -67,7 +67,7 @@ export async function POST(
           </div>
           <div style="padding: 20px; background: #f9f9f9; text-align: center; color: #888; font-size: 12px;">
             <p>Questions? Reply to this email or call us at (469) 421-3536</p>
-            <p>© ${new Date().getFullYear()} AxlesAI. All rights reserved.</p>
+            <p>© ${new Date().getFullYear()} AxlonAI. All rights reserved.</p>
           </div>
         </div>
       `,

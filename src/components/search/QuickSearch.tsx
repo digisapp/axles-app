@@ -47,7 +47,7 @@ const QUICK_LINKS = [
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
-const RECENT_SEARCHES_KEY = 'axles_recent_searches';
+const RECENT_SEARCHES_KEY = 'axlon_recent_searches';
 const MAX_RECENT_SEARCHES = 5;
 
 export function QuickSearch({ open, onOpenChange }: QuickSearchProps) {
@@ -143,7 +143,7 @@ export function QuickSearch({ open, onOpenChange }: QuickSearchProps) {
                 className="inline-flex items-center gap-2 text-primary hover:underline"
               >
                 <Sparkles className="w-4 h-4" />
-                Search for &quot;{query}&quot; with AI
+                Ask Axlon about &quot;{query}&quot;
               </button>
             </div>
           ) : (
@@ -210,7 +210,7 @@ export function QuickSearch({ open, onOpenChange }: QuickSearchProps) {
             </CommandItem>
             <CommandItem value={`ai ${query}`} onSelect={() => handleSearch()}>
               <Sparkles className="mr-2 h-4 w-4" />
-              AI Search: &quot;{query}&quot;
+              Ask Axlon: &quot;{query}&quot;
             </CommandItem>
           </CommandGroup>
         )}
