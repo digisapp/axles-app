@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { estimatePrice } from '@/lib/price-estimator';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, updateListingSchema } from '@/lib/validations/api';
 
 // GET - Fetch a single listing
 export async function GET(
@@ -54,6 +55,19 @@ export async function PUT(
   }
 
   const body = await request.json();
+
+  let validatedData;
+  try {
+    validatedData = validateBody(updateListingSchema, body);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: err.errors },
+        { status: 400 }
+      );
+    }
+    throw err;
+  }
 
   const updateData = {
     title: body.title,

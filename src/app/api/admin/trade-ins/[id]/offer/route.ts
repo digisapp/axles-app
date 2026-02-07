@@ -1,13 +1,24 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, tradeInOfferSchema } from '@/lib/validations/api';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-trade-ins',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
     const { id } = await params;
     const body = await request.json();
@@ -28,14 +39,19 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { offer_amount, message, email } = body;
-
-    if (!email || !offer_amount) {
-      return NextResponse.json(
-        { error: 'Email and offer amount are required' },
-        { status: 400 }
-      );
+    let validatedData;
+    try {
+      validatedData = validateBody(tradeInOfferSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
     }
+    const { offer_amount, message, email } = validatedData;
 
     // Send email
     const resend = new Resend(process.env.RESEND_API_KEY);
@@ -51,7 +67,7 @@ export async function POST(
           <div style="padding: 30px; background: #ffffff;">
             <h2 style="color: #333; margin-bottom: 20px;">Trade-In Valuation</h2>
             <div style="white-space: pre-line; color: #555; line-height: 1.6;">
-              ${message.replace(/\n/g, '<br/>')}
+              ${(message || '').replace(/\n/g, '<br/>')}
             </div>
             <div style="margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 8px; text-align: center;">
               <p style="color: #666; margin-bottom: 10px;">Our Offer</p>

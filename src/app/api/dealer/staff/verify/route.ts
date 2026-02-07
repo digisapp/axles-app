@@ -50,8 +50,8 @@ function verifyPin(inputPin: string, staff: { id: string; voice_pin?: string; pi
             .from('dealer_staff')
             .update({ pin_hash: hashedPin, voice_pin: null })
             .eq('id', staff.id);
-        }).catch(() => {
-          // Migration failed silently - will retry on next login
+        }).catch((err: unknown) => {
+          logger.error('PIN hash migration failed', { staffId: staff.id, error: err });
         });
         return true;
       }

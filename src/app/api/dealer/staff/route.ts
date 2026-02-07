@@ -1,10 +1,21 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, createStaffSchema } from '@/lib/validations/api';
 
 // GET - List dealer staff
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-staff',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -49,6 +60,15 @@ export async function GET() {
 // POST - Add new staff member
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-staff',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -69,20 +89,17 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // Validate required fields
-    if (!body.name || !body.voice_pin) {
-      return NextResponse.json(
-        { error: 'Name and voice PIN are required' },
-        { status: 400 }
-      );
-    }
-
-    // Validate PIN format (4-6 digits)
-    if (!/^\d{4,6}$/.test(body.voice_pin)) {
-      return NextResponse.json(
-        { error: 'Voice PIN must be 4-6 digits' },
-        { status: 400 }
-      );
+    let validatedData;
+    try {
+      validatedData = validateBody(createStaffSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
     }
 
     // Check if PIN already exists for this dealer
@@ -90,7 +107,7 @@ export async function POST(request: NextRequest) {
       .from('dealer_staff')
       .select('id')
       .eq('dealer_id', user.id)
-      .eq('voice_pin', body.voice_pin)
+      .eq('voice_pin', validatedData.voice_pin)
       .single();
 
     if (existing) {
@@ -105,16 +122,16 @@ export async function POST(request: NextRequest) {
       .from('dealer_staff')
       .insert({
         dealer_id: user.id,
-        name: body.name,
-        role: body.role || 'sales',
-        phone_number: body.phone_number || null,
-        email: body.email || null,
-        voice_pin: body.voice_pin,
-        access_level: body.access_level || 'standard',
-        can_view_costs: body.can_view_costs || false,
-        can_view_margins: body.can_view_margins || false,
-        can_view_all_leads: body.can_view_all_leads ?? true,
-        can_modify_inventory: body.can_modify_inventory || false,
+        name: validatedData.name,
+        role: validatedData.role || 'sales',
+        phone_number: validatedData.phone_number || null,
+        email: validatedData.email || null,
+        voice_pin: validatedData.voice_pin,
+        access_level: validatedData.access_level || 'standard',
+        can_view_costs: validatedData.can_view_costs || false,
+        can_view_margins: validatedData.can_view_margins || false,
+        can_view_all_leads: validatedData.can_view_all_leads ?? true,
+        can_modify_inventory: validatedData.can_modify_inventory || false,
       })
       .select()
       .single();

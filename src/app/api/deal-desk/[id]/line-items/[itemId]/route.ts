@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { updateLineItemSchema } from '@/lib/validations/deals';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
 
 interface RouteParams {
@@ -10,6 +11,15 @@ interface RouteParams {
 // PATCH - Update line item
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:deal-desk-line-items',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id, itemId } = await params;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -100,6 +110,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 // DELETE - Remove line item
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:deal-desk-line-items',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id, itemId } = await params;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

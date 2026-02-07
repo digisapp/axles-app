@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { translateListings, detectLanguage, needsTranslation, type TranslationLanguage } from '@/lib/translate';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.ai,
+      prefix: 'ratelimit:ai-translate',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { listings, targetLang } = await request.json();
 
     if (!listings || !Array.isArray(listings)) {

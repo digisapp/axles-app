@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
 
 // Listing type for database queries
@@ -679,6 +680,15 @@ function extractCategory(query: string): string | null {
 
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.ai,
+      prefix: 'ratelimit:ai-chat',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { query } = await request.json();
 
     if (!query || typeof query !== 'string') {

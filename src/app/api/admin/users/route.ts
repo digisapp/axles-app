@@ -87,20 +87,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
     }
 
-    // Get user stats for each user
-    const usersWithStats = await Promise.all(
-      (users || []).map(async (user) => {
-        const { count: listingCount } = await supabase
-          .from('listings')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+    // Get listing counts for all users in a single query (avoids N+1)
+    const userIds = (users || []).map(u => u.id);
+    const countMap = new Map<string, number>();
 
-        return {
-          ...user,
-          listing_count: listingCount || 0,
-        };
-      })
-    );
+    if (userIds.length > 0) {
+      const { data: userListings } = await supabase
+        .from('listings')
+        .select('user_id')
+        .in('user_id', userIds);
+
+      (userListings || []).forEach((l: { user_id: string }) => {
+        countMap.set(l.user_id, (countMap.get(l.user_id) || 0) + 1);
+      });
+    }
+
+    const usersWithStats = (users || []).map(user => ({
+      ...user,
+      listing_count: countMap.get(user.id) || 0,
+    }));
 
     // Get overall counts
     const { count: totalUsers } = await supabase

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, conversationReplySchema } from '@/lib/validations/api';
 
 export async function POST(
   request: NextRequest,
@@ -17,11 +18,20 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { message } = await request.json();
-
-    if (!message?.trim()) {
-      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+    const body = await request.json();
+    let validatedData;
+    try {
+      validatedData = validateBody(conversationReplySchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
     }
+    const { message } = validatedData;
 
     // Verify dealer owns this conversation
     const { data: conversation } = await supabase

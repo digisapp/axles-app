@@ -7,6 +7,15 @@ import { logger } from '@/lib/logger';
 // GET - List floored units
 export async function GET(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:floor-plan-units',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 

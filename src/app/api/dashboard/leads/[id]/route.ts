@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, updateLeadSchema } from '@/lib/validations/api';
 
 export async function PATCH(
   request: NextRequest,
@@ -19,25 +20,28 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const {
-      status,
-      priority,
-      notes,
-      last_contacted_at,
-      follow_up_date,
-      follow_up_note,
-      assigned_to,
-    } = body;
+    let validatedData;
+    try {
+      validatedData = validateBody(updateLeadSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
 
     // Build update object with only provided fields
     const updates: Record<string, unknown> = {};
-    if (status !== undefined) updates.status = status;
-    if (priority !== undefined) updates.priority = priority;
-    if (notes !== undefined) updates.notes = notes;
-    if (last_contacted_at !== undefined) updates.last_contacted_at = last_contacted_at;
-    if (follow_up_date !== undefined) updates.follow_up_date = follow_up_date;
-    if (follow_up_note !== undefined) updates.follow_up_note = follow_up_note;
-    if (assigned_to !== undefined) updates.assigned_to = assigned_to;
+    if (validatedData.status !== undefined) updates.status = validatedData.status;
+    if (validatedData.priority !== undefined) updates.priority = validatedData.priority;
+    if (validatedData.notes !== undefined) updates.notes = validatedData.notes;
+    if (body.last_contacted_at !== undefined) updates.last_contacted_at = body.last_contacted_at;
+    if (body.follow_up_date !== undefined) updates.follow_up_date = body.follow_up_date;
+    if (body.follow_up_note !== undefined) updates.follow_up_note = body.follow_up_note;
+    if (body.assigned_to !== undefined) updates.assigned_to = body.assigned_to;
 
     // Update the lead
     const { data, error } = await supabase

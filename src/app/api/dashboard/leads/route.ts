@@ -1,9 +1,20 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, dashboardCreateLeadSchema } from '@/lib/validations/api';
 
 export async function GET(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dashboard-leads',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
 
     const {
@@ -52,8 +63,30 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dashboard-leads',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
     const body = await request.json();
+
+    let validatedData;
+    try {
+      validatedData = validateBody(dashboardCreateLeadSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
 
     const {
       listing_id,
@@ -62,14 +95,7 @@ export async function POST(request: NextRequest) {
       buyer_email,
       buyer_phone,
       message,
-    } = body;
-
-    if (!buyer_name || !buyer_email || !user_id) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
+    } = validatedData;
 
     const { data, error } = await supabase
       .from('leads')

@@ -4,7 +4,9 @@ import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
 import { sendEmail } from '@/lib/email/resend';
 import { newChatConversationEmail } from '@/lib/email/templates';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, chatMessageSchema } from '@/lib/validations/api';
 
 function getXai() {
   if (!process.env.XAI_API_KEY) {
@@ -40,14 +42,29 @@ async function sendNewChatNotification(
 
 export async function POST(request: NextRequest) {
   try {
-    const { dealerId, conversationId, message, chatSettings } = await request.json();
-
-    if (!dealerId || !message) {
-      return NextResponse.json(
-        { error: 'Dealer ID and message are required' },
-        { status: 400 }
-      );
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:chat',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
     }
+
+    const rawBody = await request.json();
+    let validatedData;
+    try {
+      validatedData = validateBody(chatMessageSchema, rawBody);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
+    const { dealerId, conversationId, message, chatSettings } = validatedData;
 
     const supabase = await createClient();
 

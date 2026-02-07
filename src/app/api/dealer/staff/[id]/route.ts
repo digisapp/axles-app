@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, updateStaffSchema } from '@/lib/validations/api';
 
 // GET - Get single staff member
 export async function GET(
@@ -8,6 +10,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-staff',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const supabase = await createClient();
 
@@ -45,6 +56,15 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-staff',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const supabase = await createClient();
 
@@ -67,21 +87,27 @@ export async function PATCH(
 
     const body = await request.json();
 
-    // If updating PIN, validate format and uniqueness
-    if (body.voice_pin) {
-      if (!/^\d{4,6}$/.test(body.voice_pin)) {
+    let validatedData;
+    try {
+      validatedData = validateBody(updateStaffSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
         return NextResponse.json(
-          { error: 'Voice PIN must be 4-6 digits' },
+          { error: 'Validation failed', details: err.errors },
           { status: 400 }
         );
       }
+      throw err;
+    }
 
+    // If updating PIN, validate uniqueness
+    if (validatedData.voice_pin) {
       // Check if PIN already exists for another staff member
       const { data: pinExists } = await supabase
         .from('dealer_staff')
         .select('id')
         .eq('dealer_id', user.id)
-        .eq('voice_pin', body.voice_pin)
+        .eq('voice_pin', validatedData.voice_pin!)
         .neq('id', id)
         .single();
 
@@ -93,18 +119,16 @@ export async function PATCH(
       }
     }
 
-    // Build update object
+    // Build update object from validated data
     const updateData: Record<string, unknown> = {};
-    const allowedFields = [
-      'name', 'role', 'phone_number', 'email', 'voice_pin',
-      'access_level', 'can_view_costs', 'can_view_margins',
-      'can_view_all_leads', 'can_modify_inventory', 'is_active'
-    ];
-
-    for (const field of allowedFields) {
-      if (body[field] !== undefined) {
-        updateData[field] = body[field];
+    for (const [field, value] of Object.entries(validatedData)) {
+      if (value !== undefined) {
+        updateData[field] = value;
       }
+    }
+    // Also allow is_active from body (not in updateStaffSchema)
+    if (body.is_active !== undefined) {
+      updateData.is_active = body.is_active;
     }
 
     const { data: staff, error } = await supabase
@@ -135,6 +159,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-staff',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const supabase = await createClient();
 

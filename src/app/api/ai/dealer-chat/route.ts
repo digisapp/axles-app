@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
 
 // Types
@@ -312,6 +313,15 @@ function extractListingId(query: string): string | null {
 
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.ai,
+      prefix: 'ratelimit:ai-dealer-chat',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const body = await request.json();
     const {
       dealerId,
@@ -505,6 +515,15 @@ Based on this inventory, help the customer find what they need. Only recommend e
 // Create or update conversation
 export async function PUT(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.ai,
+      prefix: 'ratelimit:ai-dealer-chat',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const body = await request.json();
     const {
       dealerId,

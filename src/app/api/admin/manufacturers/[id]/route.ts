@@ -1,13 +1,26 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { checkIsAdmin, logAdminAction } from '@/lib/admin/check-admin';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, manufacturerSchema } from '@/lib/validations/api';
+
+const updateManufacturerSchema = manufacturerSchema.partial();
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-manufacturers',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const { isAdmin } = await checkIsAdmin();
 
@@ -47,10 +60,19 @@ export async function GET(
 }
 
 export async function PATCH(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-manufacturers',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const { isAdmin, userId } = await checkIsAdmin();
 
@@ -59,6 +81,19 @@ export async function PATCH(
     }
 
     const body = await request.json();
+    let validatedData;
+    try {
+      validatedData = validateBody(updateManufacturerSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
+
     const supabase = await createClient();
 
     // Get current manufacturer
@@ -73,11 +108,11 @@ export async function PATCH(
     }
 
     // If slug is changing, check for duplicates
-    if (body.slug && body.slug !== existing.slug) {
+    if (validatedData.slug && validatedData.slug !== existing.slug) {
       const { data: duplicate } = await supabase
         .from('manufacturers')
         .select('id')
-        .eq('slug', body.slug)
+        .eq('slug', validatedData.slug)
         .neq('id', id)
         .single();
 
@@ -99,8 +134,8 @@ export async function PATCH(
     ];
 
     for (const field of allowedFields) {
-      if (body[field] !== undefined) {
-        updateData[field] = body[field];
+      if ((validatedData as Record<string, unknown>)[field] !== undefined) {
+        updateData[field] = (validatedData as Record<string, unknown>)[field];
       }
     }
 
@@ -129,10 +164,19 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-manufacturers',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const { isAdmin, userId } = await checkIsAdmin();
 

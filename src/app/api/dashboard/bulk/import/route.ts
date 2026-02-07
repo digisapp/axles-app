@@ -1,9 +1,20 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, createListingSchema } from '@/lib/validations/api';
 
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dashboard-bulk',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
 
     const {
@@ -15,9 +26,22 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+
+    let validatedData;
+    try {
+      validatedData = validateBody(createListingSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
+
     const {
       title,
-      category,
       price,
       condition,
       year,
@@ -26,16 +50,17 @@ export async function POST(request: NextRequest) {
       mileage,
       vin,
       description,
-      city,
-      state,
-      stock_number,
-      acquisition_cost,
-    } = body;
+    } = validatedData;
+    const category = body.category;
+    const city = body.city;
+    const state = body.state;
+    const stock_number = body.stock_number;
+    const acquisition_cost = body.acquisition_cost;
 
-    // Validate required fields
-    if (!title || !category || price === undefined || !condition) {
+    // Validate category is provided
+    if (!category) {
       return NextResponse.json(
-        { error: 'Missing required fields: title, category, price, condition' },
+        { error: 'Category is required' },
         { status: 400 }
       );
     }

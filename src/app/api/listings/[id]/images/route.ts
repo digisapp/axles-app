@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { validateBody, ValidationError, listingImagesSchema, updateImagesOrderSchema } from '@/lib/validations/api';
 
 // GET - Fetch images for a listing
 export async function GET(
@@ -47,11 +48,19 @@ export async function POST(
   }
 
   const body = await request.json();
-  const { images } = body;
-
-  if (!images || !Array.isArray(images)) {
-    return NextResponse.json({ error: 'Invalid images data' }, { status: 400 });
+  let validatedData;
+  try {
+    validatedData = validateBody(listingImagesSchema, body);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: err.errors },
+        { status: 400 }
+      );
+    }
+    throw err;
   }
+  const { images } = validatedData;
 
   // Get current max sort order
   const { data: existingImages } = await supabase
@@ -110,25 +119,35 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { images } = body;
-
-  if (!images || !Array.isArray(images)) {
-    return NextResponse.json({ error: 'Invalid images data' }, { status: 400 });
-  }
-
-  // Update each image
-  for (const img of images) {
-    if (img.id) {
-      await supabase
-        .from('listing_images')
-        .update({
-          is_primary: img.is_primary,
-          sort_order: img.sort_order,
-        })
-        .eq('id', img.id)
-        .eq('listing_id', id);
+  let validatedOrderData;
+  try {
+    validatedOrderData = validateBody(updateImagesOrderSchema, body);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: err.errors },
+        { status: 400 }
+      );
     }
+    throw err;
   }
+  const { images } = validatedOrderData;
+
+  // Update all images in parallel (avoids sequential N+1)
+  await Promise.all(
+    images
+      .filter((img: { id?: string }) => img.id)
+      .map((img: { id: string; is_primary?: boolean; sort_order?: number }) =>
+        supabase
+          .from('listing_images')
+          .update({
+            is_primary: img.is_primary,
+            sort_order: img.sort_order,
+          })
+          .eq('id', img.id)
+          .eq('listing_id', id)
+      )
+  );
 
   // Fetch updated images
   const { data: updatedImages } = await supabase

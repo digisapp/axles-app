@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
 
 // Popular makes and models for autocomplete
@@ -30,6 +31,15 @@ const POPULAR_CATEGORIES = [
 ];
 
 export async function GET(request: NextRequest) {
+  const identifier = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.search,
+    prefix: 'ratelimit:search-autocomplete',
+  });
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult);
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q')?.toLowerCase() || '';
 

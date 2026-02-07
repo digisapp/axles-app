@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getStripe, PRICING } from '@/lib/stripe/config';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, stripeCheckoutSchema } from '@/lib/validations/api';
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -17,7 +19,29 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { product, listingId, successUrl, cancelUrl } = await request.json();
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.auth,
+      prefix: 'ratelimit:stripe',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
+    const rawBody = await request.json();
+    let validatedData;
+    try {
+      validatedData = validateBody(stripeCheckoutSchema, rawBody);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
+    const { product, listingId, successUrl, cancelUrl } = validatedData;
 
     // Get or create Stripe customer
     const { data: profile } = await supabase

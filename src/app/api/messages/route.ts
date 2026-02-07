@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { validateBody, ValidationError, createMessageSchema } from '@/lib/validations/api';
 
 // GET - Fetch conversations for the current user
 export async function GET(request: NextRequest) {
+  const identifier = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.standard,
+    prefix: 'ratelimit:messages',
+  });
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult);
+  }
+
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -64,6 +75,15 @@ export async function GET(request: NextRequest) {
 
 // POST - Send a new message
 export async function POST(request: NextRequest) {
+  const identifier = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.standard,
+    prefix: 'ratelimit:messages',
+  });
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult);
+  }
+
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -72,11 +92,19 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { listing_id, recipient_id, content } = body;
-
-  if (!listing_id || !recipient_id || !content) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  let validatedData;
+  try {
+    validatedData = validateBody(createMessageSchema, body);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: err.errors },
+        { status: 400 }
+      );
+    }
+    throw err;
   }
+  const { listing_id, recipient_id, content } = validatedData;
 
   // Cannot message yourself
   if (recipient_id === user.id) {

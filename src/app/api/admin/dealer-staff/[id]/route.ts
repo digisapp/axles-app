@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import crypto from 'crypto';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, adminStaffPatchSchema } from '@/lib/validations/api';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -25,6 +27,15 @@ function generatePin(): string {
 // GET /api/admin/dealer-staff/[id] - Get specific staff member details
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-dealer-staff',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const supabase = await createClient();
 
@@ -93,6 +104,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PATCH /api/admin/dealer-staff/[id] - Update staff member (admin actions)
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-dealer-staff',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const supabase = await createClient();
 
@@ -113,14 +133,26 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
+    let validatedData;
+    try {
+      validatedData = validateBody(adminStaffPatchSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
     const updates: Record<string, unknown> = {};
 
     // Handle specific admin actions
-    if (body.action === 'unlock') {
+    if (validatedData.action === 'unlock') {
       // Unlock a locked account
       updates.locked_until = null;
       updates.failed_attempts = 0;
-    } else if (body.action === 'reset_pin') {
+    } else if (validatedData.action === 'reset_pin') {
       // Generate new PIN and hash it
       const newPin = generatePin();
       updates.voice_pin = newPin;
@@ -146,9 +178,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         new_pin: newPin, // One-time display
         message: `PIN reset successfully. New PIN: ${newPin}`,
       });
-    } else if (body.action === 'disable') {
+    } else if (validatedData.action === 'disable') {
       updates.is_active = false;
-    } else if (body.action === 'enable') {
+    } else if (validatedData.action === 'enable') {
       updates.is_active = true;
       updates.locked_until = null;
       updates.failed_attempts = 0;
@@ -168,8 +200,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       ];
 
       for (const field of allowedFields) {
-        if (body[field] !== undefined) {
-          updates[field] = body[field];
+        if ((validatedData as Record<string, unknown>)[field] !== undefined) {
+          updates[field] = (validatedData as Record<string, unknown>)[field];
         }
       }
     }
@@ -210,6 +242,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/admin/dealer-staff/[id] - Delete staff member
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-dealer-staff',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const supabase = await createClient();
 

@@ -9,6 +9,7 @@ import {
   isRedisConfigured,
 } from '@/lib/cache';
 import { createListingSchema, validateBody, ValidationError } from '@/lib/validations/api';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
@@ -218,6 +219,15 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const identifier = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.standard,
+    prefix: 'ratelimit:listings',
+  });
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult);
+  }
+
   const supabase = await createClient();
 
   // Check authentication

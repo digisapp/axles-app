@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, voiceAgentSchema } from '@/lib/validations/api';
 
 /**
  * Validate and normalize phone number to E.164 format
@@ -31,6 +33,15 @@ function validateE164Phone(phone: string): { valid: boolean; normalized: string 
 // GET /api/dealer/voice-agent - Get dealer's voice agent settings
 export async function GET(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-voice-agent',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
 
     // Check authentication
@@ -61,6 +72,15 @@ export async function GET(request: NextRequest) {
 // POST /api/dealer/voice-agent - Create dealer's voice agent
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-voice-agent',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
 
     // Check authentication
@@ -89,17 +109,30 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
+    let validatedData;
+    try {
+      validatedData = validateBody(voiceAgentSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
+
     // Create voice agent with defaults
     const { data: agent, error } = await supabase
       .from('dealer_voice_agents')
       .insert({
         dealer_id: user.id,
-        business_name: body.business_name || profile?.company_name || 'Our Dealership',
-        agent_name: body.agent_name || 'AI Assistant',
-        voice: body.voice || 'Sal',
-        greeting: body.greeting || 'Thanks for calling! How can I help you today?',
-        business_description: body.business_description || '',
-        instructions: body.instructions || '',
+        business_name: validatedData.business_name || profile?.company_name || 'Our Dealership',
+        agent_name: validatedData.agent_name || 'AI Assistant',
+        voice: validatedData.voice || 'Sal',
+        greeting: validatedData.greeting || 'Thanks for calling! How can I help you today?',
+        business_description: validatedData.business_description || '',
+        instructions: validatedData.instructions || '',
         plan_tier: 'trial',
         minutes_included: 30, // Trial gets 30 minutes
         is_active: false, // Not active until phone number assigned
@@ -122,6 +155,15 @@ export async function POST(request: NextRequest) {
 // PATCH /api/dealer/voice-agent - Update dealer's voice agent settings
 export async function PATCH(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-voice-agent',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
 
     // Check authentication
@@ -131,6 +173,19 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
+
+    let validatedData;
+    try {
+      validatedData = validateBody(voiceAgentSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
 
     // Only allow updating certain fields
     const allowedFields = [
@@ -150,8 +205,8 @@ export async function PATCH(request: NextRequest) {
 
     const updates: Record<string, unknown> = {};
     for (const field of allowedFields) {
-      if (body[field] !== undefined) {
-        updates[field] = body[field];
+      if ((validatedData as Record<string, unknown>)[field] !== undefined) {
+        updates[field] = (validatedData as Record<string, unknown>)[field];
       }
     }
 

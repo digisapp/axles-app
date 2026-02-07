@@ -1,10 +1,21 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { checkIsAdmin, logAdminAction } from '@/lib/admin/check-admin';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, manufacturerSchema } from '@/lib/validations/api';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-manufacturers',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { isAdmin } = await checkIsAdmin();
 
     if (!isAdmin) {
@@ -84,8 +95,17 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-manufacturers',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { isAdmin, userId } = await checkIsAdmin();
 
     if (!isAdmin || !userId) {
@@ -93,6 +113,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    let validatedData;
+    try {
+      validatedData = validateBody(manufacturerSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
+
     const {
       name,
       slug,
@@ -109,14 +142,7 @@ export async function POST(request: Request) {
       is_featured,
       feature_tier,
       feature_expires_at,
-    } = body;
-
-    if (!name || !canonical_name) {
-      return NextResponse.json(
-        { error: 'Name and canonical name are required' },
-        { status: 400 }
-      );
-    }
+    } = validatedData;
 
     // Generate slug if not provided
     const finalSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

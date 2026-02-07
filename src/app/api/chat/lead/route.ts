@@ -2,18 +2,35 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email/resend';
 import { chatLeadCapturedEmail } from '@/lib/email/templates';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, chatLeadSchema } from '@/lib/validations/api';
 
 export async function POST(request: NextRequest) {
   try {
-    const { dealerId, conversationId, name, email, phone } = await request.json();
-
-    if (!dealerId || !name || !email) {
-      return NextResponse.json(
-        { error: 'Dealer ID, name, and email are required' },
-        { status: 400 }
-      );
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.auth,
+      prefix: 'ratelimit:chat-lead',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
     }
+
+    const body = await request.json();
+    let validatedData;
+    try {
+      validatedData = validateBody(chatLeadSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
+    const { dealerId, conversationId, name, email, phone } = validatedData;
 
     const supabase = await createClient();
 

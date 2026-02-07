@@ -1,35 +1,59 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, tradeInRequestSchema } from '@/lib/validations/api';
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axlon.ai';
 
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.auth,
+      prefix: 'ratelimit:trade-in',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
     const body = await request.json();
+
+    let validatedData;
+    try {
+      validatedData = validateBody(tradeInRequestSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
 
     // Get current user if logged in
     const { data: { user } } = await supabase.auth.getUser();
 
     const tradeInData = {
       user_id: user?.id || null,
-      contact_name: body.contact_name,
-      contact_email: body.contact_email,
-      contact_phone: body.contact_phone || null,
-      equipment_year: body.equipment_year || null,
-      equipment_make: body.equipment_make,
-      equipment_model: body.equipment_model,
-      equipment_vin: body.equipment_vin || null,
-      equipment_mileage: body.equipment_mileage || null,
-      equipment_hours: body.equipment_hours || null,
-      equipment_condition: body.equipment_condition || null,
-      equipment_description: body.equipment_description || null,
-      photos: body.photos || [],
-      interested_listing_id: body.interested_listing_id || null,
-      interested_category_id: body.interested_category_id || null,
-      purchase_timeline: body.purchase_timeline || null,
+      contact_name: validatedData.contact_name,
+      contact_email: validatedData.contact_email,
+      contact_phone: validatedData.contact_phone || null,
+      equipment_year: validatedData.equipment_year || null,
+      equipment_make: validatedData.equipment_make,
+      equipment_model: validatedData.equipment_model,
+      equipment_vin: validatedData.equipment_vin || null,
+      equipment_mileage: validatedData.equipment_mileage || null,
+      equipment_hours: validatedData.equipment_hours || null,
+      equipment_condition: validatedData.equipment_condition || null,
+      equipment_description: validatedData.equipment_description || null,
+      photos: validatedData.photos || [],
+      interested_listing_id: validatedData.interested_listing_id || null,
+      interested_category_id: validatedData.interested_category_id || null,
+      purchase_timeline: validatedData.purchase_timeline || null,
       status: 'pending',
     };
 
@@ -42,7 +66,7 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
 
     // Send email notification to admin
-    const equipmentInfo = [body.equipment_year, body.equipment_make, body.equipment_model]
+    const equipmentInfo = [validatedData.equipment_year, validatedData.equipment_make, validatedData.equipment_model]
       .filter(Boolean)
       .join(' ');
 
@@ -63,23 +87,23 @@ export async function POST(request: NextRequest) {
               <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                 <h3 style="color: #333; margin: 0 0 15px 0;">Equipment Details</h3>
                 <p style="margin: 5px 0;"><strong>Equipment:</strong> ${equipmentInfo || 'Not specified'}</p>
-                ${body.equipment_vin ? `<p style="margin: 5px 0;"><strong>VIN:</strong> ${body.equipment_vin}</p>` : ''}
-                ${body.equipment_mileage ? `<p style="margin: 5px 0;"><strong>Mileage:</strong> ${body.equipment_mileage.toLocaleString()} miles</p>` : ''}
-                ${body.equipment_hours ? `<p style="margin: 5px 0;"><strong>Hours:</strong> ${body.equipment_hours.toLocaleString()}</p>` : ''}
-                ${body.equipment_condition ? `<p style="margin: 5px 0;"><strong>Condition:</strong> ${body.equipment_condition}</p>` : ''}
-                ${body.equipment_description ? `<p style="margin: 10px 0 0 0;"><strong>Description:</strong><br/>${body.equipment_description}</p>` : ''}
+                ${validatedData.equipment_vin ? `<p style="margin: 5px 0;"><strong>VIN:</strong> ${validatedData.equipment_vin}</p>` : ''}
+                ${validatedData.equipment_mileage ? `<p style="margin: 5px 0;"><strong>Mileage:</strong> ${validatedData.equipment_mileage.toLocaleString()} miles</p>` : ''}
+                ${validatedData.equipment_hours ? `<p style="margin: 5px 0;"><strong>Hours:</strong> ${validatedData.equipment_hours.toLocaleString()}</p>` : ''}
+                ${validatedData.equipment_condition ? `<p style="margin: 5px 0;"><strong>Condition:</strong> ${validatedData.equipment_condition}</p>` : ''}
+                ${validatedData.equipment_description ? `<p style="margin: 10px 0 0 0;"><strong>Description:</strong><br/>${validatedData.equipment_description}</p>` : ''}
               </div>
 
               <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                 <h3 style="color: #333; margin: 0 0 15px 0;">Contact Information</h3>
-                <p style="margin: 5px 0;"><strong>Name:</strong> ${body.contact_name}</p>
-                <p style="margin: 5px 0;"><strong>Email:</strong> <a href="mailto:${body.contact_email}">${body.contact_email}</a></p>
-                ${body.contact_phone ? `<p style="margin: 5px 0;"><strong>Phone:</strong> <a href="tel:${body.contact_phone}">${body.contact_phone}</a></p>` : ''}
+                <p style="margin: 5px 0;"><strong>Name:</strong> ${validatedData.contact_name}</p>
+                <p style="margin: 5px 0;"><strong>Email:</strong> <a href="mailto:${validatedData.contact_email}">${validatedData.contact_email}</a></p>
+                ${body.contact_phone ? `<p style="margin: 5px 0;"><strong>Phone:</strong> <a href="tel:${validatedData.contact_phone}">${validatedData.contact_phone}</a></p>` : ''}
               </div>
 
-              ${body.purchase_timeline ? `
+              ${validatedData.purchase_timeline ? `
               <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <p style="margin: 0;"><strong>Purchase Timeline:</strong> ${body.purchase_timeline.replace('_', ' ')}</p>
+                <p style="margin: 0;"><strong>Purchase Timeline:</strong> ${validatedData.purchase_timeline.replace('_', ' ')}</p>
               </div>
               ` : ''}
 
@@ -113,6 +137,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:trade-in',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');

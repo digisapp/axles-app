@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { verifyInternalRequest } from '@/lib/security/internal-auth';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, aiLeadUpdateSchema, aiLeadNotificationSchema } from '@/lib/validations/api';
 
 // Get dealer's AI leads
 export async function GET(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-ai-leads',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -84,6 +95,15 @@ export async function GET(request: NextRequest) {
 // Update lead status
 export async function PATCH(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-ai-leads',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const supabase = await createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -95,14 +115,19 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { leadId, status, notes } = body;
-
-    if (!leadId) {
-      return NextResponse.json(
-        { error: 'Lead ID is required' },
-        { status: 400 }
-      );
+    let validatedData;
+    try {
+      validatedData = validateBody(aiLeadUpdateSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
     }
+    const { leadId, status, notes } = validatedData;
 
     const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
@@ -149,6 +174,15 @@ export async function PATCH(request: NextRequest) {
 // Requires HMAC signature verification via x-internal-signature header
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:dealer-ai-leads',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     // Verify this is an authenticated internal request
     if (!verifyInternalRequest(request)) {
       return NextResponse.json(
@@ -158,7 +192,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { dealerId, leadId } = body;
+    let validatedNotification;
+    try {
+      validatedNotification = validateBody(aiLeadNotificationSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
+    const { dealerId, leadId } = validatedNotification;
 
     const supabase = await createClient();
 

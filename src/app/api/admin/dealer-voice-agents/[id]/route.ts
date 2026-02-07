@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
+import { validateBody, ValidationError, adminVoiceAgentUpdateSchema } from '@/lib/validations/api';
 
 /**
  * Validate and normalize phone number to E.164 format
@@ -35,6 +37,15 @@ interface RouteParams {
 // GET /api/admin/dealer-voice-agents/[id] - Get specific dealer voice agent
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-dealer-voice-agents',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const supabase = await createClient();
 
@@ -105,6 +116,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PATCH /api/admin/dealer-voice-agents/[id] - Update dealer voice agent
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-dealer-voice-agents',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const supabase = await createClient();
 
@@ -126,6 +146,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
+    let validatedData;
+    try {
+      validatedData = validateBody(adminVoiceAgentUpdateSchema, body);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: err.errors },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
 
     // Admin can update all fields
     const allowedFields = [
@@ -155,8 +187,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const updates: Record<string, unknown> = {};
     for (const field of allowedFields) {
-      if (body[field] !== undefined) {
-        updates[field] = body[field];
+      if ((validatedData as Record<string, unknown>)[field] !== undefined) {
+        updates[field] = (validatedData as Record<string, unknown>)[field];
       }
     }
 
@@ -184,12 +216,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     // Auto-set provisioned if phone number added
-    if (body.phone_number && !body.is_provisioned) {
+    if (validatedData.phone_number && !validatedData.is_provisioned) {
       updates.is_provisioned = true;
     }
 
     // Auto-set activated_at when activating
-    if (body.is_active === true) {
+    if (validatedData.is_active === true) {
       const { data: current } = await supabase
         .from('dealer_voice_agents')
         .select('activated_at')
@@ -233,6 +265,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/admin/dealer-voice-agents/[id] - Delete dealer voice agent
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.standard,
+      prefix: 'ratelimit:admin-dealer-voice-agents',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { id } = await params;
     const supabase = await createClient();
 

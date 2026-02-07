@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { decodeVIN } from '@/lib/vin/decoder';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.ai,
+      prefix: 'ratelimit:ai-vin-decode',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const { vin } = await request.json();
 
     if (!vin) {

@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { estimatePrice } from '@/lib/ai/pricing';
 import type { Listing } from '@/types';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
+    const identifier = getClientIdentifier(request);
+    const rateLimitResult = await checkRateLimit(identifier, {
+      ...RATE_LIMITS.ai,
+      prefix: 'ratelimit:ai-price',
+    });
+    if (!rateLimitResult.success) {
+      return rateLimitResponse(rateLimitResult);
+    }
+
     const listing: Partial<Listing> = await request.json();
 
     if (!listing) {

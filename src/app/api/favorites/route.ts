@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { validateBody, ValidationError, favoriteSchema } from '@/lib/validations/api';
 
 // GET - Fetch user's favorites
 export async function GET(request: NextRequest) {
+  const identifier = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.standard,
+    prefix: 'ratelimit:favorites',
+  });
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult);
+  }
+
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -36,6 +47,15 @@ export async function GET(request: NextRequest) {
 
 // POST - Add a favorite
 export async function POST(request: NextRequest) {
+  const identifier = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.standard,
+    prefix: 'ratelimit:favorites',
+  });
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult);
+  }
+
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -44,11 +64,19 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { listing_id } = body;
-
-  if (!listing_id) {
-    return NextResponse.json({ error: 'Listing ID required' }, { status: 400 });
+  let validatedData;
+  try {
+    validatedData = validateBody(favoriteSchema, body);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: err.errors },
+        { status: 400 }
+      );
+    }
+    throw err;
   }
+  const { listing_id } = validatedData;
 
   // Check if listing exists
   const { data: listing } = await supabase
@@ -90,6 +118,15 @@ export async function POST(request: NextRequest) {
 
 // DELETE - Remove a favorite
 export async function DELETE(request: NextRequest) {
+  const identifier = getClientIdentifier(request);
+  const rateLimitResult = await checkRateLimit(identifier, {
+    ...RATE_LIMITS.standard,
+    prefix: 'ratelimit:favorites',
+  });
+  if (!rateLimitResult.success) {
+    return rateLimitResponse(rateLimitResult);
+  }
+
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
