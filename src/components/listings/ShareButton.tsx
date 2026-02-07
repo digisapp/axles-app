@@ -12,6 +12,7 @@ import {
 import { Share2, Link2, Facebook, Twitter, Mail, Check, MessageCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface ShareButtonProps {
   title: string;
@@ -77,7 +78,7 @@ export function ShareButton({
         });
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          console.error('Share failed:', err);
+          logger.error('Share failed', { error: err });
         }
       }
     }

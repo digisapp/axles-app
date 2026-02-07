@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createFloorPlanAccountSchema } from '@/lib/validations/floor-plan';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { logger } from '@/lib/logger';
 
 // GET - List dealer's floor plan accounts
 export async function GET() {
@@ -23,7 +24,7 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching floor plan accounts:', error);
+      logger.error('Error fetching floor plan accounts', { error });
       return NextResponse.json({ error: 'Failed to fetch accounts' }, { status: 500 });
     }
 
@@ -48,7 +49,7 @@ export async function GET() {
 
     return NextResponse.json({ data: accountsWithStats });
   } catch (error) {
-    console.error('Floor plan accounts error:', error);
+    logger.error('Floor plan accounts error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -98,13 +99,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating floor plan account:', error);
+      logger.error('Error creating floor plan account', { error });
       return NextResponse.json({ error: 'Failed to create account' }, { status: 500 });
     }
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    console.error('Floor plan account creation error:', error);
+    logger.error('Floor plan account creation error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

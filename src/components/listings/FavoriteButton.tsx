@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Heart, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface FavoriteButtonProps {
   listingId: string;
@@ -101,7 +102,7 @@ export function FavoriteButton({
       // Revert on error
       setIsFavorited(wasLiked);
       toast.error('Something went wrong');
-      console.error('Favorite toggle error:', error);
+      logger.error('Favorite toggle error', { error });
     } finally {
       setIsToggling(false);
     }

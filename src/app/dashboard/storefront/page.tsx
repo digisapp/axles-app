@@ -28,6 +28,7 @@ import {
   Clock,
   Bell,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export default function StorefrontSettingsPage() {
   const router = useRouter();
@@ -218,7 +219,7 @@ export default function StorefrontSettingsPage() {
         setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (error) {
-      console.error('Save error:', error);
+      logger.error('Save error', { error });
     } finally {
       setIsSaving(false);
     }

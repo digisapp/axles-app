@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { recordPayoffSchema } from '@/lib/validations/floor-plan';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       });
 
     if (paymentError) {
-      console.error('Error recording payoff payment:', paymentError);
+      logger.error('Error recording payoff payment', { error: paymentError });
       return NextResponse.json({ error: 'Failed to record payoff' }, { status: 500 });
     }
 
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (updateError) {
-      console.error('Error updating floor plan to paid off:', updateError);
+      logger.error('Error updating floor plan to paid off', { error: updateError });
       return NextResponse.json({ error: 'Failed to complete payoff' }, { status: 500 });
     }
 
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       message: 'Unit successfully paid off',
     });
   } catch (error) {
-    console.error('Floor plan payoff error:', error);
+    logger.error('Floor plan payoff error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

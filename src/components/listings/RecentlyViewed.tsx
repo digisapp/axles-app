@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, ChevronRight, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
 
 // Helper function to format relative time
 function formatRelativeTime(timestamp: number): string {
@@ -61,7 +62,7 @@ export function addToRecentlyViewed(listing: Omit<RecentListing, 'viewedAt'>) {
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recent));
   } catch (error) {
-    console.error('Error saving to recently viewed:', error);
+    logger.error('Error saving to recently viewed', { error });
   }
 }
 
@@ -72,7 +73,7 @@ export function getRecentlyViewed(): RecentListing[] {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch (error) {
-    console.error('Error reading recently viewed:', error);
+    logger.error('Error reading recently viewed', { error });
     return [];
   }
 }

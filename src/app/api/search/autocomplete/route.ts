@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 // Popular makes and models for autocomplete
 const POPULAR_MAKES = [
@@ -137,7 +138,7 @@ export async function GET(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Error fetching autocomplete suggestions:', error);
+    logger.error('Error fetching autocomplete suggestions', { error });
     // Continue with static suggestions if DB fails
   }
 

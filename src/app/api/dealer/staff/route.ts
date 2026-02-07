@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 // GET - List dealer staff
 export async function GET() {
@@ -40,7 +41,7 @@ export async function GET() {
 
     return NextResponse.json({ data: maskedStaff });
   } catch (error) {
-    console.error('Error fetching dealer staff:', error);
+    logger.error('Error fetching dealer staff', { error });
     return NextResponse.json({ error: 'Failed to fetch staff' }, { status: 500 });
   }
 }
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       message: 'Staff member added successfully',
     });
   } catch (error) {
-    console.error('Error creating dealer staff:', error);
+    logger.error('Error creating dealer staff', { error });
     return NextResponse.json({ error: 'Failed to create staff member' }, { status: 500 });
   }
 }

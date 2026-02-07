@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 // GET - Get deal desk dashboard metrics
 export async function GET(request: NextRequest) {
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
       .rpc('get_deal_metrics', { p_dealer_id: user.id });
 
     if (metricsError) {
-      console.error('Error fetching deal metrics:', metricsError);
+      logger.error('Error fetching deal metrics', { error: metricsError });
       // Return default metrics on error
     }
 
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
       .limit(5);
 
     if (dealsError) {
-      console.error('Error fetching recent deals:', dealsError);
+      logger.error('Error fetching recent deals', { error: dealsError });
     }
 
     // Get deals by status for kanban
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
       .order('updated_at', { ascending: false });
 
     if (statusError) {
-      console.error('Error fetching deals by status:', statusError);
+      logger.error('Error fetching deals by status', { error: statusError });
     }
 
     // Group deals by status for kanban
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
       kanbanData,
     });
   } catch (error) {
-    console.error('Deal desk dashboard error:', error);
+    logger.error('Deal desk dashboard error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { createXai } from '@ai-sdk/xai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import type { AIPriceEstimate, Listing } from '@/types';
+import { logger } from '@/lib/logger';
 import {
   cacheGet,
   cacheSet,
@@ -43,7 +44,7 @@ export async function estimatePrice(listing: Partial<Listing>): Promise<AIPriceE
 
     const cached = await cacheGet<AIPriceEstimate>(cacheKey);
     if (cached) {
-      console.log('Price estimate cache hit');
+      logger.info('Price estimate cache hit');
       return cached;
     }
   }
@@ -107,7 +108,7 @@ Provide a realistic price estimate based on 2024-2025 market data for commercial
     });
 
     await cacheSet(cacheKey, result, CACHE_TTL.PRICE_ESTIMATE);
-    console.log('Price estimate cached');
+    logger.info('Price estimate cached');
   }
 
   return result;

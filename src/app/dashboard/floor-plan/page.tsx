@@ -27,6 +27,7 @@ import type {
   ListingFloorPlan,
   FloorPlanAccountWithStats,
 } from '@/types/floor-plan';
+import { logger } from '@/lib/logger';
 
 export default function FloorPlanDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -71,7 +72,7 @@ export default function FloorPlanDashboardPage() {
         setAccounts(accountsData.data || []);
       }
     } catch (error) {
-      console.error('Error fetching floor plan data:', error);
+      logger.error('Error fetching floor plan data', { error });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -102,7 +103,7 @@ export default function FloorPlanDashboardPage() {
         method: 'POST',
       });
     } catch (error) {
-      console.error('Failed to dismiss alert:', error);
+      logger.error('Failed to dismiss alert', { error });
     }
   };
 
@@ -179,7 +180,7 @@ export default function FloorPlanDashboardPage() {
             units={units}
             onViewDetails={(unit) => {
               // Could open a detail sheet
-              console.log('View details', unit);
+              logger.debug('View details', { unit });
             }}
             onRecordPayment={handleRecordPayment}
             onRecordPayoff={handleRecordPayoff}
@@ -211,7 +212,7 @@ export default function FloorPlanDashboardPage() {
                   account={account}
                   onManage={(id) => {
                     // Could open account management sheet
-                    console.log('Manage account', id);
+                    logger.debug('Manage account', { id });
                   }}
                 />
               ))}

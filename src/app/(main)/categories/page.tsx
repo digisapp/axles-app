@@ -1,4 +1,5 @@
-export const dynamic = 'force-dynamic';
+// Revalidate every hour - categories change infrequently
+export const revalidate = 3600;
 
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';

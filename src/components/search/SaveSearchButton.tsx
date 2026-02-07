@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Bell, BellRing, Loader2, Check } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface SaveSearchButtonProps {
   query?: string;
@@ -64,7 +65,7 @@ export function SaveSearchButton({ query, filters, disabled }: SaveSearchButtonP
         }, 1500);
       }
     } catch (error) {
-      console.error('Save search error:', error);
+      logger.error('Save search error', { error });
     } finally {
       setIsSaving(false);
     }

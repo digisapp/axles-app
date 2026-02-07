@@ -22,6 +22,7 @@ import {
   Camera,
   LogOut,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -129,7 +130,7 @@ export default function SettingsPage() {
         setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (error) {
-      console.error('Save error:', error);
+      logger.error('Save error', { error });
     } finally {
       setIsSaving(false);
     }

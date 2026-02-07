@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 // Listing type for database queries
 interface ListingResult {
@@ -485,7 +486,7 @@ async function queryListings(query: string): Promise<{ listings: ListingResult[]
   const { data: listings, error } = await dbQuery;
 
   if (error || !listings) {
-    console.error('Listing query error:', error);
+    logger.error('Listing query error', { error });
     return { listings: [], stats: null };
   }
 
@@ -958,7 +959,7 @@ Based on this real inventory data, answer the user's question with specific list
     });
 
   } catch (error) {
-    console.error('AI Chat error:', error);
+    logger.error('AI Chat error', { error });
     return NextResponse.json(
       { error: 'Failed to process request' },
       { status: 500 }

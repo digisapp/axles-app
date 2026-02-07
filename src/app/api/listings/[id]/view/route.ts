@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { recordViewBatch, isRedisConfigured } from '@/lib/cache';
+import { logger } from '@/lib/logger';
 
 // Generate a simple session ID for anonymous tracking
 async function getSessionId(req: NextRequest): Promise<string> {
@@ -85,7 +86,7 @@ export async function POST(
       if (viewError.code === '23505') {
         return NextResponse.json({ tracked: false, reason: 'duplicate' });
       }
-      console.error('View tracking error:', viewError);
+      logger.error('View tracking error', { viewError });
     }
 
     // Increment view count - use batching if Redis is available
@@ -112,7 +113,7 @@ export async function POST(
 
     return response;
   } catch (error) {
-    console.error('View tracking error:', error);
+    logger.error('View tracking error', { error });
     return NextResponse.json({ error: 'Failed to track view' }, { status: 500 });
   }
 }

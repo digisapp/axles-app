@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,13 +36,13 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching leads:', error);
+      logger.error('Error fetching leads', { error });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error in GET /api/dashboard/leads:', error);
+    logger.error('Error in GET /api/dashboard/leads', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -86,13 +87,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating lead:', error);
+      logger.error('Error creating lead', { error });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/dashboard/leads:', error);
+    logger.error('Error in POST /api/dashboard/leads', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

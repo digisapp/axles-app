@@ -24,6 +24,7 @@ import {
   Camera,
   Target,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface TradeInFormProps {
   interestedListingId?: string;
@@ -80,7 +81,7 @@ export function TradeInForm({ interestedListingId, interestedCategoryId }: Trade
           setCategories(flat);
         }
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        logger.error('Error fetching categories', { error });
       }
     };
     fetchCategories();
@@ -130,7 +131,7 @@ export function TradeInForm({ interestedListingId, interestedCategoryId }: Trade
         alert('Failed to submit. Please try again.');
       }
     } catch (error) {
-      console.error('Submit error:', error);
+      logger.error('Submit error', { error });
       alert('Failed to submit. Please try again.');
     } finally {
       setIsSubmitting(false);

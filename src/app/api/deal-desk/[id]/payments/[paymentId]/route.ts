@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { updatePaymentSchema } from '@/lib/validations/deals';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string; paymentId: string }>;
@@ -61,7 +62,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (error) {
-      console.error('Error updating payment:', error);
+      logger.error('Error updating payment', { error });
       return NextResponse.json({ error: 'Failed to update payment' }, { status: 500 });
     }
 
@@ -82,7 +83,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Update payment error:', error);
+    logger.error('Update payment error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -140,13 +141,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .eq('id', paymentId);
 
     if (error) {
-      console.error('Error deleting payment:', error);
+      logger.error('Error deleting payment', { error });
       return NextResponse.json({ error: 'Failed to delete payment' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Delete payment error:', error);
+    logger.error('Delete payment error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

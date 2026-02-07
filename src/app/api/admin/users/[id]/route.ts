@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { checkIsAdmin, logAdminAction } from '@/lib/admin/check-admin';
+import { logger } from '@/lib/logger';
 
 export async function PATCH(
   request: Request,
@@ -75,7 +76,7 @@ export async function PATCH(
       .eq('id', id);
 
     if (updateError) {
-      console.error('Error updating user:', updateError);
+      logger.error('Error updating user', { updateError });
       return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
     }
 
@@ -97,7 +98,7 @@ export async function PATCH(
       message: `User ${action}ed successfully`,
     });
   } catch (error) {
-    console.error('Admin user action error:', error);
+    logger.error('Admin user action error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -164,7 +165,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Admin get user error:', error);
+    logger.error('Admin get user error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

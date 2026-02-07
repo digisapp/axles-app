@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { recordPaymentSchema } from '@/lib/validations/floor-plan';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       });
 
     if (paymentError) {
-      console.error('Error recording payment:', paymentError);
+      logger.error('Error recording payment', { error: paymentError });
       return NextResponse.json({ error: 'Failed to record payment' }, { status: 500 });
     }
 
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (updateError) {
-      console.error('Error updating floor plan:', updateError);
+      logger.error('Error updating floor plan', { error: updateError });
       return NextResponse.json({ error: 'Failed to update floor plan' }, { status: 500 });
     }
 
@@ -142,7 +143,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
     });
   } catch (error) {
-    console.error('Floor plan payment error:', error);
+    logger.error('Floor plan payment error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

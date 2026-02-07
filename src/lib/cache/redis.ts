@@ -1,4 +1,5 @@
 import { Redis } from '@upstash/redis';
+import { logger } from '@/lib/logger';
 
 // Lazy initialization - only create client when needed
 let redisClient: Redis | null = null;
@@ -8,7 +9,7 @@ function getRedis(): Redis | null {
 
   // Check if Redis is configured
   if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    console.warn('Redis not configured - caching disabled');
+    logger.warn('Redis not configured - caching disabled');
     return null;
   }
 
@@ -52,7 +53,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
     const data = await redis.get(key);
     return data as T | null;
   } catch (error) {
-    console.error('Cache get error:', error);
+    logger.error('Cache get error', { error });
     return null;
   }
 }
@@ -68,7 +69,7 @@ export async function cacheSet<T>(key: string, value: T, ttlSeconds: number): Pr
     await redis.set(key, JSON.stringify(value), { ex: ttlSeconds });
     return true;
   } catch (error) {
-    console.error('Cache set error:', error);
+    logger.error('Cache set error', { error });
     return false;
   }
 }
@@ -84,7 +85,7 @@ export async function cacheDelete(key: string): Promise<boolean> {
     await redis.del(key);
     return true;
   } catch (error) {
-    console.error('Cache delete error:', error);
+    logger.error('Cache delete error', { error });
     return false;
   }
 }
@@ -103,7 +104,7 @@ export async function cacheDeletePattern(pattern: string): Promise<boolean> {
     }
     return true;
   } catch (error) {
-    console.error('Cache delete pattern error:', error);
+    logger.error('Cache delete pattern error', { error });
     return false;
   }
 }
@@ -123,7 +124,7 @@ export async function cacheIncr(key: string, ttlSeconds?: number): Promise<numbe
     }
     return count;
   } catch (error) {
-    console.error('Cache incr error:', error);
+    logger.error('Cache incr error', { error });
     return 0;
   }
 }
@@ -138,7 +139,7 @@ export async function cacheKeys(pattern: string): Promise<string[]> {
   try {
     return await redis.keys(pattern);
   } catch (error) {
-    console.error('Cache keys error:', error);
+    logger.error('Cache keys error', { error });
     return [];
   }
 }
@@ -154,7 +155,7 @@ export async function cacheMget<T>(...keys: string[]): Promise<(T | null)[]> {
     const values = await redis.mget<(T | null)[]>(...keys);
     return values;
   } catch (error) {
-    console.error('Cache mget error:', error);
+    logger.error('Cache mget error', { error });
     return keys.map(() => null);
   }
 }

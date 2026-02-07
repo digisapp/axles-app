@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { logger } from '@/lib/logger';
 
 export async function POST(
   request: NextRequest,
@@ -85,7 +86,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, message: 'Offer sent successfully' });
   } catch (error) {
-    console.error('Error sending offer:', error);
+    logger.error('Error sending offer', { error });
     return NextResponse.json(
       { error: 'Failed to send offer' },
       { status: 500 }

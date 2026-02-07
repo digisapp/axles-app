@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email/resend';
 import { chatLeadCapturedEmail } from '@/lib/email/templates';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (leadError) {
-      console.error('Error creating lead:', leadError);
+      logger.error('Error creating lead', { leadError });
       // Still return success - conversation was updated
     }
 
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
           }),
         });
       } catch (emailError) {
-        console.error('Failed to send lead notification:', emailError);
+        logger.error('Failed to send lead notification', { emailError });
         // Don't fail the request if email fails
       }
     }
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
       leadId: lead?.id,
     });
   } catch (error) {
-    console.error('Chat lead capture error:', error);
+    logger.error('Chat lead capture error', { error });
     return NextResponse.json(
       { error: 'Failed to capture lead' },
       { status: 500 }

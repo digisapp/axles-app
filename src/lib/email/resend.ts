@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { logger } from '@/lib/logger';
 
 let resendInstance: Resend | null = null;
 
@@ -29,7 +30,7 @@ export async function sendEmail(template: EmailTemplate) {
   });
 
   if (error) {
-    console.error('Email send error:', error);
+    logger.error('Email send error', { error });
     throw error;
   }
 

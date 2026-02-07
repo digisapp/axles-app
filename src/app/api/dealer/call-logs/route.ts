@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 // GET /api/dealer/call-logs - Get dealer's call logs
 export async function GET(request: NextRequest) {
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
     const { data: calls, error, count } = await query;
 
     if (error) {
-      console.error('Error fetching call logs:', error);
+      logger.error('Error fetching call logs', { error });
       return NextResponse.json({ error: 'Failed to fetch call logs' }, { status: 500 });
     }
 
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error in GET /api/dealer/call-logs:', error);
+    logger.error('Error in GET /api/dealer/call-logs', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

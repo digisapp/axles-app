@@ -12,6 +12,7 @@ import {
   DealDetailSheet,
 } from '@/components/dashboard/deal-desk';
 import type { Deal, DealStatus, DealDashboardMetrics } from '@/types/deals';
+import { logger } from '@/lib/logger';
 
 export default function DealDeskPage() {
   const [loading, setLoading] = useState(true);
@@ -51,7 +52,7 @@ export default function DealDeskPage() {
         });
       }
     } catch (error) {
-      console.error('Error fetching deal desk data:', error);
+      logger.error('Error fetching deal desk data', { error });
     } finally {
       setLoading(false);
       setRefreshing(false);

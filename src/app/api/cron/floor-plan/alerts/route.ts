@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logger';
 
 // Verify the request is from Vercel Cron or has correct secret
 function verifyRequest(request: NextRequest): boolean {
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
       .eq('status', 'active');
 
     if (fpError) {
-      console.error('Error fetching floor plans:', fpError);
+      logger.error('Error fetching floor plans', { error: fpError });
       return NextResponse.json({ error: 'Failed to fetch floor plans' }, { status: 500 });
     }
 
@@ -213,7 +214,7 @@ export async function GET(request: NextRequest) {
         .insert(alertsToCreate);
 
       if (insertError) {
-        console.error('Error inserting alerts:', insertError);
+        logger.error('Error inserting alerts', { error: insertError });
       }
     }
 
@@ -278,7 +279,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Cron floor plan alerts error:', error);
+    logger.error('Cron floor plan alerts error', { error });
     return NextResponse.json({ error: 'Failed to generate alerts' }, { status: 500 });
   }
 }

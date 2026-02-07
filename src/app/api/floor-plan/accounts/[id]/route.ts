@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { updateFloorPlanAccountSchema } from '@/lib/validations/floor-plan';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       },
     });
   } catch (error) {
-    console.error('Floor plan account error:', error);
+    logger.error('Floor plan account error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -97,13 +98,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (error) {
-      console.error('Error updating account:', error);
+      logger.error('Error updating account', { error });
       return NextResponse.json({ error: 'Failed to update account' }, { status: 500 });
     }
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Floor plan account update error:', error);
+    logger.error('Floor plan account update error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -144,13 +145,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .eq('dealer_id', user.id);
 
     if (error) {
-      console.error('Error closing account:', error);
+      logger.error('Error closing account', { error });
       return NextResponse.json({ error: 'Failed to close account' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Floor plan account delete error:', error);
+    logger.error('Floor plan account delete error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

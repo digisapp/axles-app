@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function PATCH(
   request: NextRequest,
@@ -31,13 +32,13 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error('Error updating saved search:', error);
+      logger.error('Error updating saved search', { error });
       return NextResponse.json({ error: 'Failed to update saved search' }, { status: 500 });
     }
 
     return NextResponse.json({ search });
   } catch (error) {
-    console.error('Update saved search error:', error);
+    logger.error('Update saved search error', { error });
     return NextResponse.json({ error: 'Failed to update saved search' }, { status: 500 });
   }
 }
@@ -62,13 +63,13 @@ export async function DELETE(
       .eq('user_id', user.id);
 
     if (error) {
-      console.error('Error deleting saved search:', error);
+      logger.error('Error deleting saved search', { error });
       return NextResponse.json({ error: 'Failed to delete saved search' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Delete saved search error:', error);
+    logger.error('Delete saved search error', { error });
     return NextResponse.json({ error: 'Failed to delete saved search' }, { status: 500 });
   }
 }

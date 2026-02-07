@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 // POST - Query internal dealer data (for authenticated staff via AI)
 export async function POST(request: NextRequest) {
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error querying internal data:', error);
+    logger.error('Error querying internal data', { error });
     return NextResponse.json(
       { error: 'Failed to query data' },
       { status: 500 }

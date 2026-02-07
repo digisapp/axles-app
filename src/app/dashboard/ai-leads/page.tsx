@@ -39,6 +39,7 @@ import {
   Bot,
   TrendingUp,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface Lead {
   id: string;
@@ -130,7 +131,7 @@ export default function AILeadsPage() {
         setStats(data.stats || { total: 0, new: 0, contacted: 0, qualified: 0, converted: 0 });
       }
     } catch (error) {
-      console.error('Fetch leads error:', error);
+      logger.error('Fetch leads error', { error });
     } finally {
       setIsLoading(false);
     }
@@ -160,7 +161,7 @@ export default function AILeadsPage() {
         fetchLeads();
       }
     } catch (error) {
-      console.error('Update status error:', error);
+      logger.error('Update status error', { error });
     } finally {
       setIsSaving(false);
     }
@@ -183,7 +184,7 @@ export default function AILeadsPage() {
         }
       }
     } catch (error) {
-      console.error('Update notes error:', error);
+      logger.error('Update notes error', { error });
     }
   };
 

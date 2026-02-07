@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       },
     });
   } catch (error) {
-    console.error('Error in GET /api/admin/dealer-staff/[id]:', error);
+    logger.error('Error in GET /api/admin/dealer-staff/[id]', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -136,7 +137,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         .single();
 
       if (error) {
-        console.error('Error resetting PIN:', error);
+        logger.error('Error resetting PIN', { error });
         return NextResponse.json({ error: 'Failed to reset PIN' }, { status: 500 });
       }
 
@@ -191,7 +192,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (error) {
-      console.error('Error updating staff:', error);
+      logger.error('Error updating staff', { error });
       return NextResponse.json({ error: 'Failed to update staff member' }, { status: 500 });
     }
 
@@ -201,7 +202,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data: safeStaff });
   } catch (error) {
-    console.error('Error in PATCH /api/admin/dealer-staff/[id]:', error);
+    logger.error('Error in PATCH /api/admin/dealer-staff/[id]', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -235,13 +236,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting staff:', error);
+      logger.error('Error deleting staff', { error });
       return NextResponse.json({ error: 'Failed to delete staff member' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in DELETE /api/admin/dealer-staff/[id]:', error);
+    logger.error('Error in DELETE /api/admin/dealer-staff/[id]', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

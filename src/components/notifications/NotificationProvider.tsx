@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode, useMemo } from 'react';
 import { toast } from 'sonner';
 import { MessageSquare, Heart, Bell, DollarSign } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface Notification {
   id: string;
@@ -49,7 +50,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         const client = createClient();
         setSupabase(client);
       } catch (error) {
-        console.error('Failed to initialize Supabase client:', error);
+        logger.error('Failed to initialize Supabase client', { error });
       }
     };
 

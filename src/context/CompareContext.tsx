@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 
 interface CompareListing {
   id: string;
@@ -50,35 +50,37 @@ export function CompareProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('compare-listings', JSON.stringify(listings));
   }, [listings]);
 
-  const addListing = (listing: CompareListing) => {
-    if (listings.length >= MAX_COMPARE) return;
-    if (listings.some((l) => l.id === listing.id)) return;
-    setListings((prev) => [...prev, listing]);
-  };
+  const addListing = useCallback((listing: CompareListing) => {
+    setListings((prev) => {
+      if (prev.length >= MAX_COMPARE) return prev;
+      if (prev.some((l) => l.id === listing.id)) return prev;
+      return [...prev, listing];
+    });
+  }, []);
 
-  const removeListing = (id: string) => {
+  const removeListing = useCallback((id: string) => {
     setListings((prev) => prev.filter((l) => l.id !== id));
-  };
+  }, []);
 
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     setListings([]);
-  };
+  }, []);
 
-  const isInCompare = (id: string) => {
+  const isInCompare = useCallback((id: string) => {
     return listings.some((l) => l.id === id);
-  };
+  }, [listings]);
+
+  const value = useMemo(() => ({
+    listings,
+    addListing,
+    removeListing,
+    clearAll,
+    isInCompare,
+    canAddMore: listings.length < MAX_COMPARE,
+  }), [listings, addListing, removeListing, clearAll, isInCompare]);
 
   return (
-    <CompareContext.Provider
-      value={{
-        listings,
-        addListing,
-        removeListing,
-        clearAll,
-        isInCompare,
-        canAddMore: listings.length < MAX_COMPARE,
-      }}
-    >
+    <CompareContext.Provider value={value}>
       {children}
     </CompareContext.Provider>
   );

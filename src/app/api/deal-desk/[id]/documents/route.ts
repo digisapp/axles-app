@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { uploadDocumentSchema } from '@/lib/validations/deals';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -37,13 +38,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching documents:', error);
+      logger.error('Error fetching documents', { error });
       return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 });
     }
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Documents error:', error);
+    logger.error('Documents error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         });
 
       if (uploadError) {
-        console.error('Error uploading file:', uploadError);
+        logger.error('Error uploading file', { error: uploadError });
         return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
       }
 
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (error) {
-      console.error('Error creating document:', error);
+      logger.error('Error creating document', { error });
       return NextResponse.json({ error: 'Failed to create document' }, { status: 500 });
     }
 
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    console.error('Upload document error:', error);
+    logger.error('Upload document error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

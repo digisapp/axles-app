@@ -41,6 +41,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { logger } from '@/lib/logger';
 
 interface AnalyticsData {
   overview: {
@@ -94,7 +95,7 @@ export default function AdminAnalyticsPage() {
         setData(result);
       }
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      logger.error('Error fetching analytics', { error });
     }
     setIsLoading(false);
   };

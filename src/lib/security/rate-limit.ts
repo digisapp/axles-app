@@ -1,5 +1,6 @@
 import { getRedis } from '@/lib/cache/redis';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 interface RateLimitConfig {
   /** Maximum number of requests allowed in the window */
@@ -87,7 +88,7 @@ export async function checkRateLimit(
       limit,
     };
   } catch (error) {
-    console.error('Rate limit check error:', error);
+    logger.error('Rate limit check error', { error });
     // Fail open on errors
     return {
       success: true,

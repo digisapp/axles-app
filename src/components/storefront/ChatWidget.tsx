@@ -14,6 +14,7 @@ import {
   Minimize2,
   Sparkles,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface ChatMessage {
   id: string;
@@ -128,7 +129,7 @@ export function ChatWidget({ dealerId, dealerName, chatSettings }: ChatWidgetPro
         ]);
       }
     } catch (error) {
-      console.error('Chat error:', error);
+      logger.error('Chat error', { error });
       setMessages((prev) => [
         ...prev,
         {
@@ -171,7 +172,7 @@ export function ChatWidget({ dealerId, dealerName, chatSettings }: ChatWidgetPro
         },
       ]);
     } catch (error) {
-      console.error('Lead submit error:', error);
+      logger.error('Lead submit error', { error });
     }
   };
 

@@ -8,6 +8,7 @@ import { CompareBar } from "@/components/listings/CompareBar";
 import { FloatingCallButton } from "@/components/FloatingCallButton";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { PWAProvider } from "@/components/PWAInstallPrompt";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import "./globals.css";
 
 // Organization JSON-LD Schema for rich search results
@@ -158,17 +159,21 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <NotificationProvider>
-            <CompareProvider>
-              <PWAProvider>
-                {children}
-                <CompareBar />
-                <FloatingCallButton />
-                <KeyboardShortcuts />
-                <Toaster position="top-right" richColors closeButton />
-              </PWAProvider>
-            </CompareProvider>
-          </NotificationProvider>
+          <QueryProvider>
+            <NotificationProvider>
+              <CompareProvider>
+                <PWAProvider>
+                  {children}
+                  <CompareBar />
+                  <FloatingCallButton />
+                  <KeyboardShortcuts />
+                  <div aria-live="polite" aria-atomic="true">
+                    <Toaster position="top-right" richColors closeButton />
+                  </div>
+                </PWAProvider>
+              </CompareProvider>
+            </NotificationProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

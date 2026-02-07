@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function PATCH(
   request: NextRequest,
@@ -48,7 +49,7 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error('Error updating lead:', error);
+      logger.error('Error updating lead', { error });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -58,7 +59,7 @@ export async function PATCH(
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error in PATCH /api/dashboard/leads/[id]:', error);
+    logger.error('Error in PATCH /api/dashboard/leads/[id]', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -89,13 +90,13 @@ export async function DELETE(
       .eq('user_id', user.id);
 
     if (error) {
-      console.error('Error deleting lead:', error);
+      logger.error('Error deleting lead', { error });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in DELETE /api/dashboard/leads/[id]:', error);
+    logger.error('Error in DELETE /api/dashboard/leads/[id]', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

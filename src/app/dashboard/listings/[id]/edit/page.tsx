@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { ImageUpload } from '@/components/listings/ImageUpload';
 import type { Category, AIPriceEstimate } from '@/types';
+import { logger } from '@/lib/logger';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -255,7 +256,7 @@ export default function EditListingPage({ params }: PageProps) {
         alert('Failed to generate description');
       }
     } catch (error) {
-      console.error('Description generation error:', error);
+      logger.error('Description generation error', { error });
       alert('Failed to generate description');
     } finally {
       setIsGeneratingDescription(false);
@@ -292,7 +293,7 @@ export default function EditListingPage({ params }: PageProps) {
         setPriceEstimate(data);
       }
     } catch (error) {
-      console.error('Price estimation error:', error);
+      logger.error('Price estimation error', { error });
     } finally {
       setIsEstimating(false);
     }
@@ -346,7 +347,7 @@ export default function EditListingPage({ params }: PageProps) {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
-      console.error('Save error:', error);
+      logger.error('Save error', { error });
       alert('Failed to save listing');
     } finally {
       setIsSaving(false);
@@ -367,7 +368,7 @@ export default function EditListingPage({ params }: PageProps) {
         throw new Error('Failed to delete');
       }
     } catch (error) {
-      console.error('Delete error:', error);
+      logger.error('Delete error', { error });
       alert('Failed to delete listing');
       setIsDeleting(false);
     }
@@ -388,7 +389,7 @@ export default function EditListingPage({ params }: PageProps) {
         throw new Error('Failed to clone');
       }
     } catch (error) {
-      console.error('Clone error:', error);
+      logger.error('Clone error', { error });
       alert('Failed to clone listing');
       setIsCloning(false);
     }

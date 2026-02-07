@@ -1,5 +1,6 @@
 import { xai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
+import { logger } from '@/lib/logger';
 
 // Free email domains that indicate individual (not company) buyers
 const FREE_EMAIL_DOMAINS = [
@@ -206,7 +207,7 @@ Respond with this exact JSON format (no other text):
       }
     }
   } catch (error) {
-    console.error('AI scoring failed, using basic score:', error);
+    logger.error('AI scoring failed, using basic score', { error });
   }
 
   return basicResult;

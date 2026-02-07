@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeImage } from '@/lib/ai/vision';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: analysis });
   } catch (error) {
-    console.error('Image analysis error:', error);
+    logger.error('Image analysis error', { error });
     return NextResponse.json(
       { error: 'Failed to analyze image' },
       { status: 500 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 // Types
 interface DealerAISettings {
@@ -123,7 +124,7 @@ async function queryDealerListings(
   const { data: listings, error } = await dbQuery;
 
   if (error || !listings) {
-    console.error('Dealer listing query error:', error);
+    logger.error('Dealer listing query error', { error });
     return { listings: [], stats: null };
   }
 
@@ -493,7 +494,7 @@ Based on this inventory, help the customer find what they need. Only recommend e
     });
 
   } catch (error) {
-    console.error('Dealer AI Chat error:', error);
+    logger.error('Dealer AI Chat error', { error });
     return NextResponse.json(
       { error: 'Failed to process request' },
       { status: 500 }
@@ -539,7 +540,7 @@ export async function PUT(request: NextRequest) {
         .eq('id', conversationId);
 
       if (error) {
-        console.error('Update conversation error:', error);
+        logger.error('Update conversation error', { error });
       }
 
       // Create lead if contact info provided
@@ -600,7 +601,7 @@ export async function PUT(request: NextRequest) {
         .single();
 
       if (error) {
-        console.error('Create conversation error:', error);
+        logger.error('Create conversation error', { error });
         return NextResponse.json(
           { error: 'Failed to create conversation' },
           { status: 500 }
@@ -614,7 +615,7 @@ export async function PUT(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Conversation update error:', error);
+    logger.error('Conversation update error', { error });
     return NextResponse.json(
       { error: 'Failed to update conversation' },
       { status: 500 }

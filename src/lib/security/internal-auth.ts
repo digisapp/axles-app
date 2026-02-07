@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 /**
  * Verify that a request is from an internal service
@@ -10,7 +11,7 @@ export function verifyInternalRequest(request: NextRequest): boolean {
 
   // If no secret is configured, reject internal requests
   if (!internalSecret) {
-    console.warn('INTERNAL_API_SECRET not configured - internal endpoints disabled');
+    logger.warn('INTERNAL_API_SECRET not configured - internal endpoints disabled');
     return false;
   }
 

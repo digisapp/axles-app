@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function PATCH(
   request: NextRequest,
@@ -53,7 +54,7 @@ export async function PATCH(
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Error updating trade-in:', error);
+    logger.error('Error updating trade-in', { error });
     return NextResponse.json(
       { error: 'Failed to update trade-in request' },
       { status: 500 }
@@ -99,7 +100,7 @@ export async function GET(
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Error fetching trade-in:', error);
+    logger.error('Error fetching trade-in', { error });
     return NextResponse.json(
       { error: 'Failed to fetch trade-in request' },
       { status: 500 }

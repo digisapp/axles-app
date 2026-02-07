@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { updateFloorPlanUnitSchema } from '@/lib/validations/floor-plan';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Floor plan unit error:', error);
+    logger.error('Floor plan unit error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -90,13 +91,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (error) {
-      console.error('Error updating floor plan:', error);
+      logger.error('Error updating floor plan', { error });
       return NextResponse.json({ error: 'Failed to update floor plan' }, { status: 500 });
     }
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Floor plan update error:', error);
+    logger.error('Floor plan update error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

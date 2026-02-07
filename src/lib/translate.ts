@@ -1,6 +1,7 @@
 import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
 import { cacheGet, cacheSet } from './cache/redis';
+import { logger } from '@/lib/logger';
 
 // Extend cache keys and TTL for translations
 const TRANSLATION_CACHE_KEY = 'translate:';
@@ -106,7 +107,7 @@ JSON output:`,
       }
     } catch {
       // If parsing fails, return original
-      console.error('Translation parse error:', text);
+      logger.error('Translation parse error', { text });
       return {
         title: listing.title,
         description: listing.description || '',
@@ -122,7 +123,7 @@ JSON output:`,
       fromCache: false,
     };
   } catch (error) {
-    console.error('Translation error:', error);
+    logger.error('Translation error', { error });
     return {
       title: listing.title,
       description: listing.description || '',

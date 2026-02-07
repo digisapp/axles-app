@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   CheckCircle,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface AIAnalysis {
   detected_type?: string;
@@ -89,7 +90,7 @@ export function ImageUpload({
         }
       }
     } catch (error) {
-      console.error('AI analysis failed:', error);
+      logger.error('AI analysis failed', { error });
       onChange(images.map((img, idx) =>
         idx === imageIndex ? { ...img, analyzing: false } : img
       ));
@@ -111,7 +112,7 @@ export function ImageUpload({
       });
 
     if (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload error', { error });
       return null;
     }
 

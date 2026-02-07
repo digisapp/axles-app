@@ -17,6 +17,7 @@ import {
   User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface Message {
   id: string;
@@ -83,7 +84,7 @@ export function LiveChat({
         setMessages(data?.messages || []);
       }
     } catch (error) {
-      console.error('Fetch messages error:', error);
+      logger.error('Fetch messages error', { error });
     } finally {
       setIsLoading(false);
     }
@@ -171,7 +172,7 @@ export function LiveChat({
         inputRef.current?.focus();
       }
     } catch (error) {
-      console.error('Send error:', error);
+      logger.error('Send error', { error });
     } finally {
       setIsSending(false);
     }

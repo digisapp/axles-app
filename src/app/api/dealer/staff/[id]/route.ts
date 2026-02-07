@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 // GET - Get single staff member
 export async function GET(
@@ -33,7 +34,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error fetching staff member:', error);
+    logger.error('Error fetching staff member', { error });
     return NextResponse.json({ error: 'Failed to fetch staff member' }, { status: 500 });
   }
 }
@@ -123,7 +124,7 @@ export async function PATCH(
       message: 'Staff member updated successfully',
     });
   } catch (error) {
-    console.error('Error updating staff member:', error);
+    logger.error('Error updating staff member', { error });
     return NextResponse.json({ error: 'Failed to update staff member' }, { status: 500 });
   }
 }
@@ -152,7 +153,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Staff member removed successfully' });
   } catch (error) {
-    console.error('Error deleting staff member:', error);
+    logger.error('Error deleting staff member', { error });
     return NextResponse.json({ error: 'Failed to delete staff member' }, { status: 500 });
   }
 }

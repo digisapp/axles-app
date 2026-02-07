@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function POST(
   request: NextRequest,
@@ -50,7 +51,7 @@ export async function POST(
       .single();
 
     if (error) {
-      console.error('Error saving reply:', error);
+      logger.error('Error saving reply', { error });
       return NextResponse.json({ error: 'Failed to send reply' }, { status: 500 });
     }
 
@@ -62,7 +63,7 @@ export async function POST(
 
     return NextResponse.json({ message: newMessage });
   } catch (error) {
-    console.error('Reply API error:', error);
+    logger.error('Reply API error', { error });
     return NextResponse.json(
       { error: 'Failed to send reply' },
       { status: 500 }

@@ -56,6 +56,7 @@ import {
   Eye,
   Trash2,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface DealerStaff {
   id: string;
@@ -137,7 +138,7 @@ export default function AdminStaffPage() {
         }));
       }
     } catch (error) {
-      console.error('Error fetching staff:', error);
+      logger.error('Error fetching staff', { error });
     }
     setIsLoading(false);
   };
@@ -185,7 +186,7 @@ export default function AdminStaffPage() {
         }
       }
     } catch (error) {
-      console.error('Error performing action:', error);
+      logger.error('Error performing action', { error });
     }
     setIsSubmitting(false);
   };

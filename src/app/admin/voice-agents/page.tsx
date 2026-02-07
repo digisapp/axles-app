@@ -41,6 +41,7 @@ import {
   Mic,
 } from 'lucide-react';
 import { DealerVoiceAgent } from '@/types';
+import { logger } from '@/lib/logger';
 
 const VOICE_OPTIONS = [
   { value: 'Sal', label: 'Sal (Male)' },
@@ -120,7 +121,7 @@ export default function AdminVoiceAgentsPage() {
         });
       }
     } catch (error) {
-      console.error('Error fetching voice agents:', error);
+      logger.error('Error fetching voice agents', { error });
     }
     setIsLoading(false);
   };
@@ -159,7 +160,7 @@ export default function AdminVoiceAgentsPage() {
         fetchAgents();
       }
     } catch (error) {
-      console.error('Error updating voice agent:', error);
+      logger.error('Error updating voice agent', { error });
     }
     setIsSubmitting(false);
   };
@@ -178,7 +179,7 @@ export default function AdminVoiceAgentsPage() {
         fetchAgents();
       }
     } catch (error) {
-      console.error('Error deleting voice agent:', error);
+      logger.error('Error deleting voice agent', { error });
     }
   };
 
@@ -194,7 +195,7 @@ export default function AdminVoiceAgentsPage() {
         fetchAgents();
       }
     } catch (error) {
-      console.error('Error toggling voice agent:', error);
+      logger.error('Error toggling voice agent', { error });
     }
   };
 

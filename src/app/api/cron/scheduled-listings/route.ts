@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Verify the request is from Vercel Cron or has correct secret
+import { logger } from '@/lib/logger'
 function verifyRequest(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization');
   if (authHeader === `Bearer ${process.env.CRON_SECRET}`) {
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
       .rpc('publish_scheduled_listings');
 
     if (publishError) {
-      console.error('Error publishing scheduled listings:', publishError);
+      logger.error('Error publishing scheduled listings', { publishError });
     }
 
     // Unpublish expired listings
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
       .rpc('unpublish_expired_listings');
 
     if (unpublishError) {
-      console.error('Error unpublishing expired listings:', unpublishError);
+      logger.error('Error unpublishing expired listings', { unpublishError });
     }
 
     return NextResponse.json({
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Scheduled listings cron error:', error);
+    logger.error('Scheduled listings cron error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

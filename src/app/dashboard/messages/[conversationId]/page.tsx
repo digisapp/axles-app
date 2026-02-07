@@ -15,6 +15,7 @@ import {
   ImageIcon,
   ExternalLink,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface Message {
   id: string;
@@ -149,7 +150,7 @@ export default function ConversationPage({ params }: PageProps) {
         setNewMessage('');
       }
     } catch (error) {
-      console.error('Send error:', error);
+      logger.error('Send error', { error });
     } finally {
       setIsSending(false);
     }

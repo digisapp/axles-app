@@ -47,6 +47,7 @@ import {
   ShieldAlert,
   ShieldCheck,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface User {
   id: string;
@@ -101,7 +102,7 @@ export default function AdminUsersPage() {
         setStats(data.stats || { total_users: 0, total_dealers: 0, suspended_users: 0 });
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users', { error });
     }
     setIsLoading(false);
   };
@@ -127,7 +128,7 @@ export default function AdminUsersPage() {
         fetchUsers();
       }
     } catch (error) {
-      console.error('Error updating user:', error);
+      logger.error('Error updating user', { error });
     }
     setIsSubmitting(false);
   };

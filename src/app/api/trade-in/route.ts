@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { logger } from '@/lib/logger';
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axlon.ai';
 
@@ -97,12 +98,12 @@ export async function POST(request: NextRequest) {
       });
     } catch (emailError) {
       // Log but don't fail the request if email fails
-      console.error('Failed to send trade-in notification email:', emailError);
+      logger.error('Failed to send trade-in notification email', { error: emailError });
     }
 
     return NextResponse.json({ data, message: 'Trade-in request submitted successfully' });
   } catch (error) {
-    console.error('Error creating trade-in request:', error);
+    logger.error('Error creating trade-in request', { error });
     return NextResponse.json(
       { error: 'Failed to submit trade-in request' },
       { status: 500 }
@@ -157,7 +158,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Error fetching trade-in requests:', error);
+    logger.error('Error fetching trade-in requests', { error });
     return NextResponse.json(
       { error: 'Failed to fetch trade-in requests' },
       { status: 500 }

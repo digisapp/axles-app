@@ -16,6 +16,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface VideoUploadProps {
   value?: string;
@@ -90,7 +91,7 @@ export function VideoUpload({ value, onChange, listingId }: VideoUploadProps) {
       setPreviewUrl(videoUrl);
       setUploadProgress(100);
     } catch (err) {
-      console.error('Upload error:', err);
+      logger.error('Upload error', { error: err });
       setError('Failed to upload video. Please try again.');
     } finally {
       setIsUploading(false);
@@ -106,7 +107,7 @@ export function VideoUpload({ value, onChange, listingId }: VideoUploadProps) {
           await supabase.storage.from('listings').remove([path]);
         }
       } catch (err) {
-        console.error('Delete error:', err);
+        logger.error('Delete error', { error: err });
       }
     }
 

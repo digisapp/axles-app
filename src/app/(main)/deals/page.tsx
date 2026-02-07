@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { CompareButton } from '@/components/listings/CompareButton';
 import { ListingCardWrapper } from '@/components/listings/ListingCardWrapper';
+import { logger } from '@/lib/logger';
 
 interface DealListing {
   id: string;
@@ -63,7 +64,7 @@ export default function DealsPage() {
           setFilteredDeals(data.data || []);
         }
       } catch (error) {
-        console.error('Error fetching deals:', error);
+        logger.error('Error fetching deals', { error });
       } finally {
         setIsLoading(false);
       }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { backfillEstimates, updateListingEstimate } from '@/lib/price-estimator';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { logger } from '@/lib/logger';
 
 // POST - Backfill estimates for multiple listings
 export async function POST(request: NextRequest) {
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
       message: `Processed ${result.processed} listings. Updated: ${result.updated}, Skipped: ${result.skipped}`,
     });
   } catch (error) {
-    console.error('Backfill error:', error);
+    logger.error('Backfill error', { error });
     return NextResponse.json(
       { error: 'Failed to backfill estimates' },
       { status: 500 }
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
       ...estimate,
     });
   } catch (error) {
-    console.error('Estimate error:', error);
+    logger.error('Estimate error', { error });
     return NextResponse.json(
       { error: 'Failed to estimate price' },
       { status: 500 }

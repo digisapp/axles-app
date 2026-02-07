@@ -39,6 +39,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface StaffMember {
   id: string;
@@ -91,7 +92,7 @@ export default function StaffManagementPage() {
       const data = await res.json();
       setStaff(data.data || []);
     } catch (error) {
-      console.error('Error fetching staff:', error);
+      logger.error('Error fetching staff', { error });
       toast.error('Failed to load staff members');
     } finally {
       setLoading(false);

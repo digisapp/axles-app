@@ -2,6 +2,7 @@ import { createXai } from '@ai-sdk/xai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import type { AISearchResult, SearchFilters } from '@/types';
+import { logger } from '@/lib/logger';
 
 // Known makes for trucks and trailers with common variations
 const TRUCK_MAKES = [
@@ -341,12 +342,12 @@ export async function parseSearchQuery(query: string): Promise<AISearchResult> {
 
   // Use fallback parser if XAI is not configured
   if (!xai) {
-    console.log('[AI Search] XAI not configured, using fallback parser');
+    logger.info('[AI Search] XAI not configured, using fallback parser');
     return parseSearchQueryFallback(query);
   }
 
   try {
-    console.log('[AI Search] Using xAI (Grok) for query:', query);
+    logger.info('[AI Search] Using xAI (Grok) for query', { query });
     const { object } = await generateObject({
       model: xai('grok-3-mini'),
       schema: searchResultSchema,
@@ -393,7 +394,7 @@ Extract the search intent and return structured filters. Be SMART and FLEXIBLE a
 - "low miles" or "under 500k miles" = max_mileage: 500000`,
     });
 
-    console.log('[AI Search] xAI result:', JSON.stringify(object, null, 2));
+    logger.debug('AI Search xAI result', { result: object });
     return {
       query,
       interpretation: object.interpretation,
@@ -402,7 +403,7 @@ Extract the search intent and return structured filters. Be SMART and FLEXIBLE a
       confidence: object.confidence,
     };
   } catch (error) {
-    console.error('[AI Search] xAI failed, using fallback:', error);
+    logger.error('[AI Search] xAI failed, using fallback', { error });
     return parseSearchQueryFallback(query);
   }
 }

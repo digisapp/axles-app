@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { checkIsAdmin, logAdminAction } from '@/lib/admin/check-admin';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
   try {
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
     const { data: manufacturers, count, error } = await query;
 
     if (error) {
-      console.error('Error fetching manufacturers:', error);
+      logger.error('Error fetching manufacturers', { error });
       return NextResponse.json({ error: 'Failed to fetch manufacturers' }, { status: 500 });
     }
 
@@ -78,7 +79,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error('Admin manufacturers error:', error);
+    logger.error('Admin manufacturers error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -157,7 +158,7 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      console.error('Error creating manufacturer:', error);
+      logger.error('Error creating manufacturer', { error });
       return NextResponse.json({ error: 'Failed to create manufacturer' }, { status: 500 });
     }
 
@@ -165,7 +166,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ data: manufacturer });
   } catch (error) {
-    console.error('Admin create manufacturer error:', error);
+    logger.error('Admin create manufacturer error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

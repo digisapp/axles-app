@@ -2,54 +2,13 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Search, Sparkles, X, Loader2, ArrowUpRight, Mic, MicOff, Calculator, Flame, MapPin, Clock, TrendingUp, Tag, Truck } from 'lucide-react';
+import { ArrowRight, Search, Sparkles, Loader2, Mic, MicOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSearchTranslations } from '@/lib/i18n';
-
-// Local storage key for recent searches
-const RECENT_SEARCHES_KEY = 'axlon-recent-searches';
-const MAX_RECENT_SEARCHES = 5;
-
-// Helper to get recent searches from localStorage
-function getRecentSearches(): string[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-// Helper to save a search to recent searches
-function saveRecentSearch(query: string) {
-  if (typeof window === 'undefined' || !query.trim()) return;
-  try {
-    const recent = getRecentSearches();
-    // Remove duplicates and add to front
-    const filtered = recent.filter(s => s.toLowerCase() !== query.toLowerCase());
-    const updated = [query.trim(), ...filtered].slice(0, MAX_RECENT_SEARCHES);
-    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
-  } catch {
-    // Ignore localStorage errors
-  }
-}
-
-// Helper to clear recent searches
-function clearRecentSearches() {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.removeItem(RECENT_SEARCHES_KEY);
-  } catch {
-    // Ignore
-  }
-}
-
-interface AutocompleteSuggestion {
-  type: 'make' | 'model' | 'category' | 'popular' | 'recent';
-  text: string;
-  subtext?: string;
-}
+import { getRecentSearches, saveRecentSearch, clearRecentSearches } from '@/lib/recent-searches';
+import { ChatResponsePanel, type ChatResponse } from '@/components/search/ChatResponsePanel';
+import { SuggestionsDropdown, type AutocompleteSuggestion } from '@/components/search/SuggestionsDropdown';
+import { logger } from '@/lib/logger';
 
 // Type declarations for Web Speech API
 interface SpeechRecognitionEvent extends Event {
@@ -92,34 +51,6 @@ declare global {
     SpeechRecognition?: new () => SpeechRecognition;
     webkitSpeechRecognition?: new () => SpeechRecognition;
   }
-}
-
-interface SuggestedListing {
-  id: string;
-  title: string;
-  price: number | null;
-  year: number | null;
-  make: string | null;
-  model: string | null;
-  location: string;
-  isGoodDeal: boolean;
-}
-
-interface ChatResponse {
-  response: string;
-  suggestedCategory: string | null;
-  suggestedTool: {
-    name: string;
-    url: string;
-    description: string;
-  } | null;
-  suggestedListings: SuggestedListing[] | null;
-  inventoryStats: {
-    total: number;
-    avgPrice: number;
-    minPrice: number;
-    maxPrice: number;
-  } | null;
 }
 
 interface AISearchBarProps {
@@ -222,7 +153,7 @@ export function AISearchBar({
           setSuggestions(unique);
         }
       } catch (error) {
-        console.error('Autocomplete error:', error);
+        logger.error('Autocomplete error', { error });
         // Fall back to example searches
         const filtered = t.exampleSearches
           .filter(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -404,7 +335,7 @@ export function AISearchBar({
         return;
       }
     } catch (error) {
-      console.error('Chat API error:', error);
+      logger.error('Chat API error', { error });
     }
 
     // Fallback to search if chat fails
@@ -586,212 +517,29 @@ export function AISearchBar({
 
       {/* Chat response panel */}
       {showChat && chatResponse && (
-        <div className="absolute top-full left-0 right-0 bg-white dark:bg-zinc-900 border-2 border-t-0 border-primary/50 rounded-b-2xl shadow-lg shadow-primary/10 z-50 overflow-hidden">
-          <div className="p-4">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2 text-primary">
-                <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-medium">Axlon</span>
-              </div>
-              <button
-                onClick={closeChatResponse}
-                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-              >
-                <X className="w-4 h-4 text-zinc-400" />
-              </button>
-            </div>
-
-            {/* Response */}
-            <div className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-              {chatResponse.response}
-            </div>
-
-            {/* Suggested tool link */}
-            {chatResponse.suggestedTool && (
-              <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                <button
-                  onClick={() => {
-                    router.push(chatResponse.suggestedTool!.url);
-                    setShowChat(false);
-                  }}
-                  className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
-                >
-                  <Calculator className="w-4 h-4" />
-                  <span>{chatResponse.suggestedTool.name}</span>
-                  <ArrowUpRight className="w-4 h-4" />
-                </button>
-                <p className="text-xs text-muted-foreground mt-1 ml-6">
-                  {chatResponse.suggestedTool.description}
-                </p>
-              </div>
-            )}
-
-            {/* Suggested listings from database */}
-            {chatResponse.suggestedListings && chatResponse.suggestedListings.length > 0 && (
-              <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                <p className="text-xs text-zinc-500 font-medium uppercase tracking-wide mb-2">
-                  Top Matches
-                </p>
-                <div className="space-y-2">
-                  {chatResponse.suggestedListings.map((listing) => (
-                    <button
-                      key={listing.id}
-                      onClick={() => {
-                        router.push(`/listing/${listing.id}`);
-                        setShowChat(false);
-                      }}
-                      className="w-full flex items-start gap-3 p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-medium text-sm truncate">{listing.title}</span>
-                          {listing.isGoodDeal && (
-                            <span className="flex items-center gap-0.5 text-[10px] text-red-500 font-medium">
-                              <Flame className="w-3 h-3" />
-                              Deal
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                          <span className="font-semibold text-primary">
-                            {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
-                          </span>
-                          {listing.location && (
-                            <span className="flex items-center gap-0.5">
-                              <MapPin className="w-3 h-3" />
-                              {listing.location}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <ArrowUpRight className="w-4 h-4 text-zinc-400 flex-shrink-0 mt-1" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Suggested category link */}
-            {chatResponse.suggestedCategory && !chatResponse.suggestedTool && !chatResponse.suggestedListings?.length && (
-              <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                <button
-                  onClick={() => {
-                    router.push(`/search?category=${chatResponse.suggestedCategory}`);
-                    setShowChat(false);
-                  }}
-                  className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
-                >
-                  <span>{t.ui.browse} {getCategoryLabel(chatResponse.suggestedCategory)}</span>
-                  <ArrowUpRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {/* Search anyway option */}
-            <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-              <button
-                onClick={() => {
-                  router.push(`/search?q=${encodeURIComponent(query)}`);
-                  setShowChat(false);
-                }}
-                className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-              >
-                <Search className="w-3.5 h-3.5" />
-                <span>{t.ui.searchListingsFor} &quot;{query}&quot;</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <ChatResponsePanel
+          chatResponse={chatResponse}
+          query={query}
+          onClose={closeChatResponse}
+          getCategoryLabel={getCategoryLabel}
+          browseLabel={t.ui.browse}
+          searchListingsForLabel={t.ui.searchListingsFor}
+        />
       )}
 
       {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && !showChat && (
-        <div className="absolute top-full left-0 right-0 bg-white dark:bg-zinc-900 border-2 border-t-0 border-primary/50 rounded-b-2xl shadow-lg shadow-primary/10 z-50 overflow-hidden">
-          <div className="p-2">
-            {/* Header with clear recent option */}
-            <div className="flex items-center justify-between px-3 py-1.5">
-              <p className="text-xs text-zinc-500 font-medium uppercase tracking-wide">
-                {query ? t.ui.suggestions : (recentSearches.length > 0 ? 'Recent & Suggested' : t.ui.trySearching)}
-              </p>
-              {!query && recentSearches.length > 0 && (
-                <button
-                  onClick={handleClearRecent}
-                  className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-                >
-                  Clear recent
-                </button>
-              )}
-            </div>
-
-            {/* Loading indicator */}
-            {isLoadingSuggestions && query && (
-              <div className="flex items-center gap-2 px-3 py-2 text-zinc-400">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Axlon is searching...</span>
-              </div>
-            )}
-
-            {/* Suggestion items */}
-            {suggestions.map((suggestion, index) => {
-              const isQuestion = suggestion.text.includes('?') ||
-                suggestion.text.toLowerCase().startsWith('what') ||
-                suggestion.text.toLowerCase().startsWith('how');
-
-              // Choose icon based on suggestion type
-              const SuggestionIcon = suggestion.type === 'recent' ? Clock
-                : suggestion.type === 'make' ? Truck
-                : suggestion.type === 'model' ? Truck
-                : suggestion.type === 'category' ? Tag
-                : suggestion.type === 'popular' ? TrendingUp
-                : isQuestion ? Sparkles
-                : Search;
-
-              return (
-                <button
-                  key={`${suggestion.type}-${suggestion.text}`}
-                  onClick={() => handleSearch(suggestion.text)}
-                  className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors group',
-                    selectedIndex === index
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                  )}
-                >
-                  <SuggestionIcon className={cn(
-                    'w-4 h-4 flex-shrink-0',
-                    suggestion.type === 'recent' ? 'text-amber-500' :
-                    suggestion.type === 'make' || suggestion.type === 'model' ? 'text-blue-500' :
-                    suggestion.type === 'category' ? 'text-purple-500' :
-                    'opacity-50'
-                  )} />
-                  <div className="flex-1 min-w-0">
-                    <span className="truncate block">{suggestion.text}</span>
-                    {suggestion.subtext && (
-                      <span className="text-xs text-zinc-400 dark:text-zinc-500">{suggestion.subtext}</span>
-                    )}
-                  </div>
-                  <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity flex-shrink-0" />
-                </button>
-              );
-            })}
-
-            {/* Keyboard navigation hint */}
-            {suggestions.length > 0 && (
-              <div className="flex items-center gap-4 px-3 pt-2 pb-1 border-t border-zinc-100 dark:border-zinc-800 mt-1">
-                <span className="text-[10px] text-zinc-400 flex items-center gap-1">
-                  <kbd className="px-1 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[9px]">↑↓</kbd> navigate
-                </span>
-                <span className="text-[10px] text-zinc-400 flex items-center gap-1">
-                  <kbd className="px-1 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[9px]">↵</kbd> search
-                </span>
-                <span className="text-[10px] text-zinc-400 flex items-center gap-1">
-                  <kbd className="px-1 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-[9px]">esc</kbd> close
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+        <SuggestionsDropdown
+          suggestions={suggestions}
+          selectedIndex={selectedIndex}
+          query={query}
+          isLoadingSuggestions={isLoadingSuggestions}
+          recentSearches={recentSearches}
+          onSelect={handleSearch}
+          onClearRecent={handleClearRecent}
+          suggestionsLabel={t.ui.suggestions}
+          trySearchingLabel={t.ui.trySearching}
+        />
       )}
 
       {/* Language hint - shows supported languages */}

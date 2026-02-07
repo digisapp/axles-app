@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createServerClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -425,7 +426,7 @@ export async function POST() {
       .select('id, slug');
 
     if (catError) {
-      console.error('Error fetching categories:', catError);
+      logger.error('Error fetching categories', { error: catError });
       return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 });
     }
 
@@ -450,7 +451,7 @@ export async function POST() {
       });
 
       if (authError || !authUser.user) {
-        console.error('Error creating demo user:', authError);
+        logger.error('Error creating demo user', { error: authError });
         return NextResponse.json({ error: 'Failed to create demo user' }, { status: 500 });
       }
 
@@ -485,7 +486,7 @@ export async function POST() {
       .select('id, title');
 
     if (insertError) {
-      console.error('Error inserting listings:', insertError);
+      logger.error('Error inserting listings', { error: insertError });
       return NextResponse.json({ error: 'Failed to insert listings', details: insertError.message }, { status: 500 });
     }
 
@@ -496,7 +497,7 @@ export async function POST() {
     });
 
   } catch (error) {
-    console.error('Seed error:', error);
+    logger.error('Seed error', { error });
     return NextResponse.json({ error: 'Failed to seed data' }, { status: 500 });
   }
 }

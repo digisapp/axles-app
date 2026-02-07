@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Error fetching trade-in request:', error);
+    logger.error('Error fetching trade-in request', { error });
     return NextResponse.json(
       { error: 'Failed to fetch trade-in request' },
       { status: 500 }
@@ -104,7 +105,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Error updating trade-in request:', error);
+    logger.error('Error updating trade-in request', { error });
     return NextResponse.json(
       { error: 'Failed to update trade-in request' },
       { status: 500 }

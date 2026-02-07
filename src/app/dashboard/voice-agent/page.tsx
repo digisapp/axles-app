@@ -40,6 +40,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { DealerVoiceAgent } from '@/types';
+import { logger } from '@/lib/logger';
 
 interface CallLog {
   id: string;
@@ -116,7 +117,7 @@ export default function VoiceAgentPage() {
         setCallStats(data.stats || null);
       }
     } catch (error) {
-      console.error('Error fetching call logs:', error);
+      logger.error('Error fetching call logs', { error });
     }
     setIsLoadingCalls(false);
   };
@@ -195,7 +196,7 @@ export default function VoiceAgentPage() {
         }
       }
     } catch (error) {
-      console.error('Error fetching voice agent:', error);
+      logger.error('Error fetching voice agent', { error });
     }
     setIsLoading(false);
   };
@@ -216,7 +217,7 @@ export default function VoiceAgentPage() {
         setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (error) {
-      console.error('Error creating voice agent:', error);
+      logger.error('Error creating voice agent', { error });
     }
     setIsSaving(false);
   };
@@ -237,7 +238,7 @@ export default function VoiceAgentPage() {
         setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (error) {
-      console.error('Error saving voice agent:', error);
+      logger.error('Error saving voice agent', { error });
     }
     setIsSaving(false);
   };

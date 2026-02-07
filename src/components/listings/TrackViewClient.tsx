@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { addToRecentlyViewed } from './RecentlyViewed';
+import { logger } from '@/lib/logger';
 
 interface TrackViewClientProps {
   listing: {
@@ -32,7 +33,7 @@ export function TrackViewClient({ listing }: TrackViewClientProps) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     }).catch((err) => {
-      console.error('Failed to track view:', err);
+      logger.error('Failed to track view', { error: err });
     });
   }, [listing]);
 

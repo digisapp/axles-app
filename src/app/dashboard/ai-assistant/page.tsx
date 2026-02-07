@@ -36,6 +36,7 @@ import {
   Lock,
   Crown,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface FAQ {
   question: string;
@@ -220,7 +221,7 @@ export default function AIAssistantPage() {
         setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (error) {
-      console.error('Save error:', error);
+      logger.error('Save error', { error });
     } finally {
       setIsSaving(false);
     }

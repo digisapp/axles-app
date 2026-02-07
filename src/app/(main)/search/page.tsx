@@ -3,7 +3,6 @@
 import { useEffect, useState, Suspense, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { AISearchBar } from '@/components/search/AISearchBar';
 import { useListingTranslations } from '@/hooks/useListingTranslations';
@@ -41,31 +40,24 @@ import {
 import {
   Grid3X3,
   List,
-  MapPin,
   Map,
-  Calendar,
-  Gauge,
-  Filter,
   SlidersHorizontal,
-  Heart,
   ChevronLeft,
   ChevronRight,
-  TrendingDown,
-  Flame,
-  Languages,
   Loader2,
   DollarSign,
   Truck,
   Clock,
   Sparkles,
+  Gauge,
 } from 'lucide-react';
 import { AdvancedFilters, FilterValues } from '@/components/search/AdvancedFilters';
-import { CompareButton } from '@/components/listings/CompareButton';
 import { SaveSearchButton } from '@/components/search/SaveSearchButton';
-import { ListingCardWrapper } from '@/components/listings/ListingCardWrapper';
 import { ScrollToTop } from '@/components/ui/scroll-to-top';
-import { ImageOff } from 'lucide-react';
+import { SearchListingCard } from '@/components/search/SearchListingCard';
+import { QuickFilterChip } from '@/components/search/QuickFilterChip';
 import type { Listing, AISearchResult, Category } from '@/types';
+import { logger } from '@/lib/logger';
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -111,7 +103,7 @@ function SearchPageContent() {
           setCategories(data.data || []);
         }
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        logger.error('Error fetching categories', { error });
       }
     };
     fetchCategories();
@@ -150,7 +142,7 @@ function SearchPageContent() {
         let currentAiFilters = null;
         if (query && !category) {
           try {
-            console.log('[Search Page] Calling AI search for:', query);
+            logger.debug('Search page calling AI search', { query });
             const aiResponse = await fetch('/api/ai/search', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -159,17 +151,17 @@ function SearchPageContent() {
 
             if (aiResponse.ok) {
               const { data } = await aiResponse.json();
-              console.log('[Search Page] AI response:', data);
+              logger.debug('Search page AI response', { data });
               // Only update state if this is still the current fetch
               if (currentFetchId === fetchIdRef.current) {
                 setAiInterpretation(data);
               }
               currentAiFilters = data?.filters;
             } else {
-              console.error('[Search Page] AI search returned error:', aiResponse.status);
+              logger.error('Search page AI search returned error', { status: aiResponse.status });
             }
           } catch (aiError) {
-            console.error('[Search Page] AI search failed:', aiError);
+            logger.error('Search page AI search failed', { error: aiError });
           }
 
           // Fallback: if AI didn't return a category but we detected one, use it
@@ -264,7 +256,7 @@ function SearchPageContent() {
           }
         }
       } catch (error) {
-        console.error('Search error:', error);
+        logger.error('Search error', { error });
       } finally {
         if (currentFetchId === fetchIdRef.current) {
           setIsLoading(false);
@@ -324,7 +316,7 @@ function SearchPageContent() {
         window.history.replaceState(null, '', `/search?${urlParams.toString()}`);
       }
     } catch (error) {
-      console.error('Load more error:', error);
+      logger.error('Load more error', { error });
     } finally {
       setIsLoadingMore(false);
     }
@@ -644,7 +636,7 @@ function SearchPageContent() {
             {listings.map((listing) => {
               const translated = getTranslatedListing(listing);
               return (
-                <ListingCard
+                <SearchListingCard
                   key={listing.id}
                   listing={listing}
                   viewMode={viewMode}
@@ -727,258 +719,6 @@ function SearchPageContent() {
   );
 }
 
-// Calculate deal percentage based on AI price estimate
-function getDealInfo(listing: Listing): { type: 'hot' | 'good' | null; percentage: number } | null {
-  if (!listing.price || !listing.ai_price_estimate) return null;
-
-  const ratio = listing.price / listing.ai_price_estimate;
-
-  // 15%+ below market = Hot Deal
-  if (ratio <= 0.85) {
-    return { type: 'hot', percentage: Math.round((1 - ratio) * 100) };
-  }
-  // 5-15% below market = Good Deal
-  if (ratio <= 0.95) {
-    return { type: 'good', percentage: Math.round((1 - ratio) * 100) };
-  }
-
-  return null;
-}
-
-interface ListingCardProps {
-  listing: Listing;
-  viewMode: 'grid' | 'list';
-  translatedTitle?: string;
-  translatedDescription?: string;
-  isTranslated?: boolean;
-}
-
-function ListingCard({
-  listing,
-  viewMode,
-  translatedTitle,
-  translatedDescription,
-  isTranslated,
-}: ListingCardProps) {
-  const primaryImage = listing.images?.find((img) => img.is_primary) || listing.images?.[0];
-  const dealInfo = getDealInfo(listing);
-  const displayTitle = translatedTitle || listing.title;
-  const displayDescription = translatedDescription || listing.description || '';
-
-  if (viewMode === 'list') {
-    return (
-      <ListingCardWrapper listingId={listing.id} listingTitle={listing.title}>
-        <Card className="flex flex-col sm:flex-row overflow-hidden hover:shadow-lg transition-shadow">
-          <div className="relative w-full sm:w-48 md:w-64 h-48 sm:h-40 md:h-48 flex-shrink-0">
-            {primaryImage ? (
-              <Image
-                src={primaryImage.thumbnail_url || primaryImage.url}
-                alt={listing.title}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            ) : (
-              <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-2">
-                <ImageOff className="w-8 h-8 text-muted-foreground/50" />
-                <span className="text-muted-foreground text-xs">No Image</span>
-              </div>
-            )}
-            {listing.is_featured && (
-              <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground text-xs">
-                Featured
-              </Badge>
-            )}
-            {dealInfo && (
-              <Badge
-                className={`absolute top-2 ${listing.is_featured ? 'left-20' : 'left-2'} text-xs ${
-                  dealInfo.type === 'hot'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-green-500 text-white'
-                }`}
-              >
-                {dealInfo.type === 'hot' ? <Flame className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
-                {dealInfo.percentage}% Below Market
-              </Badge>
-            )}
-          </div>
-
-          <div className="flex-1 p-3 md:p-4">
-            <div className="flex justify-between items-start gap-2">
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-semibold text-sm md:text-lg line-clamp-1">{displayTitle}</h3>
-                  {isTranslated && (
-                    <span title="Translated">
-                      <Languages className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-lg md:text-2xl font-bold text-primary">
-                    {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
-                  </p>
-                  {dealInfo && (
-                    <span className="text-xs text-muted-foreground line-through">
-                      ${listing.ai_price_estimate?.toLocaleString()}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <CompareButton
-                  listing={{
-                    id: listing.id,
-                    title: listing.title,
-                    price: listing.price ?? null,
-                    year: listing.year ?? null,
-                    make: listing.make ?? null,
-                    model: listing.model ?? null,
-                    mileage: listing.mileage ?? null,
-                    hours: listing.hours ?? null,
-                    condition: listing.condition ?? null,
-                    image_url: primaryImage?.thumbnail_url || primaryImage?.url || null,
-                  }}
-                  variant="icon"
-                />
-                <Button variant="ghost" size="icon" className="flex-shrink-0">
-                  <Heart className="w-4 h-4 md:w-5 md:h-5" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 md:gap-3 mt-2 md:mt-3 text-xs md:text-sm text-muted-foreground">
-              {listing.year && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3 md:w-4 md:h-4" />
-                  {listing.year}
-                </span>
-              )}
-              {listing.mileage && (
-                <span className="flex items-center gap-1">
-                  <Gauge className="w-3 h-3 md:w-4 md:h-4" />
-                  {listing.mileage.toLocaleString()} mi
-                </span>
-              )}
-              {(listing.city || listing.state) && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3 md:w-4 md:h-4" />
-                  {[listing.city, listing.state].filter(Boolean).join(', ')}
-                </span>
-              )}
-            </div>
-
-            {displayDescription && (
-              <p className="text-xs md:text-sm text-muted-foreground mt-2 line-clamp-2 hidden md:block">
-                {displayDescription}
-              </p>
-            )}
-          </div>
-        </Card>
-      </ListingCardWrapper>
-    );
-  }
-
-  return (
-    <ListingCardWrapper listingId={listing.id} listingTitle={listing.title}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-        <div className="relative aspect-[4/3]">
-          {primaryImage ? (
-            <Image
-              src={primaryImage.thumbnail_url || primaryImage.url}
-              alt={listing.title}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          ) : (
-            <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-1">
-              <ImageOff className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground/50" />
-              <span className="text-muted-foreground text-[10px] md:text-xs">No Image</span>
-            </div>
-          )}
-          {listing.is_featured && (
-            <Badge className="absolute top-2 left-2 bg-secondary text-secondary-foreground text-xs">
-              Featured
-            </Badge>
-          )}
-          {dealInfo && (
-            <Badge
-              className={`absolute ${listing.is_featured ? 'top-8' : 'top-2'} left-2 text-[10px] md:text-xs ${
-                dealInfo.type === 'hot'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-green-500 text-white'
-              }`}
-            >
-              {dealInfo.type === 'hot' ? <Flame className="w-2.5 h-2.5 md:w-3 md:h-3 mr-0.5" /> : <TrendingDown className="w-2.5 h-2.5 md:w-3 md:h-3 mr-0.5" />}
-              {dealInfo.percentage}% Off
-            </Badge>
-          )}
-          <div className="absolute top-2 right-2 flex gap-1">
-            <CompareButton
-              listing={{
-                id: listing.id,
-                title: listing.title,
-                price: listing.price ?? null,
-                year: listing.year ?? null,
-                make: listing.make ?? null,
-                model: listing.model ?? null,
-                mileage: listing.mileage ?? null,
-                hours: listing.hours ?? null,
-                condition: listing.condition ?? null,
-                image_url: primaryImage?.thumbnail_url || primaryImage?.url || null,
-              }}
-              variant="icon"
-              className="bg-white/80 hover:bg-white w-7 h-7 md:w-8 md:h-8"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="bg-white/80 hover:bg-white w-7 h-7 md:w-8 md:h-8"
-            >
-              <Heart className="w-3 h-3 md:w-4 md:h-4" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="p-2 md:p-4">
-          <div className="flex items-center gap-1">
-            <h3 className="font-semibold text-sm md:text-base line-clamp-1">{displayTitle}</h3>
-            {isTranslated && (
-              <span title="Translated">
-                <Languages className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 mt-0.5 md:mt-1">
-            <p className="text-base md:text-xl font-bold text-primary">
-              {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
-            </p>
-            {dealInfo && (
-              <span className="text-[10px] md:text-xs text-muted-foreground line-through">
-                ${listing.ai_price_estimate?.toLocaleString()}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-1 md:gap-2 mt-1 md:mt-2 text-xs text-muted-foreground">
-            {listing.year && <span>{listing.year}</span>}
-            {listing.year && listing.mileage && <span>-</span>}
-            {listing.mileage && <span>{listing.mileage.toLocaleString()} mi</span>}
-          </div>
-
-          {(listing.city || listing.state) && (
-            <p className="text-xs text-muted-foreground mt-1 md:mt-2 flex items-center gap-1 line-clamp-1">
-              <MapPin className="w-3 h-3 flex-shrink-0" />
-              {[listing.city, listing.state].filter(Boolean).join(', ')}
-            </p>
-          )}
-        </div>
-      </Card>
-    </ListingCardWrapper>
-  );
-}
-
 function ListingCardSkeleton({ viewMode }: { viewMode: 'grid' | 'list' | 'map' }) {
   if (viewMode === 'list') {
     return (
@@ -1003,32 +743,6 @@ function ListingCardSkeleton({ viewMode }: { viewMode: 'grid' | 'list' | 'map' }
         <Skeleton className="h-3 md:h-4 w-1/2" />
       </div>
     </Card>
-  );
-}
-
-function QuickFilterChip({
-  label,
-  isActive,
-  onClick,
-  icon,
-}: {
-  label: string;
-  isActive: boolean;
-  onClick: () => void;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-3 py-1.5 text-xs md:text-sm rounded-full border transition-colors flex items-center gap-1.5 whitespace-nowrap ${
-        isActive
-          ? 'bg-primary text-primary-foreground border-primary'
-          : 'bg-background hover:bg-muted border-border'
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
   );
 }
 

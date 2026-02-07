@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Link from 'next/link';
 import {
   Table,
@@ -56,7 +56,7 @@ interface InventoryTableProps {
   listings: Listing[];
 }
 
-export function InventoryTable({ listings }: InventoryTableProps) {
+export const InventoryTable = memo(function InventoryTable({ listings }: InventoryTableProps) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('created_at');
@@ -167,12 +167,13 @@ export function InventoryTable({ listings }: InventoryTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[300px]">
+                <TableHead className="w-[300px]" aria-sort={sortBy === 'title' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleSort('title')}
                     className="-ml-3"
+                    aria-label={`Sort by title ${sortBy === 'title' ? (sortOrder === 'asc' ? '(ascending)' : '(descending)') : ''}`}
                   >
                     Title
                     <ArrowUpDown className="w-4 h-4 ml-2" />
@@ -180,12 +181,13 @@ export function InventoryTable({ listings }: InventoryTableProps) {
                 </TableHead>
                 <TableHead>Stock #</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">
+                <TableHead className="text-right" aria-sort={sortBy === 'price' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleSort('price')}
                     className="-mr-3"
+                    aria-label={`Sort by price ${sortBy === 'price' ? (sortOrder === 'asc' ? '(ascending)' : '(descending)') : ''}`}
                   >
                     Price
                     <ArrowUpDown className="w-4 h-4 ml-2" />
@@ -193,21 +195,23 @@ export function InventoryTable({ listings }: InventoryTableProps) {
                 </TableHead>
                 <TableHead className="text-right">Cost</TableHead>
                 <TableHead className="text-right">Margin</TableHead>
-                <TableHead className="text-center">
+                <TableHead className="text-center" aria-sort={sortBy === 'days_on_lot' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleSort('days_on_lot')}
+                    aria-label={`Sort by days on lot ${sortBy === 'days_on_lot' ? (sortOrder === 'asc' ? '(ascending)' : '(descending)') : ''}`}
                   >
                     Days
                     <ArrowUpDown className="w-4 h-4 ml-2" />
                   </Button>
                 </TableHead>
-                <TableHead className="text-center">
+                <TableHead className="text-center" aria-sort={sortBy === 'views' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleSort('views')}
+                    aria-label={`Sort by views ${sortBy === 'views' ? (sortOrder === 'asc' ? '(ascending)' : '(descending)') : ''}`}
                   >
                     Views
                     <ArrowUpDown className="w-4 h-4 ml-2" />
@@ -344,4 +348,4 @@ export function InventoryTable({ listings }: InventoryTableProps) {
       </CardContent>
     </Card>
   );
-}
+});

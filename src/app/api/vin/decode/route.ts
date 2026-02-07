@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { decodeVIN } from '@/lib/vin/decoder';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
         }
       } catch (nhtsaError) {
         // Fall back to basic decode if NHTSA fails
-        console.error('NHTSA API error:', nhtsaError);
+        logger.error('NHTSA API error', { nhtsaError });
       }
     }
 
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('VIN decode error:', error);
+    logger.error('VIN decode error', { error });
     return NextResponse.json(
       { error: 'Failed to decode VIN' },
       { status: 500 }

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
     const { data: listings, error } = await query;
 
     if (error) {
-      console.error('Error fetching listings:', error);
+      logger.error('Error fetching listings', { error });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -169,7 +170,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error in GET /api/dashboard/bulk/export:', error);
+    logger.error('Error in GET /api/dashboard/bulk/export', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

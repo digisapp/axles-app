@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Languages, Loader2 } from 'lucide-react';
 import { detectLocale, type SupportedLocale } from '@/lib/i18n';
+import { logger } from '@/lib/logger';
 
 interface TranslatableContentProps {
   listingId: string;
@@ -53,7 +54,7 @@ export function TranslatableTitle({
           }
         }
       } catch (error) {
-        console.error('Translation error:', error);
+        logger.error('Translation error', { error });
       } finally {
         setIsLoading(false);
       }
@@ -117,7 +118,7 @@ export function TranslatableDescription({
           }
         }
       } catch (error) {
-        console.error('Translation error:', error);
+        logger.error('Translation error', { error });
       } finally {
         setIsLoading(false);
       }

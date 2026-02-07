@@ -36,6 +36,7 @@ import { VINDecoder } from '@/components/listings/VINDecoder';
 import { VideoUpload } from '@/components/listings/VideoUpload';
 import { canCreateListing, getPlanLimits, getRemainingListings } from '@/lib/plans';
 import type { Category, AIPriceEstimate } from '@/types';
+import { logger } from '@/lib/logger';
 
 export default function NewListingPage() {
   const router = useRouter();
@@ -145,7 +146,7 @@ export default function NewListingPage() {
           setIndustries(data || []);
         }
       } catch (error) {
-        console.error('Error fetching industries:', error);
+        logger.error('Error fetching industries', { error });
       }
     };
 
@@ -216,7 +217,7 @@ export default function NewListingPage() {
         setPriceEstimate(data);
       }
     } catch (error) {
-      console.error('Price estimation error:', error);
+      logger.error('Price estimation error', { error });
     } finally {
       setIsEstimating(false);
     }
@@ -276,7 +277,7 @@ export default function NewListingPage() {
         alert('Failed to create listing');
       }
     } catch (error) {
-      console.error('Create listing error:', error);
+      logger.error('Create listing error', { error });
       alert('Failed to create listing');
     } finally {
       setIsLoading(false);

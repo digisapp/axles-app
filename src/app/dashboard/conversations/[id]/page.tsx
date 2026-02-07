@@ -23,6 +23,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 interface Message {
   id: string;
@@ -174,7 +175,7 @@ export default function ConversationDetailPage() {
         await fetchConversation();
       }
     } catch (error) {
-      console.error('Reply error:', error);
+      logger.error('Reply error', { error });
     } finally {
       setIsSending(false);
     }

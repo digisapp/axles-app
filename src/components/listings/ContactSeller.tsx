@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -33,14 +33,14 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
   const defaultMessage = `Hi, I'm interested in your listing: ${listingTitle}. Is it still available?`;
 
   // Check if user is logged in on mount
-  useState(() => {
+  useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsLoggedIn(!!user);
       if (user?.email) {
         setFormData(prev => ({ ...prev, email: user.email || '' }));
       }
     });
-  });
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));

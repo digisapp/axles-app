@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 export async function POST(
   request: NextRequest,
@@ -61,7 +62,7 @@ export async function POST(
       .single();
 
     if (createError || !clonedListing) {
-      console.error('Clone error:', createError);
+      logger.error('Clone error', { createError });
       return NextResponse.json({ error: 'Failed to clone listing' }, { status: 500 });
     }
 
@@ -103,7 +104,7 @@ export async function POST(
       message: 'Listing cloned successfully',
     });
   } catch (error) {
-    console.error('Clone listing error:', error);
+    logger.error('Clone listing error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 /**
  * Validate and normalize phone number to E.164 format
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       },
     });
   } catch (error) {
-    console.error('Error in GET /api/admin/dealer-voice-agents/[id]:', error);
+    logger.error('Error in GET /api/admin/dealer-voice-agents/[id]', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -218,13 +219,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (error) {
-      console.error('Error updating dealer voice agent:', error);
+      logger.error('Error updating dealer voice agent', { error });
       return NextResponse.json({ error: 'Failed to update voice agent' }, { status: 500 });
     }
 
     return NextResponse.json({ data: agent });
   } catch (error) {
-    console.error('Error in PATCH /api/admin/dealer-voice-agents/[id]:', error);
+    logger.error('Error in PATCH /api/admin/dealer-voice-agents/[id]', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -259,13 +260,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting dealer voice agent:', error);
+      logger.error('Error deleting dealer voice agent', { error });
       return NextResponse.json({ error: 'Failed to delete voice agent' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in DELETE /api/admin/dealer-voice-agents/[id]:', error);
+    logger.error('Error in DELETE /api/admin/dealer-voice-agents/[id]', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 export async function GET(
   request: Request,
@@ -71,7 +72,7 @@ export async function GET(
     const { data: listings, count: listingCount, error: listingsError } = await listingsQuery;
 
     if (listingsError) {
-      console.error('Error fetching listings:', listingsError);
+      logger.error('Error fetching listings', { listingsError });
     }
 
     // Get listing count by category for this manufacturer
@@ -86,7 +87,7 @@ export async function GET(
       category_counts: categoryCounts || [],
     });
   } catch (error) {
-    console.error('Manufacturer API error:', error);
+    logger.error('Manufacturer API error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

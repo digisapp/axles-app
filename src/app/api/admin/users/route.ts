@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { checkIsAdmin } from '@/lib/admin/check-admin';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
     const { data: users, count, error } = await query;
 
     if (error) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users', { error });
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
     }
 
@@ -129,7 +130,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Admin users error:', error);
+    logger.error('Admin users error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

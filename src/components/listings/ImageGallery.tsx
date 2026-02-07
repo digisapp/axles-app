@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, memo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 // Pan position type
 interface PanPosition {
@@ -68,7 +69,7 @@ interface ImageGalleryProps {
   className?: string;
 }
 
-export function ImageGallery({ images, title, className }: ImageGalleryProps) {
+export const ImageGallery = memo(function ImageGallery({ images, title, className }: ImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -240,7 +241,7 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
           url: window.location.href,
         });
       } catch (err) {
-        console.error('Share failed:', err);
+        logger.error('Share failed', { error: err });
       }
     }
   };
@@ -582,4 +583,4 @@ export function ImageGallery({ images, title, className }: ImageGalleryProps) {
       )}
     </>
   );
-}
+});

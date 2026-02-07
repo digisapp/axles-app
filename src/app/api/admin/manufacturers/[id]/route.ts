@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { checkIsAdmin, logAdminAction } from '@/lib/admin/check-admin';
+import { logger } from '@/lib/logger';
 
 export async function GET(
   request: Request,
@@ -40,7 +41,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Admin get manufacturer error:', error);
+    logger.error('Admin get manufacturer error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -111,7 +112,7 @@ export async function PATCH(
       .single();
 
     if (updateError) {
-      console.error('Error updating manufacturer:', updateError);
+      logger.error('Error updating manufacturer', { updateError });
       return NextResponse.json({ error: 'Failed to update manufacturer' }, { status: 500 });
     }
 
@@ -122,7 +123,7 @@ export async function PATCH(
 
     return NextResponse.json({ data: manufacturer });
   } catch (error) {
-    console.error('Admin update manufacturer error:', error);
+    logger.error('Admin update manufacturer error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -159,7 +160,7 @@ export async function DELETE(
       .eq('id', id);
 
     if (deleteError) {
-      console.error('Error deleting manufacturer:', deleteError);
+      logger.error('Error deleting manufacturer', { deleteError });
       return NextResponse.json({ error: 'Failed to delete manufacturer' }, { status: 500 });
     }
 
@@ -169,7 +170,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: 'Manufacturer deactivated' });
   } catch (error) {
-    console.error('Admin delete manufacturer error:', error);
+    logger.error('Admin delete manufacturer error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

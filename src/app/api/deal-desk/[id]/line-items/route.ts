@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createLineItemSchema } from '@/lib/validations/deals';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -36,13 +37,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .order('sort_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching line items:', error);
+      logger.error('Error fetching line items', { error });
       return NextResponse.json({ error: 'Failed to fetch line items' }, { status: 500 });
     }
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Line items error:', error);
+    logger.error('Line items error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (error) {
-      console.error('Error creating line item:', error);
+      logger.error('Error creating line item', { error });
       return NextResponse.json({ error: 'Failed to create line item' }, { status: 500 });
     }
 
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    console.error('Create line item error:', error);
+    logger.error('Create line item error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

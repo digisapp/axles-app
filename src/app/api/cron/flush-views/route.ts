@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { flushAllViewBatches } from '@/lib/cache';
 
 // Verify the request is from Vercel Cron or has correct secret
+import { logger } from '@/lib/logger'
 function verifyRequest(request: NextRequest): boolean {
   // Check for Vercel Cron header
   const authHeader = request.headers.get('authorization');
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Cron flush views error:', error);
+    logger.error('Cron flush views error', { error });
     return NextResponse.json(
       { error: 'Failed to flush views' },
       { status: 500 }

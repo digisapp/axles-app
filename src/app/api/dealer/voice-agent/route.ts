@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 /**
  * Validate and normalize phone number to E.164 format
@@ -46,13 +47,13 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-      console.error('Error fetching voice agent:', error);
+      logger.error('Error fetching voice agent', { error });
       return NextResponse.json({ error: 'Failed to fetch voice agent' }, { status: 500 });
     }
 
     return NextResponse.json({ data: agent || null });
   } catch (error) {
-    console.error('Error in GET /api/dealer/voice-agent:', error);
+    logger.error('Error in GET /api/dealer/voice-agent', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -107,13 +108,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating voice agent:', error);
+      logger.error('Error creating voice agent', { error });
       return NextResponse.json({ error: 'Failed to create voice agent' }, { status: 500 });
     }
 
     return NextResponse.json({ data: agent }, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/dealer/voice-agent:', error);
+    logger.error('Error in POST /api/dealer/voice-agent', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -179,13 +180,13 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error updating voice agent:', error);
+      logger.error('Error updating voice agent', { error });
       return NextResponse.json({ error: 'Failed to update voice agent' }, { status: 500 });
     }
 
     return NextResponse.json({ data: agent });
   } catch (error) {
-    console.error('Error in PATCH /api/dealer/voice-agent:', error);
+    logger.error('Error in PATCH /api/dealer/voice-agent', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -29,6 +29,7 @@ import {
   Volume2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface AIAgentSettings {
   id: string;
@@ -69,7 +70,7 @@ export default function AIAgentSettingsPage() {
       const data = await res.json();
       setSettings(data);
     } catch (error) {
-      console.error('Error fetching settings:', error);
+      logger.error('Error fetching settings', { error });
       toast.error('Failed to load AI agent settings');
     } finally {
       setLoading(false);
@@ -94,7 +95,7 @@ export default function AIAgentSettingsPage() {
       setHasChanges(false);
       toast.success('AI agent settings saved successfully');
     } catch (error) {
-      console.error('Error saving settings:', error);
+      logger.error('Error saving settings', { error });
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);

@@ -12,6 +12,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Download, Loader2, FileSpreadsheet } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface BulkExportProps {
   listingsCount: number;
@@ -58,7 +59,7 @@ export function BulkExport({ listingsCount }: BulkExportProps) {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error', { error });
     } finally {
       setIsExporting(false);
     }

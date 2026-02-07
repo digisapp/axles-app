@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createFloorPlanUnitSchema, floorPlanUnitsQuerySchema } from '@/lib/validations/floor-plan';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { logger } from '@/lib/logger';
 
 // GET - List floored units
 export async function GET(request: NextRequest) {
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
     const { data, count, error } = await query;
 
     if (error) {
-      console.error('Error fetching floor plans:', error);
+      logger.error('Error fetching floor plans', { error });
       return NextResponse.json({ error: 'Failed to fetch floor plans' }, { status: 500 });
     }
 
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
       total_pages: Math.ceil((count || 0) / limit),
     });
   } catch (error) {
-    console.error('Floor plan units error:', error);
+    logger.error('Floor plan units error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -185,13 +186,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating floor plan:', error);
+      logger.error('Error creating floor plan', { error });
       return NextResponse.json({ error: 'Failed to floor unit' }, { status: 500 });
     }
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    console.error('Floor plan creation error:', error);
+    logger.error('Floor plan creation error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

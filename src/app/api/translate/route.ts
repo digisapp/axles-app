@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { translateListings, detectLanguage, needsTranslation, type TranslationLanguage } from '@/lib/translate';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       fromCache: allFromCache,
     });
   } catch (error) {
-    console.error('Translation API error:', error);
+    logger.error('Translation API error', { error });
     return NextResponse.json(
       { error: 'Translation failed' },
       { status: 500 }

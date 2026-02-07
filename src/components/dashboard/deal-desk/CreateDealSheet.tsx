@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface CreateDealSheetProps {
   open: boolean;
@@ -97,7 +98,7 @@ export function CreateDealSheet({
         setLeads(data.data || []);
       }
     } catch (error) {
-      console.error('Failed to fetch leads:', error);
+      logger.error('Failed to fetch leads', { error });
     }
   };
 
@@ -109,7 +110,7 @@ export function CreateDealSheet({
         setListings(data.listings || []);
       }
     } catch (error) {
-      console.error('Failed to fetch listings:', error);
+      logger.error('Failed to fetch listings', { error });
     }
   };
 

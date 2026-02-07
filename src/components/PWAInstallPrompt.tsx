@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Download, Smartphone } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -138,7 +139,7 @@ export function useServiceWorker() {
     navigator.serviceWorker
       .register('/sw.js')
       .then((registration) => {
-        console.log('SW registered:', registration.scope);
+        logger.debug('SW registered', { scope: registration.scope });
 
         // Check for updates periodically
         setInterval(() => {
@@ -146,7 +147,7 @@ export function useServiceWorker() {
         }, 60 * 60 * 1000); // Every hour
       })
       .catch((error) => {
-        console.error('SW registration failed:', error);
+        logger.error('SW registration failed', { error });
       });
   }, []);
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createPaymentSchema } from '@/lib/validations/deals';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -36,13 +37,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .order('payment_date', { ascending: false });
 
     if (error) {
-      console.error('Error fetching payments:', error);
+      logger.error('Error fetching payments', { error });
       return NextResponse.json({ error: 'Failed to fetch payments' }, { status: 500 });
     }
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Payments error:', error);
+    logger.error('Payments error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (error) {
-      console.error('Error creating payment:', error);
+      logger.error('Error creating payment', { error });
       return NextResponse.json({ error: 'Failed to record payment' }, { status: 500 });
     }
 
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
-    console.error('Create payment error:', error);
+    logger.error('Create payment error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

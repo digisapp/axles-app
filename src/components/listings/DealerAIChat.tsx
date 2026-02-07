@@ -19,6 +19,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface Message {
   id: string;
@@ -98,7 +99,7 @@ export function DealerAIChat({
         setConversationId(data.conversationId);
       }
     } catch (error) {
-      console.error('Failed to init conversation:', error);
+      logger.error('Failed to init conversation', { error });
     }
   }, [dealerId, listingId, conversationId]);
 
@@ -137,7 +138,7 @@ export function DealerAIChat({
         setMessages([greeting]);
       }
     } catch (error) {
-      console.error('Failed to fetch greeting:', error);
+      logger.error('Failed to fetch greeting', { error });
       // Fallback greeting
       setMessages([{
         id: `msg-${Date.now()}`,
@@ -219,7 +220,7 @@ export function DealerAIChat({
         }
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
+      logger.error('Failed to send message', { error });
       setMessages(prev => [...prev, {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
@@ -273,7 +274,7 @@ export function DealerAIChat({
         }
       }
     } catch (error) {
-      console.error('Failed to submit lead:', error);
+      logger.error('Failed to submit lead', { error });
     }
   };
 

@@ -4,6 +4,7 @@ import { calculateLeadScoreWithAI } from '@/lib/leads/scoring';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { escapeHtml } from '@/lib/utils/html-escape';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 const AXLESAI_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axlon.ai';
 
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating lead:', error);
+      logger.error('Error creating lead', { error });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -177,13 +178,13 @@ export async function POST(request: NextRequest) {
         });
       } catch (emailError) {
         // Don't fail the request if email fails
-        console.error('Failed to send email notification:', emailError);
+        logger.error('Failed to send email notification', { error: emailError });
       }
     }
 
     return NextResponse.json(lead, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/leads:', error);
+    logger.error('Error in POST /api/leads', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

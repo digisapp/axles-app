@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateListingDescription } from '@/lib/ai/vision';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: { description } });
   } catch (error) {
-    console.error('Description generation error:', error);
+    logger.error('Description generation error', { error });
     return NextResponse.json(
       { error: 'Failed to generate description' },
       { status: 500 }

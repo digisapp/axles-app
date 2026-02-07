@@ -4,6 +4,7 @@ import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
 import { sendEmail } from '@/lib/email/resend';
 import { newChatConversationEmail } from '@/lib/email/templates';
+import { logger } from '@/lib/logger';
 
 function getXai() {
   if (!process.env.XAI_API_KEY) {
@@ -33,7 +34,7 @@ async function sendNewChatNotification(
       }),
     });
   } catch (error) {
-    console.error('Failed to send chat notification:', error);
+    logger.error('Failed to send chat notification', { error });
   }
 }
 
@@ -197,7 +198,7 @@ Respond naturally as the dealer's AI assistant:`,
       conversationId: activeConversationId,
     });
   } catch (error) {
-    console.error('Chat API error:', error);
+    logger.error('Chat API error', { error });
     return NextResponse.json(
       { error: 'Failed to process chat message' },
       { status: 500 }

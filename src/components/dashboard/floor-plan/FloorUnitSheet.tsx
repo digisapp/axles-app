@@ -23,6 +23,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import type { FloorPlanAccount } from '@/types/floor-plan';
+import { logger } from '@/lib/logger';
 
 interface Listing {
   id: string;
@@ -73,7 +74,7 @@ export function FloorUnitSheet({
         setListings(data.data || []);
       }
     } catch (error) {
-      console.error('Failed to fetch listings:', error);
+      logger.error('Failed to fetch listings', { error });
     } finally {
       setLoadingListings(false);
     }

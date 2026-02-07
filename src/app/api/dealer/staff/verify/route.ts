@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
 import { verifyPinSchema, validateBody, ValidationError } from '@/lib/validations/api';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 /**
  * Hash a PIN using SHA-256 with salt (matches admin route)
@@ -31,15 +32,30 @@ function verifyPin(inputPin: string, staff: { id: string; voice_pin?: string; pi
     }
   }
 
-  // Fallback to plaintext comparison for legacy data (will be migrated)
-  // Note: This should be removed once all PINs are migrated to hashed
+  // Legacy plaintext PINs: auto-migrate to hashed on verification
+  // This provides a seamless migration path without manual intervention
   if (staff.voice_pin) {
-    // Use timing-safe comparison even for plaintext
     try {
-      return crypto.timingSafeEqual(
+      const matches = crypto.timingSafeEqual(
         Buffer.from(inputPin),
         Buffer.from(staff.voice_pin)
       );
+      if (matches) {
+        // Auto-migrate: hash the PIN and clear the plaintext
+        // This happens asynchronously - don't block the response
+        const { createClient } = require('@/lib/supabase/server');
+        createClient().then(async (supabase: { from: (table: string) => { update: (data: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<unknown> } } }) => {
+          const hashedPin = hashPin(inputPin, staff.id);
+          await supabase
+            .from('dealer_staff')
+            .update({ pin_hash: hashedPin, voice_pin: null })
+            .eq('id', staff.id);
+        }).catch(() => {
+          // Migration failed silently - will retry on next login
+        });
+        return true;
+      }
+      return false;
     } catch {
       return false;
     }
@@ -178,7 +194,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error verifying staff PIN:', error);
+    logger.error('Error verifying staff PIN', { error });
     return NextResponse.json(
       { error: 'Failed to verify PIN' },
       { status: 500 }

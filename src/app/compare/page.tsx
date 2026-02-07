@@ -7,7 +7,11 @@ import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Scale, X, ArrowLeft, ExternalLink, Download, Loader2 } from 'lucide-react';
-import { exportComparePdf } from '@/lib/exportComparePdf';
+// Lazy load PDF export to reduce bundle size
+const exportComparePdf = async (...args: Parameters<typeof import('@/lib/exportComparePdf')['exportComparePdf']>) => {
+  const { exportComparePdf: fn } = await import('@/lib/exportComparePdf');
+  return fn(...args);
+};
 
 export default function ComparePage() {
   const { listings, removeListing, clearAll } = useCompare();

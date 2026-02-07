@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { verifyInternalRequest } from '@/lib/security/internal-auth';
+import { logger } from '@/lib/logger';
 
 // Get dealer's AI leads
 export async function GET(request: NextRequest) {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
     const { data: leads, error, count } = await query;
 
     if (error) {
-      console.error('Fetch leads error:', error);
+      logger.error('Fetch leads error', { error });
       return NextResponse.json(
         { error: 'Failed to fetch leads' },
         { status: 500 }
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('AI Leads error:', error);
+    logger.error('AI Leads error', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -127,7 +128,7 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Update lead error:', error);
+      logger.error('Update lead error', { error });
       return NextResponse.json(
         { error: 'Failed to update lead' },
         { status: 500 }
@@ -136,7 +137,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ lead });
   } catch (error) {
-    console.error('Update lead error:', error);
+    logger.error('Update lead error', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -196,7 +197,7 @@ export async function POST(request: NextRequest) {
 
     // TODO: Integrate with email service (SendGrid, Resend, etc.)
     // For now, just log the notification
-    console.log('New AI Lead Notification:', {
+    logger.info('New AI Lead Notification', {
       to: notificationEmail,
       lead: {
         name: lead.visitor_name,
@@ -208,7 +209,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Send notification error:', error);
+    logger.error('Send notification error', { error });
     return NextResponse.json(
       { error: 'Failed to send notification' },
       { status: 500 }

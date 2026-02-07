@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/dealer-staff - List all dealer staff (admin only)
 export async function GET(request: NextRequest) {
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
     const { data: staff, error, count } = await query;
 
     if (error) {
-      console.error('Error fetching dealer staff:', error);
+      logger.error('Error fetching dealer staff', { error });
       return NextResponse.json({ error: 'Failed to fetch dealer staff' }, { status: 500 });
     }
 
@@ -95,7 +96,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error in GET /api/admin/dealer-staff:', error);
+    logger.error('Error in GET /api/admin/dealer-staff', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

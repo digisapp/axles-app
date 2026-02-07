@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,13 +79,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating listing:', error);
+      logger.error('Error creating listing', { error });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(listing, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/dashboard/bulk/import:', error);
+    logger.error('Error in POST /api/dashboard/bulk/import', { error });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

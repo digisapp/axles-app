@@ -7,6 +7,7 @@ import {
   cacheKeys,
   isRedisConfigured,
 } from './redis';
+import { logger } from '@/lib/logger';
 
 const BATCH_KEY_PREFIX = CACHE_KEYS.VIEW_BATCH;
 const FLUSH_THRESHOLD = 10; // Flush after this many views per listing
@@ -27,7 +28,7 @@ export async function recordViewBatch(listingId: string): Promise<number> {
   // Auto-flush if threshold reached
   if (count >= FLUSH_THRESHOLD) {
     // Fire and forget - don't wait for flush
-    flushViewBatch(listingId).catch(console.error);
+    flushViewBatch(listingId).catch((err) => logger.error('Error auto-flushing view batch', { error: err }));
   }
 
   return count;
@@ -59,12 +60,12 @@ export async function flushViewBatch(listingId: string): Promise<number> {
         count: viewCount,
       });
 
-      console.log(`Flushed ${viewCount} views for listing ${listingId}`);
+      logger.debug('Flushed views for listing', { viewCount, listingId });
     }
 
     return viewCount;
   } catch (error) {
-    console.error(`Error flushing views for ${listingId}:`, error);
+    logger.error('Error flushing views for listing', { listingId, error });
     return 0;
   }
 }
@@ -96,14 +97,14 @@ export async function flushAllViewBatches(): Promise<{
       totalViews += views;
     }
 
-    console.log(`Flushed ${totalViews} total views across ${keys.length} listings`);
+    logger.info('Flushed all view batches', { totalViews, listingCount: keys.length });
 
     return {
       flushed: keys.length,
       totalViews,
     };
   } catch (error) {
-    console.error('Error flushing all view batches:', error);
+    logger.error('Error flushing all view batches', { error });
     return { flushed: 0, totalViews: 0 };
   }
 }
@@ -120,7 +121,7 @@ export async function getBatchedViewCount(listingId: string): Promise<number> {
     const count = await redis.get(key);
     return typeof count === 'number' ? count : parseInt(count as string) || 0;
   } catch (error) {
-    console.error('Error getting batched view count:', error);
+    logger.error('Error getting batched view count', { error });
     return 0;
   }
 }

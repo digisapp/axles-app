@@ -37,6 +37,7 @@ import {
   Eye,
   FileText,
 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface Dealer {
   id: string;
@@ -80,7 +81,7 @@ export default function AdminDealersPage() {
         setCounts(data.counts || { pending: 0, approved: 0, rejected: 0 });
       }
     } catch (error) {
-      console.error('Error fetching dealers:', error);
+      logger.error('Error fetching dealers', { error });
     }
     setIsLoading(false);
   };
@@ -106,7 +107,7 @@ export default function AdminDealersPage() {
         fetchDealers();
       }
     } catch (error) {
-      console.error('Error updating dealer:', error);
+      logger.error('Error updating dealer', { error });
     }
     setIsSubmitting(false);
   };

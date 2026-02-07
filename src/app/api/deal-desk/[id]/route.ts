@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { updateDealSchema } from '@/lib/validations/deals';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ data: deal });
   } catch (error) {
-    console.error('Get deal error:', error);
+    logger.error('Get deal error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -111,13 +112,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (error) {
-      console.error('Update deal error:', error);
+      logger.error('Update deal error', { error });
       return NextResponse.json({ error: 'Failed to update deal' }, { status: 500 });
     }
 
     return NextResponse.json({ data: deal });
   } catch (error) {
-    console.error('Update deal error:', error);
+    logger.error('Update deal error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -159,13 +160,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .eq('id', id);
 
     if (error) {
-      console.error('Delete deal error:', error);
+      logger.error('Delete deal error', { error });
       return NextResponse.json({ error: 'Failed to delete deal' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Delete deal error:', error);
+    logger.error('Delete deal error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

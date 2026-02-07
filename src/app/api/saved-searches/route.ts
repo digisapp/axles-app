@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function GET() {
   try {
@@ -17,13 +18,13 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching saved searches:', error);
+      logger.error('Error fetching saved searches', { error });
       return NextResponse.json({ error: 'Failed to fetch saved searches' }, { status: 500 });
     }
 
     return NextResponse.json({ searches });
   } catch (error) {
-    console.error('Saved searches API error:', error);
+    logger.error('Saved searches API error', { error });
     return NextResponse.json({ error: 'Failed to fetch saved searches' }, { status: 500 });
   }
 }
@@ -58,13 +59,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating saved search:', error);
+      logger.error('Error creating saved search', { error });
       return NextResponse.json({ error: 'Failed to save search' }, { status: 500 });
     }
 
     return NextResponse.json({ search });
   } catch (error) {
-    console.error('Create saved search error:', error);
+    logger.error('Create saved search error', { error });
     return NextResponse.json({ error: 'Failed to save search' }, { status: 500 });
   }
 }

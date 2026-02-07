@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createDealSchema, dealsQuerySchema } from '@/lib/validations/deals';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS, rateLimitResponse } from '@/lib/security/rate-limit';
+import { logger } from '@/lib/logger';
 
 // GET - List deals
 export async function GET(request: NextRequest) {
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest) {
     const { data, count, error } = await query;
 
     if (error) {
-      console.error('Error fetching deals:', error);
+      logger.error('Error fetching deals', { error });
       return NextResponse.json({ error: 'Failed to fetch deals' }, { status: 500 });
     }
 
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
       total_pages: Math.ceil((count || 0) / limit),
     });
   } catch (error) {
-    console.error('Deals list error:', error);
+    logger.error('Deals list error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -184,7 +185,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (dealError) {
-      console.error('Error creating deal:', dealError);
+      logger.error('Error creating deal', { error: dealError });
       return NextResponse.json({ error: 'Failed to create deal' }, { status: 500 });
     }
 
@@ -213,7 +214,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: deal }, { status: 201 });
   } catch (error) {
-    console.error('Deal creation error:', error);
+    logger.error('Deal creation error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

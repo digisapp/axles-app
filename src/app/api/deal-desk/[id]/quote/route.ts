@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { generateQuotePdf, generateQuoteFilename } from '@/lib/deals/generateQuotePdf';
 import { generateQuoteSchema } from '@/lib/validations/deals';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       });
 
     if (uploadError) {
-      console.error('Error uploading quote:', uploadError);
+      logger.error('Error uploading quote', { error: uploadError });
       // Continue anyway - return the PDF directly
     }
 
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
     });
   } catch (error) {
-    console.error('Generate quote error:', error);
+    logger.error('Generate quote error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

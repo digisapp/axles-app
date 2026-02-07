@@ -46,6 +46,7 @@ import {
   Headphones,
 } from 'lucide-react';
 import { MiniAudioPlayer } from '@/components/dashboard/AudioPlayer';
+import { logger } from '@/lib/logger';
 
 interface CallLog {
   id: string;
@@ -148,7 +149,7 @@ export default function CallsPage() {
         }));
       }
     } catch (error) {
-      console.error('Error fetching calls:', error);
+      logger.error('Error fetching calls', { error });
     }
     setIsLoading(false);
   };

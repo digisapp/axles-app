@@ -39,6 +39,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { Manufacturer } from '@/types';
+import { logger } from '@/lib/logger';
 
 const EQUIPMENT_TYPE_OPTIONS = [
   { value: 'trucks', label: 'Trucks' },
@@ -103,7 +104,7 @@ export default function AdminManufacturersPage() {
         setCounts(data.counts || { total: 0, active: 0, featured: 0 });
       }
     } catch (error) {
-      console.error('Error fetching manufacturers:', error);
+      logger.error('Error fetching manufacturers', { error });
     }
     setIsLoading(false);
   };
@@ -173,7 +174,7 @@ export default function AdminManufacturersPage() {
         alert(error.error || 'Failed to save manufacturer');
       }
     } catch (error) {
-      console.error('Error saving manufacturer:', error);
+      logger.error('Error saving manufacturer', { error });
     }
     setIsSubmitting(false);
   };
@@ -190,7 +191,7 @@ export default function AdminManufacturersPage() {
         fetchManufacturers();
       }
     } catch (error) {
-      console.error('Error toggling manufacturer:', error);
+      logger.error('Error toggling manufacturer', { error });
     }
   };
 
@@ -205,7 +206,7 @@ export default function AdminManufacturersPage() {
         fetchManufacturers();
       }
     } catch (error) {
-      console.error('Error deleting manufacturer:', error);
+      logger.error('Error deleting manufacturer', { error });
     }
   };
 

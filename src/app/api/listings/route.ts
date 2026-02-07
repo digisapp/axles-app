@@ -9,6 +9,7 @@ import {
   isRedisConfigured,
 } from '@/lib/cache';
 import { createListingSchema, validateBody, ValidationError } from '@/lib/validations/api';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -193,7 +194,7 @@ export async function GET(request: NextRequest) {
   const { data, error, count } = await query;
 
   if (error) {
-    console.error('Listings query error:', error);
+    logger.error('Listings query error', { error });
     return NextResponse.json(
       { error: 'Failed to fetch listings' },
       { status: 500 }
@@ -259,7 +260,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Create listing error:', error);
+      logger.error('Create listing error', { error });
       return NextResponse.json(
         { error: 'Failed to create listing' },
         { status: 500 }
@@ -278,7 +279,7 @@ export async function POST(request: NextRequest) {
         .insert(industryInserts);
 
       if (industryError) {
-        console.error('Industry insert error:', industryError);
+        logger.error('Industry insert error', { industryError });
         // Don't fail the whole request, just log the error
       }
     }
@@ -306,7 +307,7 @@ export async function POST(request: NextRequest) {
             .eq('id', data.id);
         }
       } catch (estimateError) {
-        console.error('Price estimate error:', estimateError);
+        logger.error('Price estimate error', { estimateError });
         // Don't fail the request if estimation fails
       }
     }

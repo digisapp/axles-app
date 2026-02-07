@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
   try {
@@ -43,7 +44,7 @@ export async function GET(request: Request) {
     const { data: manufacturers, count, error } = await query;
 
     if (error) {
-      console.error('Error fetching manufacturers:', error);
+      logger.error('Error fetching manufacturers', { error });
       return NextResponse.json({ error: 'Failed to fetch manufacturers' }, { status: 500 });
     }
 
@@ -54,7 +55,7 @@ export async function GET(request: Request) {
       offset,
     });
   } catch (error) {
-    console.error('Manufacturers API error:', error);
+    logger.error('Manufacturers API error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

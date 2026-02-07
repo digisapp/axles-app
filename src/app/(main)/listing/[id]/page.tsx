@@ -1,4 +1,5 @@
-export const dynamic = 'force-dynamic';
+// Revalidate every 5 minutes - view tracking is client-side
+export const revalidate = 300;
 
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -27,13 +28,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .eq('dealer_id', user.id);
 
     if (error) {
-      console.error('Error dismissing alert:', error);
+      logger.error('Error dismissing alert', { error });
       return NextResponse.json({ error: 'Failed to dismiss alert' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Floor plan alert dismiss error:', error);
+    logger.error('Floor plan alert dismiss error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

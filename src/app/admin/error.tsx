@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
+import { logger } from '@/lib/logger';
 
 export default function AdminError({
   error,
@@ -15,7 +16,7 @@ export default function AdminError({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error('Admin error:', error);
+    logger.error('Admin error', { error });
   }, [error]);
 
   return (

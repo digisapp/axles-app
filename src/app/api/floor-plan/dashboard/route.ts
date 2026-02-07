@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 // GET - Get floor plan dashboard metrics
 export async function GET() {
@@ -16,7 +17,7 @@ export async function GET() {
       .rpc('get_floor_plan_metrics', { p_dealer_id: user.id });
 
     if (metricsError) {
-      console.error('Error fetching floor plan metrics:', metricsError);
+      logger.error('Error fetching floor plan metrics', { error: metricsError });
       // Fallback to manual calculation
       return await getManualMetrics(supabase, user.id);
     }
@@ -57,7 +58,7 @@ export async function GET() {
       upcomingCurtailments: upcomingCurtailments || [],
     });
   } catch (error) {
-    console.error('Floor plan dashboard error:', error);
+    logger.error('Floor plan dashboard error', { error });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

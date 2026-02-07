@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { estimatePrice } from '@/lib/price-estimator';
+import { logger } from '@/lib/logger';
 
 // GET - Fetch a single listing
 export async function GET(
@@ -126,7 +127,7 @@ export async function PUT(
         listing.ai_price_confidence = estimate.confidence;
       }
     } catch (estimateError) {
-      console.error('Price estimate error:', estimateError);
+      logger.error('Price estimate error', { estimateError });
       // Don't fail the request if estimation fails
     }
   }
