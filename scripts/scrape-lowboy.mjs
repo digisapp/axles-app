@@ -39,7 +39,7 @@ async function getOrCreateDealer(info) {
 
   // Create new dealer
   const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
-  const email = `${cleanName}${Math.random().toString(36).substring(2,6)}@dealers.axles.ai`;
+  const email = `${cleanName}${Math.random().toString(36).substring(2,6)}@dealers.axlon.ai`;
 
   const { data: authUser, error } = await supabase.auth.admin.createUser({
     email,

@@ -6,7 +6,7 @@ import { escapeHtml } from '@/lib/utils/html-escape';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
-const AXLESAI_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axlon.ai';
+const AXLONAI_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@axlon.ai';
 
 // Validation schema for lead creation
 const createLeadSchema = z.object({
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         priority: priority,
         score: score,
         score_factors: factors,
-        source: isAxlonAILead ? 'axlesai_contact' : 'contact_form',
+        source: isAxlonAILead ? 'axlonai_contact' : 'contact_form',
       })
       .select()
       .single();
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
 
     if (isAxlonAILead) {
       // Send to AxlonAI admin
-      notificationEmail = AXLESAI_ADMIN_EMAIL;
+      notificationEmail = AXLONAI_ADMIN_EMAIL;
     } else if (seller_id) {
       // Get seller info for email notification
       const { data: seller } = await supabase

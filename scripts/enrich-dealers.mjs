@@ -29,7 +29,7 @@ async function getOrphanedProfiles() {
   const { data: profiles } = await supabase
     .from('profiles')
     .select('id, email, created_at')
-    .like('email', '%@dealers.axles.ai')
+    .like('email', '%@dealers.axlon.ai')
     .is('company_name', null);
 
   if (!profiles || profiles.length === 0) {

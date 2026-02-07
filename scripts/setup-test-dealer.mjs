@@ -26,12 +26,12 @@ async function setupTestDealer() {
       .eq('user_id', existingDealer.id);
 
     console.log(`Listings: ${count}`);
-    console.log(`\nView at: https://axles.ai/demo-dealer`);
+    console.log(`\nView at: https://axlon.ai/demo-dealer`);
     return;
   }
 
   // Create a test user via auth admin (generates UUID)
-  const testEmail = 'demo@axles.ai';
+  const testEmail = 'demo@axlon.ai';
 
   // Check if user already exists
   const { data: existingUsers } = await supabase.auth.admin.listUsers();
@@ -70,7 +70,7 @@ async function setupTestDealer() {
       state: 'TX',
       address: '1234 Demo Drive',
       zip_code: '77001',
-      website: 'https://axles.ai',
+      website: 'https://axlon.ai',
       chat_enabled: true,
       chat_settings: {
         greeting: 'Hi! Welcome to Demo Truck & Trailer. How can I help you find the right equipment today?',
@@ -123,7 +123,7 @@ async function setupTestDealer() {
   }
 
   console.log('\n✅ Test dealer setup complete!');
-  console.log(`\nView storefront at: https://axles.ai/demo-dealer`);
+  console.log(`\nView storefront at: https://axlon.ai/demo-dealer`);
   console.log('Or locally: http://localhost:3000/demo-dealer');
 }
 

@@ -903,7 +903,7 @@ Do NOT use markdown formatting like ** or ## - just use plain text with line bre
       const listingContext = formatListingsForAI(listingData.listings, listingData.stats);
       prompt = `${query}
 
-[REAL INVENTORY DATA FROM AXLESAI DATABASE:]
+[REAL INVENTORY DATA FROM AXLONAI DATABASE:]
 ${listingContext}
 
 Based on this real inventory data, answer the user's question with specific listings and prices.`;

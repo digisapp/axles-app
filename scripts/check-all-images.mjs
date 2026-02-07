@@ -87,7 +87,7 @@ async function checkAllImages() {
   // Check for external domains that might have issues
   const externalDomains = sortedDomains.filter(([domain]) =>
     !domain.includes('supabase') &&
-    !domain.includes('axles.ai')
+    !domain.includes('axlon.ai')
   );
 
   console.log('\n=== EXTERNAL IMAGE SOURCES ===');

@@ -1,5 +1,5 @@
 """
-Tools for AxlesAI Voice Agent
+Tools for AxlonAI Voice Agent
 
 Provides inventory search, lead capture, and settings functionality via Supabase.
 """
@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, Tuple
 from supabase import create_client, Client
 
-logger = logging.getLogger("axles-agent.tools")
+logger = logging.getLogger("axlon-agent.tools")
 
 # Security settings
 MAX_PIN_ATTEMPTS = 5
@@ -137,9 +137,9 @@ def is_within_business_hours(business_hours: Dict[str, Any]) -> bool:
 # Default settings if database fetch fails
 DEFAULT_SETTINGS = {
     "voice": "Sal",
-    "agent_name": "Axles AI",
-    "greeting_message": "Hello! Thanks for calling Axles AI, your marketplace for trucks, trailers, and heavy equipment. How can I help you find what you're looking for today?",
-    "instructions": """You are a helpful AI assistant for AxlesAI, a marketplace for trucks, trailers, and heavy equipment.
+    "agent_name": "Axlon AI",
+    "greeting_message": "Hello! Thanks for calling Axlon AI, your marketplace for trucks, trailers, and heavy equipment. How can I help you find what you're looking for today?",
+    "instructions": """You are a helpful AI assistant for AxlonAI, a marketplace for trucks, trailers, and heavy equipment.
 
 Your role is to:
 1. Answer questions about available inventory (trucks, trailers, heavy equipment)

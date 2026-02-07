@@ -140,7 +140,7 @@ async function getOrCreateDealer(dealerInfo) {
   // Generate email from dealer name
   const cleanName = dealerName.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20);
   const randomSuffix = Math.random().toString(36).substring(2, 6);
-  const email = `${cleanName}${randomSuffix}@dealers.axles.ai`;
+  const email = `${cleanName}${randomSuffix}@dealers.axlon.ai`;
   const password = `Dealer${Math.random().toString(36).substring(2, 10)}!`;
 
   const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
@@ -197,7 +197,7 @@ async function getOrCreateFallbackDealer() {
   }
 
   const { data: authUser } = await supabase.auth.admin.createUser({
-    email: 'truckpaper@dealers.axles.ai',
+    email: 'truckpaper@dealers.axlon.ai',
     email_confirm: true,
     password: 'TruckPaper2024!',
   });

@@ -38,7 +38,7 @@ interface RecentListing {
   viewedAt: number;
 }
 
-const STORAGE_KEY = 'axles_recently_viewed';
+const STORAGE_KEY = 'axlon_recently_viewed';
 const MAX_RECENT = 10;
 
 export function addToRecentlyViewed(listing: Omit<RecentListing, 'viewedAt'>) {

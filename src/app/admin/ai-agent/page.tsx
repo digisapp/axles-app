@@ -203,7 +203,7 @@ export default function AIAgentSettingsPage() {
               <Input
                 value={settings.agent_name}
                 onChange={(e) => updateSetting('agent_name', e.target.value)}
-                placeholder="e.g., Axles AI"
+                placeholder="e.g., Axlon AI"
               />
               <p className="text-xs text-muted-foreground">
                 The name the agent uses to identify itself

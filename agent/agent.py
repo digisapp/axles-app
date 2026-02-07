@@ -1,5 +1,5 @@
 """
-AxlesAI Voice Agent - LiveKit + xAI
+AxlonAI Voice Agent - LiveKit + xAI
 
 A voice AI agent that answers phone calls about truck and trailer inventory.
 Uses xAI's native Grok Voice API for speech-to-speech conversation.
@@ -43,15 +43,15 @@ from tools import (
 
 load_dotenv()
 
-logger = logging.getLogger("axles-agent")
+logger = logging.getLogger("axlon-agent")
 logger.setLevel(logging.INFO)
 
 # Track active calls for recording
 active_calls = {}
 
 
-class AxlesAgent(Agent):
-    """Voice AI agent for AxlesAI marketplace."""
+class AxlonAgent(Agent):
+    """Voice AI agent for AxlonAI marketplace."""
 
     def __init__(
         self,
@@ -488,7 +488,7 @@ async def entrypoint(ctx: JobContext):
     Supports multi-tenant operation:
     - Detects the called number (DID) to determine if this is a dealer's line
     - If dealer line: uses dealer's custom settings, filters inventory to dealer only
-    - If main line: uses global AxlesAI settings, searches all inventory
+    - If main line: uses global AxlonAI settings, searches all inventory
     """
 
     logger.info(f"Agent starting in room: {ctx.room.name}")
@@ -567,8 +567,8 @@ Do not search inventory or provide detailed information - just capture the lead.
                 'is_active': dealer_agent.get('is_active', True),
             }
     else:
-        # This is the main AxlesAI line - use global settings
-        logger.info("Main line call - using global AxlesAI settings")
+        # This is the main AxlonAI line - use global settings
+        logger.info("Main line call - using global AxlonAI settings")
         settings = get_ai_agent_settings()
 
     logger.info(f"Using voice: {settings.get('voice')}")
@@ -613,7 +613,7 @@ Do not search inventory or provide detailed information - just capture the lead.
     )
 
     # Create agent with dealer context if applicable
-    agent = AxlesAgent(
+    agent = AxlonAgent(
         settings=settings,
         room_name=ctx.room.name,
         caller_phone=caller_phone,
@@ -719,6 +719,6 @@ if __name__ == "__main__":
     cli.run_app(
         WorkerOptions(
             entrypoint_fnc=entrypoint,
-            agent_name="axles-voice-agent",
+            agent_name="axlon-voice-agent",
         )
     )

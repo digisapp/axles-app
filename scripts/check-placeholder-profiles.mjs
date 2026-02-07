@@ -11,19 +11,19 @@ const supabase = createClient(
 const { count: withName } = await supabase
   .from('profiles')
   .select('*', { count: 'exact', head: true })
-  .like('email', '%@dealers.axles.ai')
+  .like('email', '%@dealers.axlon.ai')
   .not('company_name', 'is', null)
 
 const { count: withoutName } = await supabase
   .from('profiles')
   .select('*', { count: 'exact', head: true })
-  .like('email', '%@dealers.axles.ai')
+  .like('email', '%@dealers.axlon.ai')
   .is('company_name', null)
 
 const { count: total } = await supabase
   .from('profiles')
   .select('*', { count: 'exact', head: true })
-  .like('email', '%@dealers.axles.ai')
+  .like('email', '%@dealers.axlon.ai')
 
 console.log('Placeholder profiles breakdown:')
 console.log(`  Total: ${total}`)
@@ -35,7 +35,7 @@ console.log('')
 const { data: sample } = await supabase
   .from('profiles')
   .select('email')
-  .like('email', '%@dealers.axles.ai')
+  .like('email', '%@dealers.axlon.ai')
   .limit(5)
 
 console.log('Phone numbers extracted from emails:')

@@ -1,11 +1,11 @@
-# AxlesAI Voice Agent
+# AxlonAI Voice Agent
 
 Voice AI agent powered by LiveKit and xAI (Grok) for handling phone calls about truck and trailer inventory. Uses xAI's native Grok Voice API for speech-to-speech conversation.
 
 ## Architecture
 
 ```
-Phone Call → LiveKit SIP → Agent Room → AxlesAgent
+Phone Call → LiveKit SIP → Agent Room → AxlonAgent
                                               ↓
                                          xAI (Grok Voice API)
                                               ↓
@@ -76,7 +76,7 @@ Create a file `dispatch-rule.json`:
         },
         "roomConfig": {
             "agents": [{
-                "agentName": "axles-voice-agent"
+                "agentName": "axlon-voice-agent"
             }]
         }
     }
@@ -107,7 +107,7 @@ To have the agent call a number:
 ```bash
 lk dispatch create \
     --new-room \
-    --agent-name axles-voice-agent \
+    --agent-name axlon-voice-agent \
     --metadata '{"phone_number": "+15105550123"}'
 ```
 
@@ -131,7 +131,7 @@ Agent behavior is configured per-dealer in the database (`dealer_voice_agents` t
 
 ### Add More Tools
 
-Add new `@function_tool()` methods to the `AxlesAgent` class for additional capabilities.
+Add new `@function_tool()` methods to the `AxlonAgent` class for additional capabilities.
 
 ## Troubleshooting
 
