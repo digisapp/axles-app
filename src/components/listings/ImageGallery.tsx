@@ -14,6 +14,7 @@ import {
   Share2,
   Expand,
   RotateCcw,
+  ImageOff,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
@@ -71,6 +72,7 @@ interface ImageGalleryProps {
 
 export const ImageGallery = memo(function ImageGallery({ images, title, className }: ImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [erroredImages, setErroredImages] = useState<Set<string>>(new Set());
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<PanPosition>({ x: 0, y: 0 });
@@ -264,16 +266,24 @@ export const ImageGallery = memo(function ImageGallery({ images, title, classNam
           onTouchMove={swipeHandlers.onTouchMove}
           onTouchEnd={swipeHandlers.onTouchEnd}
         >
-          <Image
-            src={selectedImage.url}
-            alt={title || `Image ${selectedIndex + 1}`}
-            fill
-            className="object-cover cursor-pointer transition-transform"
-            onClick={() => setIsLightboxOpen(true)}
-            priority={selectedIndex === 0}
-            unoptimized
-            draggable={false}
-          />
+          {erroredImages.has(selectedImage.id) ? (
+            <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-2 cursor-pointer" onClick={() => setIsLightboxOpen(true)}>
+              <ImageOff className="w-10 h-10 opacity-50" />
+              <span className="text-sm">Image unavailable</span>
+            </div>
+          ) : (
+            <Image
+              src={selectedImage.url}
+              alt={title || `Image ${selectedIndex + 1}`}
+              fill
+              className="object-cover cursor-pointer transition-transform"
+              onClick={() => setIsLightboxOpen(true)}
+              priority={selectedIndex === 0}
+              unoptimized
+              draggable={false}
+              onError={() => setErroredImages(prev => new Set(prev).add(selectedImage.id))}
+            />
+          )}
 
           {/* Navigation arrows */}
           {images.length > 1 && (
@@ -338,13 +348,20 @@ export const ImageGallery = memo(function ImageGallery({ images, title, classNam
                     : 'border-transparent hover:border-muted-foreground/30'
                 )}
               >
-                <Image
-                  src={image.thumbnail_url || image.url}
-                  alt={`Thumbnail ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
+                {erroredImages.has(image.id) ? (
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                    <ImageOff className="w-4 h-4 text-muted-foreground/50" />
+                  </div>
+                ) : (
+                  <Image
+                    src={image.thumbnail_url || image.url}
+                    alt={`Thumbnail ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                    onError={() => setErroredImages(prev => new Set(prev).add(image.id))}
+                  />
+                )}
               </button>
             ))}
           </div>
@@ -520,15 +537,23 @@ export const ImageGallery = memo(function ImageGallery({ images, title, classNam
                 transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
               }}
             >
-              <Image
-                src={selectedImage.url}
-                alt={title || `Image ${selectedIndex + 1}`}
-                width={1200}
-                height={800}
-                className="max-h-[calc(100vh-160px)] w-auto object-contain pointer-events-none"
-                draggable={false}
-                unoptimized
-              />
+              {erroredImages.has(selectedImage.id) ? (
+                <div className="flex flex-col items-center justify-center text-white/70 gap-3">
+                  <ImageOff className="w-16 h-16" />
+                  <span className="text-lg">Image unavailable</span>
+                </div>
+              ) : (
+                <Image
+                  src={selectedImage.url}
+                  alt={title || `Image ${selectedIndex + 1}`}
+                  width={1200}
+                  height={800}
+                  className="max-h-[calc(100vh-160px)] w-auto object-contain pointer-events-none"
+                  draggable={false}
+                  unoptimized
+                  onError={() => setErroredImages(prev => new Set(prev).add(selectedImage.id))}
+                />
+              )}
             </div>
 
             {/* Keyboard hints */}
@@ -568,13 +593,20 @@ export const ImageGallery = memo(function ImageGallery({ images, title, classNam
                       : 'border-transparent opacity-50 hover:opacity-100'
                   )}
                 >
-                  <Image
-                    src={image.thumbnail_url || image.url}
-                    alt={`Thumbnail ${index + 1}`}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
+                  {erroredImages.has(image.id) ? (
+                    <div className="w-full h-full flex items-center justify-center bg-white/10">
+                      <ImageOff className="w-4 h-4 text-white/50" />
+                    </div>
+                  ) : (
+                    <Image
+                      src={image.thumbnail_url || image.url}
+                      alt={`Thumbnail ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                      onError={() => setErroredImages(prev => new Set(prev).add(image.id))}
+                    />
+                  )}
                 </button>
               ))}
             </div>

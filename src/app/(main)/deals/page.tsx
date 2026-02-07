@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { CompareButton } from '@/components/listings/CompareButton';
 import { ListingCardWrapper } from '@/components/listings/ListingCardWrapper';
+import { useImageFallback } from '@/hooks/useImageFallback';
 import { logger } from '@/lib/logger';
 
 interface DealListing {
@@ -249,6 +250,7 @@ function FilterChip({
 
 function DealCard({ deal, viewMode }: { deal: DealListing; viewMode: 'grid' | 'list' }) {
   const primaryImage = deal.images?.find((img) => img.is_primary) || deal.images?.[0];
+  const { hasError, handleError } = useImageFallback();
   const isHotDeal = deal.discount_percent >= 15;
 
   if (viewMode === 'list') {
@@ -256,13 +258,14 @@ function DealCard({ deal, viewMode }: { deal: DealListing; viewMode: 'grid' | 'l
       <ListingCardWrapper listingId={deal.id} listingTitle={deal.title}>
         <Card className="flex flex-col sm:flex-row overflow-hidden hover:shadow-lg transition-shadow">
           <div className="relative w-full sm:w-48 md:w-64 h-48 sm:h-40 md:h-48 flex-shrink-0">
-            {primaryImage ? (
+            {primaryImage && !hasError ? (
               <Image
                 src={primaryImage.thumbnail_url || primaryImage.url}
                 alt={deal.title}
                 fill
                 className="object-cover"
                 unoptimized
+                onError={handleError}
               />
             ) : (
               <div className="w-full h-full bg-muted flex items-center justify-center">
@@ -347,13 +350,14 @@ function DealCard({ deal, viewMode }: { deal: DealListing; viewMode: 'grid' | 'l
     <ListingCardWrapper listingId={deal.id} listingTitle={deal.title}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
         <div className="relative aspect-[4/3]">
-          {primaryImage ? (
+          {primaryImage && !hasError ? (
             <Image
               src={primaryImage.thumbnail_url || primaryImage.url}
               alt={deal.title}
               fill
               className="object-cover"
               unoptimized
+              onError={handleError}
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center">

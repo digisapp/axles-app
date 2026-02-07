@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,7 @@ import {
 import { CompareButton } from '@/components/listings/CompareButton';
 import { ListingCardWrapper } from '@/components/listings/ListingCardWrapper';
 import { getDealInfo } from '@/lib/deal-info';
+import { useImageFallback } from '@/hooks/useImageFallback';
 import type { Listing } from '@/types';
 
 interface SearchListingCardProps {
@@ -36,6 +37,7 @@ export const SearchListingCard = memo(function SearchListingCard({
   isTranslated,
 }: SearchListingCardProps) {
   const primaryImage = listing.images?.find((img) => img.is_primary) || listing.images?.[0];
+  const { hasError, handleError } = useImageFallback();
   const dealInfo = getDealInfo(listing);
   const displayTitle = translatedTitle || listing.title;
   const displayDescription = translatedDescription || listing.description || '';
@@ -45,13 +47,14 @@ export const SearchListingCard = memo(function SearchListingCard({
       <ListingCardWrapper listingId={listing.id} listingTitle={listing.title}>
         <Card className="flex flex-col sm:flex-row overflow-hidden hover:shadow-lg transition-shadow">
           <div className="relative w-full sm:w-48 md:w-64 h-48 sm:h-40 md:h-48 flex-shrink-0">
-            {primaryImage ? (
+            {primaryImage && !hasError ? (
               <Image
                 src={primaryImage.thumbnail_url || primaryImage.url}
                 alt={listing.title}
                 fill
                 className="object-cover"
                 unoptimized
+                onError={handleError}
               />
             ) : (
               <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-2">
@@ -158,13 +161,14 @@ export const SearchListingCard = memo(function SearchListingCard({
     <ListingCardWrapper listingId={listing.id} listingTitle={listing.title}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
         <div className="relative aspect-[4/3]">
-          {primaryImage ? (
+          {primaryImage && !hasError ? (
             <Image
               src={primaryImage.thumbnail_url || primaryImage.url}
               alt={listing.title}
               fill
               className="object-cover"
               unoptimized
+              onError={handleError}
             />
           ) : (
             <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-1">

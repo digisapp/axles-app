@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Clock, ChevronRight, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { logger } from '@/lib/logger';
+import { useImageFallback } from '@/hooks/useImageFallback';
 
 // Helper function to format relative time
 function formatRelativeTime(timestamp: number): string {
@@ -83,6 +84,49 @@ export function clearRecentlyViewed() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+function RecentCard({ listing }: { listing: RecentListing }) {
+  const { hasError, handleError } = useImageFallback();
+
+  return (
+    <Link href={`/listing/${listing.id}`}>
+      <Card className="overflow-hidden hover:shadow-md transition-shadow h-full">
+        <div className="relative aspect-[4/3] bg-muted">
+          {listing.imageUrl && !hasError ? (
+            <Image
+              src={listing.imageUrl}
+              alt={listing.title}
+              fill
+              className="object-cover"
+              unoptimized
+              onError={handleError}
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-1">
+              <ImageOff className="w-5 h-5 opacity-50" />
+              <span className="text-[10px]">No Image</span>
+            </div>
+          )}
+          {/* Relative time badge */}
+          <span className="absolute top-1 right-1 text-[9px] bg-black/50 text-white px-1.5 py-0.5 rounded">
+            {formatRelativeTime(listing.viewedAt)}
+          </span>
+        </div>
+        <CardContent className="p-2 md:p-3">
+          <h3 className="font-medium text-xs md:text-sm line-clamp-1">
+            {listing.title}
+          </h3>
+          <p className="text-sm md:text-base font-bold text-primary mt-0.5">
+            {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
+          </p>
+          <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+            {[listing.year, listing.make].filter(Boolean).join(' ')}
+          </p>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
+
 interface RecentlyViewedProps {
   currentListingId?: string;
   maxItems?: number;
@@ -131,41 +175,7 @@ export function RecentlyViewed({
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
         {recentListings.map((listing) => (
-          <Link key={listing.id} href={`/listing/${listing.id}`}>
-            <Card className="overflow-hidden hover:shadow-md transition-shadow h-full">
-              <div className="relative aspect-[4/3] bg-muted">
-                {listing.imageUrl ? (
-                  <Image
-                    src={listing.imageUrl}
-                    alt={listing.title}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-1">
-                    <ImageOff className="w-5 h-5 opacity-50" />
-                    <span className="text-[10px]">No Image</span>
-                  </div>
-                )}
-                {/* Relative time badge */}
-                <span className="absolute top-1 right-1 text-[9px] bg-black/50 text-white px-1.5 py-0.5 rounded">
-                  {formatRelativeTime(listing.viewedAt)}
-                </span>
-              </div>
-              <CardContent className="p-2 md:p-3">
-                <h3 className="font-medium text-xs md:text-sm line-clamp-1">
-                  {listing.title}
-                </h3>
-                <p className="text-sm md:text-base font-bold text-primary mt-0.5">
-                  {listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}
-                </p>
-                <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                  {[listing.year, listing.make].filter(Boolean).join(' ')}
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
+          <RecentCard key={listing.id} listing={listing} />
         ))}
       </div>
     </div>
@@ -204,6 +214,43 @@ export function useTrackView(listing: {
   }, [listing]);
 }
 
+function RecentCompactCard({ listing }: { listing: RecentListing }) {
+  const { hasError, handleError } = useImageFallback();
+
+  return (
+    <Link
+      href={`/listing/${listing.id}`}
+      className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
+    >
+      <div className="relative w-12 h-12 rounded overflow-hidden bg-muted flex-shrink-0">
+        {listing.imageUrl && !hasError ? (
+          <Image
+            src={listing.imageUrl}
+            alt={listing.title}
+            fill
+            className="object-cover"
+            unoptimized
+            onError={handleError}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ImageOff className="w-4 h-4 text-muted-foreground/50" />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium line-clamp-1">{listing.title}</p>
+        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+          <span>{listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}</span>
+          <span className="text-muted-foreground/50">·</span>
+          <span className="text-muted-foreground/70">{formatRelativeTime(listing.viewedAt)}</span>
+        </p>
+      </div>
+      <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+    </Link>
+  );
+}
+
 // Compact recently viewed for sidebar/footer
 export function RecentlyViewedCompact({ maxItems = 4 }: { maxItems?: number }) {
   const [recentListings, setRecentListings] = useState<RecentListing[]>([]);
@@ -224,36 +271,7 @@ export function RecentlyViewedCompact({ maxItems = 4 }: { maxItems?: number }) {
       </h3>
       <div className="space-y-2">
         {recentListings.map((listing) => (
-          <Link
-            key={listing.id}
-            href={`/listing/${listing.id}`}
-            className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
-          >
-            <div className="relative w-12 h-12 rounded overflow-hidden bg-muted flex-shrink-0">
-              {listing.imageUrl ? (
-                <Image
-                  src={listing.imageUrl}
-                  alt={listing.title}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <ImageOff className="w-4 h-4 text-muted-foreground/50" />
-                </div>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium line-clamp-1">{listing.title}</p>
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                <span>{listing.price ? `$${listing.price.toLocaleString()}` : 'Call'}</span>
-                <span className="text-muted-foreground/50">·</span>
-                <span className="text-muted-foreground/70">{formatRelativeTime(listing.viewedAt)}</span>
-              </p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          </Link>
+          <RecentCompactCard key={listing.id} listing={listing} />
         ))}
       </div>
     </div>

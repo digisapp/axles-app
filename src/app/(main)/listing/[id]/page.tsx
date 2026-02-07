@@ -35,6 +35,7 @@ import { CompareButton } from '@/components/listings/CompareButton';
 import { FinancingCalculator } from '@/components/listings/FinancingCalculator';
 import { VideoPlayer } from '@/components/listings/VideoPlayer';
 import { TranslatableTitle, TranslatableDescription } from '@/components/listings/TranslatableContent';
+import { SimilarListingCard } from '@/components/listings/SimilarListingCard';
 // Temporarily disabled - dealer integration coming later
 // import { LiveChat } from '@/components/listings/LiveChat';
 // import { DealerAIChat } from '@/components/listings/DealerAIChat';
@@ -610,38 +611,9 @@ export default async function ListingPage({ params }: PageProps) {
           <div className="mt-8 md:mt-12">
             <h2 className="text-lg md:text-2xl font-bold mb-4 md:mb-6">Similar Listings</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
-              {similarListings.map((item) => {
-                const itemImage = item.images?.find((img: { is_primary: boolean }) => img.is_primary) || item.images?.[0];
-                return (
-                  <Link key={item.id} href={`/listing/${item.id}`}>
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                      <div className="relative aspect-[4/3] bg-muted">
-                        {itemImage ? (
-                          <Image
-                            src={itemImage.url}
-                            alt={item.title}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
-                            No Image
-                          </div>
-                        )}
-                      </div>
-                      <CardContent className="p-2 md:p-4">
-                        <h3 className="font-semibold text-sm md:text-base truncate">{item.title}</h3>
-                        <p className="text-base md:text-lg font-bold text-primary mt-0.5 md:mt-1">
-                          {item.price ? `$${item.price.toLocaleString()}` : 'Call'}
-                        </p>
-                        <p className="text-xs md:text-sm text-muted-foreground truncate mt-0.5">
-                          {[item.year, item.make, item.model].filter(Boolean).join(' ')}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
+              {similarListings.map((item) => (
+                <SimilarListingCard key={item.id} item={item} />
+              ))}
             </div>
           </div>
         )}

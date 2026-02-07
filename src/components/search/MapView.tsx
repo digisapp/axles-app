@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapPin, Loader2, X } from 'lucide-react';
+import { useImageFallback } from '@/hooks/useImageFallback';
 import type { Listing } from '@/types';
 
 // Import Leaflet CSS
@@ -62,6 +63,61 @@ function FitBounds({ listings }: { listings: Listing[] }) {
   }, [listings, map]);
 
   return null;
+}
+
+function MapMarkerPopup({ listing }: { listing: Listing }) {
+  const { hasError, handleError } = useImageFallback();
+  const primaryImage =
+    listing.images?.find((img) => img.is_primary) || listing.images?.[0];
+
+  return (
+    <Marker
+      position={[listing.latitude!, listing.longitude!]}
+      icon={listing.is_featured ? featuredIcon : defaultIcon}
+    >
+      <Popup maxWidth={300} minWidth={200}>
+        <div className="p-0">
+          <Link href={`/listing/${listing.id}`} className="block">
+            {primaryImage && !hasError && (
+              <div className="relative w-full h-24 -mt-3 -mx-3 mb-2">
+                <Image
+                  src={primaryImage.thumbnail_url || primaryImage.url}
+                  alt={listing.title}
+                  fill
+                  className="object-cover rounded-t"
+                  unoptimized
+                  onError={handleError}
+                />
+                {listing.is_featured && (
+                  <Badge className="absolute top-1 left-1 text-[10px] bg-secondary text-secondary-foreground">
+                    Featured
+                  </Badge>
+                )}
+              </div>
+            )}
+            <div className="px-1">
+              <h3 className="font-semibold text-sm line-clamp-1">
+                {listing.title}
+              </h3>
+              <p className="text-lg font-bold text-primary">
+                {listing.price
+                  ? `$${listing.price.toLocaleString()}`
+                  : 'Call for Price'}
+              </p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                {listing.year && <span>{listing.year}</span>}
+                {listing.make && <span>{listing.make}</span>}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {[listing.city, listing.state].filter(Boolean).join(', ')}
+              </p>
+            </div>
+          </Link>
+        </div>
+      </Popup>
+    </Marker>
+  );
 }
 
 export function MapView({ listings, isLoading, onClose }: MapViewProps) {
@@ -139,59 +195,9 @@ export function MapView({ listings, isLoading, onClose }: MapViewProps) {
 
         <FitBounds listings={mappableListings} />
 
-        {mappableListings.map((listing) => {
-          const primaryImage =
-            listing.images?.find((img) => img.is_primary) || listing.images?.[0];
-
-          return (
-            <Marker
-              key={listing.id}
-              position={[listing.latitude!, listing.longitude!]}
-              icon={listing.is_featured ? featuredIcon : defaultIcon}
-            >
-              <Popup maxWidth={300} minWidth={200}>
-                <div className="p-0">
-                  <Link href={`/listing/${listing.id}`} className="block">
-                    {primaryImage && (
-                      <div className="relative w-full h-24 -mt-3 -mx-3 mb-2">
-                        <Image
-                          src={primaryImage.thumbnail_url || primaryImage.url}
-                          alt={listing.title}
-                          fill
-                          className="object-cover rounded-t"
-                          unoptimized
-                        />
-                        {listing.is_featured && (
-                          <Badge className="absolute top-1 left-1 text-[10px] bg-secondary text-secondary-foreground">
-                            Featured
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                    <div className="px-1">
-                      <h3 className="font-semibold text-sm line-clamp-1">
-                        {listing.title}
-                      </h3>
-                      <p className="text-lg font-bold text-primary">
-                        {listing.price
-                          ? `$${listing.price.toLocaleString()}`
-                          : 'Call for Price'}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                        {listing.year && <span>{listing.year}</span>}
-                        {listing.make && <span>{listing.make}</span>}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {[listing.city, listing.state].filter(Boolean).join(', ')}
-                      </p>
-                    </div>
-                  </Link>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
+        {mappableListings.map((listing) => (
+          <MapMarkerPopup key={listing.id} listing={listing} />
+        ))}
       </MapContainer>
 
       {/* Legend */}

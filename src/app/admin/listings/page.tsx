@@ -1,16 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeft,
-  Eye,
-  ImageIcon,
-  ExternalLink,
 } from 'lucide-react';
+import { AdminListingCard } from '@/components/admin/AdminListingCard';
 
 export default async function AdminListingsPage() {
   const supabase = await createClient();
@@ -90,65 +86,13 @@ export default async function AdminListingsPage() {
             const imageUrl = getPrimaryImage(listing.images || []);
 
             return (
-              <Card key={listing.id}>
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    {/* Image */}
-                    <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      {imageUrl ? (
-                        <Image
-                          src={imageUrl}
-                          alt={listing.title}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className="font-semibold">{listing.title}</h3>
-                          <p className="text-lg font-bold text-primary">
-                            {listing.price
-                              ? `$${listing.price.toLocaleString()}`
-                              : 'No price'}
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            by {profileMap[listing.user_id]?.company_name || profileMap[listing.user_id]?.email || 'Unknown'}
-                          </p>
-                        </div>
-
-                        <div className="flex flex-col items-end gap-2">
-                          {getStatusBadge(listing.status)}
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Eye className="w-4 h-4" />
-                            {listing.views_count || 0}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 mt-4">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/listing/${listing.id}`} target="_blank">
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            View
-                          </Link>
-                        </Button>
-                        <span className="text-xs text-muted-foreground">
-                          Created {new Date(listing.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <AdminListingCard
+                key={listing.id}
+                listing={listing}
+                imageUrl={imageUrl}
+                sellerName={profileMap[listing.user_id]?.company_name || profileMap[listing.user_id]?.email || 'Unknown'}
+                statusBadge={getStatusBadge(listing.status)}
+              />
             );
           })}
 

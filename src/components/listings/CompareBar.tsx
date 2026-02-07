@@ -5,6 +5,50 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { X, Scale, ArrowRight } from 'lucide-react';
+import { useImageFallback } from '@/hooks/useImageFallback';
+
+interface CompareBarItemProps {
+  listing: {
+    id: string;
+    title: string;
+    image_url: string | null;
+  };
+  onRemove: () => void;
+}
+
+function CompareBarItem({ listing, onRemove }: CompareBarItemProps) {
+  const { hasError, handleError } = useImageFallback();
+
+  return (
+    <div className="flex items-center gap-2 bg-muted rounded-lg pl-2 pr-1 py-1 flex-shrink-0">
+      {listing.image_url && !hasError && (
+        <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
+          <Image
+            src={listing.image_url}
+            alt={listing.title}
+            width={40}
+            height={40}
+            className="object-cover w-full h-full"
+            unoptimized
+            onError={handleError}
+          />
+        </div>
+      )}
+      <span className="text-sm font-medium truncate max-w-[120px]">
+        {listing.title}
+      </span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 md:h-6 md:w-6 flex-shrink-0 touch-manipulation"
+        onClick={onRemove}
+        aria-label={`Remove ${listing.title} from compare`}
+      >
+        <X className="w-4 h-4 md:w-3 md:h-3" />
+      </Button>
+    </div>
+  );
+}
 
 export function CompareBar() {
   const { listings, removeListing, clearAll } = useCompare();
@@ -22,35 +66,11 @@ export function CompareBar() {
 
           <div className="flex-1 flex items-center gap-3 overflow-x-auto">
             {listings.map((listing) => (
-              <div
+              <CompareBarItem
                 key={listing.id}
-                className="flex items-center gap-2 bg-muted rounded-lg pl-2 pr-1 py-1 flex-shrink-0"
-              >
-                {listing.image_url && (
-                  <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                    <Image
-                      src={listing.image_url}
-                      alt={listing.title}
-                      width={40}
-                      height={40}
-                      className="object-cover w-full h-full"
-                      unoptimized
-                    />
-                  </div>
-                )}
-                <span className="text-sm font-medium truncate max-w-[120px]">
-                  {listing.title}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 md:h-6 md:w-6 flex-shrink-0 touch-manipulation"
-                  onClick={() => removeListing(listing.id)}
-                  aria-label={`Remove ${listing.title} from compare`}
-                >
-                  <X className="w-4 h-4 md:w-3 md:h-3" />
-                </Button>
-              </div>
+                listing={listing}
+                onRemove={() => removeListing(listing.id)}
+              />
             ))}
           </div>
 

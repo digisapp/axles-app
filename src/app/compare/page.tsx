@@ -16,6 +16,7 @@ const exportComparePdf = async (...args: Parameters<typeof import('@/lib/exportC
 export default function ComparePage() {
   const { listings, removeListing, clearAll } = useCompare();
   const [isExporting, setIsExporting] = useState(false);
+  const [erroredImages, setErroredImages] = useState<Set<string>>(new Set());
 
   const handleExportPdf = async () => {
     if (listings.length < 2) return;
@@ -131,7 +132,7 @@ export default function ComparePage() {
                     <th key={listing.id} className="p-4 min-w-[200px]">
                       <Card className="overflow-hidden">
                         <div className="relative">
-                          {listing.image_url ? (
+                          {listing.image_url && !erroredImages.has(listing.id) ? (
                             <div className="aspect-[4/3] relative">
                               <Image
                                 src={listing.image_url}
@@ -139,6 +140,7 @@ export default function ComparePage() {
                                 fill
                                 className="object-cover"
                                 unoptimized
+                                onError={() => setErroredImages(prev => new Set(prev).add(listing.id))}
                               />
                             </div>
                           ) : (
