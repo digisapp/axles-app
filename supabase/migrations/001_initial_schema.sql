@@ -1,4 +1,4 @@
--- AxlesAI Database Schema
+-- AxlonAI Database Schema
 -- Initial Migration
 
 -- Enable UUID extension

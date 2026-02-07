@@ -1,5 +1,5 @@
 -- Dealer Storefronts Migration
--- Adds storefront capabilities for dealers at axles.ai/[slug]
+-- Adds storefront capabilities for dealers at axlon.ai/[slug]
 
 -- Create update_updated_at function if it doesn't exist
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -123,7 +123,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Comments
-COMMENT ON COLUMN profiles.slug IS 'Unique URL slug for dealer storefront (axles.ai/[slug])';
+COMMENT ON COLUMN profiles.slug IS 'Unique URL slug for dealer storefront (axlon.ai/[slug])';
 COMMENT ON COLUMN profiles.storefront_settings IS 'JSON with theme colors, layout preferences, etc.';
 COMMENT ON COLUMN profiles.chat_settings IS 'JSON with AI chat personality, greeting message, etc.';
 COMMENT ON COLUMN profiles.subscription_tier IS 'free, pro, enterprise';

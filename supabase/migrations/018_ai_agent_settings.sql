@@ -8,11 +8,11 @@ CREATE TABLE IF NOT EXISTS ai_agent_settings (
     voice TEXT NOT NULL DEFAULT 'Sal',  -- Ara, Eve, Mika, Leo, Rex, Sal
 
     -- Agent personality
-    agent_name TEXT NOT NULL DEFAULT 'Axles AI',
-    greeting_message TEXT NOT NULL DEFAULT 'Hello! Thanks for calling Axles AI, your marketplace for trucks, trailers, and heavy equipment. How can I help you find what you''re looking for today?',
+    agent_name TEXT NOT NULL DEFAULT 'Axlon AI',
+    greeting_message TEXT NOT NULL DEFAULT 'Hello! Thanks for calling Axlon AI, your marketplace for trucks, trailers, and heavy equipment. How can I help you find what you''re looking for today?',
 
     -- Instructions for the AI
-    instructions TEXT NOT NULL DEFAULT 'You are a helpful AI assistant for AxlesAI, a marketplace for trucks, trailers, and heavy equipment.
+    instructions TEXT NOT NULL DEFAULT 'You are a helpful AI assistant for AxlonAI, a marketplace for trucks, trailers, and heavy equipment.
 
 Your role is to:
 1. Answer questions about available inventory (trucks, trailers, heavy equipment)

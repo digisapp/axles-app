@@ -1,4 +1,4 @@
--- Seed Categories for AxlesAI
+-- Seed Categories for AxlonAI
 
 -- Parent Categories
 INSERT INTO categories (id, name, slug, icon, sort_order) VALUES
