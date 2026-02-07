@@ -117,6 +117,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.truckpaper.com',
       },
+      {
+        protocol: 'https',
+        hostname: '*.sandhills.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.imanpro.net',
+      },
     ],
   },
 };
