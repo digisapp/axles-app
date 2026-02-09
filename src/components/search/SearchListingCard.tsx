@@ -14,9 +14,11 @@ import {
   Flame,
   Languages,
   ImageOff,
+  Sparkles,
 } from 'lucide-react';
 import { CompareButton } from '@/components/listings/CompareButton';
 import { ListingCardWrapper } from '@/components/listings/ListingCardWrapper';
+import { AIPreviewIndicator } from '@/components/listings/VideoPlayer';
 import { getDealInfo } from '@/lib/deal-info';
 import { useImageFallback } from '@/hooks/useImageFallback';
 import type { Listing } from '@/types';
@@ -41,6 +43,8 @@ export const SearchListingCard = memo(function SearchListingCard({
   const dealInfo = getDealInfo(listing);
   const displayTitle = translatedTitle || listing.title;
   const displayDescription = translatedDescription || listing.description || '';
+  const listingAny = listing as unknown as Record<string, unknown>;
+  const hasAIPreview = !!listingAny.ai_video_preview_url && !listingAny.video_url;
 
   if (viewMode === 'list') {
     return (
@@ -79,6 +83,7 @@ export const SearchListingCard = memo(function SearchListingCard({
                 {dealInfo.percentage}% Below Market
               </Badge>
             )}
+            {hasAIPreview && <AIPreviewIndicator />}
           </div>
 
           <div className="flex-1 p-3 md:p-4">
@@ -219,6 +224,12 @@ export const SearchListingCard = memo(function SearchListingCard({
               <Heart className="w-3 h-3 md:w-4 md:h-4" />
             </Button>
           </div>
+          {hasAIPreview && (
+            <div className="absolute bottom-2 right-2 bg-primary/80 text-white px-2 py-1 rounded text-[10px] md:text-xs flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3" />
+              AI Preview
+            </div>
+          )}
         </div>
 
         <div className="p-2 md:p-4">

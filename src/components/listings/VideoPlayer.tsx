@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, Video, ExternalLink } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Play, Video, ExternalLink, Sparkles } from 'lucide-react';
 
 interface VideoPlayerProps {
   videoUrl: string;
   title?: string;
   className?: string;
+  isAIPreview?: boolean;
 }
 
 function getVideoEmbedUrl(url: string): { embedUrl: string; platform: string } | null {
@@ -41,8 +43,39 @@ function getVideoEmbedUrl(url: string): { embedUrl: string; platform: string } |
   return null;
 }
 
-export function VideoPlayer({ videoUrl, title, className }: VideoPlayerProps) {
+export function VideoPlayer({ videoUrl, title, className, isAIPreview }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // AI Preview: render as HTML5 video (direct MP4 URL)
+  if (isAIPreview) {
+    return (
+      <Card className={className}>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Sparkles className="w-5 h-5 text-primary" />
+            AI Preview
+            <Badge variant="secondary" className="ml-auto text-xs font-normal">
+              AI Generated
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="relative w-full aspect-video">
+            <video
+              src={videoUrl}
+              title={title || 'AI Preview'}
+              controls
+              loop
+              muted
+              playsInline
+              className="w-full h-full rounded-b-lg object-cover"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const videoInfo = getVideoEmbedUrl(videoUrl);
 
   if (!videoInfo) {
@@ -116,6 +149,16 @@ export function VideoIndicator() {
     <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
       <Video className="w-3 h-3" />
       Video
+    </div>
+  );
+}
+
+// AI Preview indicator badge for search results
+export function AIPreviewIndicator() {
+  return (
+    <div className="absolute top-2 right-2 bg-primary/80 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+      <Sparkles className="w-3 h-3" />
+      AI Preview
     </div>
   );
 }

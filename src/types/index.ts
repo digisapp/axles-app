@@ -74,6 +74,9 @@ export interface Listing {
   ai_price_confidence?: number;
   ai_description?: string;
   ai_tags?: string[];
+  ai_video_preview_url?: string;
+  ai_video_request_id?: string;
+  ai_video_status?: 'generating' | 'completed' | 'failed';
 
   // Status
   status: 'draft' | 'active' | 'sold' | 'expired';

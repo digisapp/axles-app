@@ -507,9 +507,11 @@ export default async function ListingPage({ params }: PageProps) {
             )}
 
             {/* Video Walkaround */}
-            {listing.video_url && (
+            {listing.video_url ? (
               <VideoPlayer videoUrl={listing.video_url} title={listing.title} />
-            )}
+            ) : listing.ai_video_preview_url ? (
+              <VideoPlayer videoUrl={listing.ai_video_preview_url} title={listing.title} isAIPreview />
+            ) : null}
           </div>
 
           {/* Sidebar - Desktop */}

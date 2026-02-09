@@ -75,6 +75,9 @@ export default function EditListingPage({ params }: PageProps) {
   const [isEstimating, setIsEstimating] = useState(false);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+  const [videoPreviewStatus, setVideoPreviewStatus] = useState<string | null>(null);
+  const [aiVideoPreviewUrl, setAiVideoPreviewUrl] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -192,6 +195,17 @@ export default function EditListingPage({ params }: PageProps) {
             factors: [],
           });
         }
+
+        // Load AI video preview state
+        if (listing.ai_video_preview_url) {
+          setAiVideoPreviewUrl(listing.ai_video_preview_url);
+          setVideoPreviewStatus('completed');
+        } else if (listing.ai_video_status === 'generating') {
+          setVideoPreviewStatus('generating');
+          setIsGeneratingPreview(true);
+        } else if (listing.ai_video_status) {
+          setVideoPreviewStatus(listing.ai_video_status);
+        }
       }
 
       setIsLoading(false);
@@ -199,6 +213,58 @@ export default function EditListingPage({ params }: PageProps) {
 
     fetchData();
   }, [id, supabase]);
+
+  // Poll for AI video preview status
+  useEffect(() => {
+    if (!isGeneratingPreview || videoPreviewStatus !== 'generating') return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/ai/video-preview?listingId=${id}`);
+        const data = await res.json();
+
+        if (data.status === 'completed' && data.url) {
+          setVideoPreviewStatus('completed');
+          setAiVideoPreviewUrl(data.url);
+          setIsGeneratingPreview(false);
+        } else if (data.status === 'failed') {
+          setVideoPreviewStatus('failed');
+          setIsGeneratingPreview(false);
+        }
+      } catch {
+        // Keep polling on network errors
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isGeneratingPreview, videoPreviewStatus, id]);
+
+  const handleGenerateVideoPreview = async () => {
+    setIsGeneratingPreview(true);
+    setVideoPreviewStatus('generating');
+    setAiVideoPreviewUrl(null);
+
+    try {
+      const res = await fetch('/api/ai/video-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listingId: id }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setVideoPreviewStatus('failed');
+        setIsGeneratingPreview(false);
+        return;
+      }
+
+      setVideoPreviewStatus(data.status);
+    } catch {
+      setVideoPreviewStatus('failed');
+      setIsGeneratingPreview(false);
+    }
+  };
 
   // Handle AI detections from image upload
   const handleAIDetection = (data: { make?: string; model?: string; type?: string; tags?: string[] }) => {
@@ -862,7 +928,7 @@ export default function EditListingPage({ params }: PageProps) {
                 Add a YouTube or Vimeo video URL to showcase your equipment
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="video_url">Video URL</Label>
                 <Input
@@ -874,6 +940,69 @@ export default function EditListingPage({ params }: PageProps) {
                 <p className="text-xs text-muted-foreground mt-1">
                   Supports YouTube and Vimeo links
                 </p>
+              </div>
+
+              {/* AI Video Preview */}
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-sm font-medium">AI Video Preview</p>
+                    <p className="text-xs text-muted-foreground">
+                      Generate a short AI preview clip from your primary photo
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateVideoPreview}
+                    disabled={isGeneratingPreview || images.length === 0}
+                    className="text-xs"
+                  >
+                    {isGeneratingPreview ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 mr-1" />
+                    )}
+                    {isGeneratingPreview ? 'Generating...' : 'Generate AI Preview'}
+                  </Button>
+                </div>
+
+                {images.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Upload photos to enable AI video preview generation
+                  </p>
+                )}
+
+                {videoPreviewStatus === 'generating' && (
+                  <div className="flex items-center gap-2 p-3 bg-muted rounded-lg text-sm">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    <span>Generating AI preview... This may take up to a minute.</span>
+                  </div>
+                )}
+
+                {videoPreviewStatus === 'failed' && (
+                  <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+                    AI preview generation failed. Please try again.
+                  </div>
+                )}
+
+                {videoPreviewStatus === 'completed' && aiVideoPreviewUrl && (
+                  <div className="rounded-lg overflow-hidden border">
+                    <video
+                      src={aiVideoPreviewUrl}
+                      controls
+                      loop
+                      muted
+                      playsInline
+                      className="w-full aspect-video object-cover"
+                    />
+                    <div className="px-3 py-2 bg-muted/50 text-xs text-muted-foreground flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      AI-generated preview
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
