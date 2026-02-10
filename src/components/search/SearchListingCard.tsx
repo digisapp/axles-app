@@ -43,8 +43,10 @@ export const SearchListingCard = memo(function SearchListingCard({
   const dealInfo = getDealInfo(listing);
   const displayTitle = translatedTitle || listing.title;
   const displayDescription = translatedDescription || listing.description || '';
-  const listingAny = listing as unknown as Record<string, unknown>;
-  const hasAIPreview = !!listingAny.ai_video_preview_url && !listingAny.video_url;
+  // AI Video Preview badge - disabled until pricing improves
+  // const listingAny = listing as unknown as Record<string, unknown>;
+  // const hasAIPreview = !!listingAny.ai_video_preview_url && !listingAny.video_url;
+  const hasAIPreview = false;
 
   if (viewMode === 'list') {
     return (

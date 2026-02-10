@@ -45,6 +45,9 @@ import { ImageUpload } from '@/components/listings/ImageUpload';
 import type { Category, AIPriceEstimate } from '@/types';
 import { logger } from '@/lib/logger';
 
+// Feature flag: set to true to enable AI video preview generation (~$0.25/video via xAI)
+const AI_VIDEO_PREVIEW_ENABLED = false;
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -943,7 +946,7 @@ export default function EditListingPage({ params }: PageProps) {
               </div>
 
               {/* AI Video Preview */}
-              <div className="border-t pt-4">
+              {AI_VIDEO_PREVIEW_ENABLED && <div className="border-t pt-4">
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <p className="text-sm font-medium">AI Video Preview</p>
@@ -1003,7 +1006,7 @@ export default function EditListingPage({ params }: PageProps) {
                     </div>
                   </div>
                 )}
-              </div>
+              </div>}
             </CardContent>
           </Card>
 
