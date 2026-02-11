@@ -18,6 +18,44 @@ interface RateLimitResult {
   limit: number;
 }
 
+// In-memory fallback rate limiter when Redis is unavailable
+const memoryStore = new Map<string, { count: number; resetAt: number }>();
+
+function checkMemoryRateLimit(
+  identifier: string,
+  config: RateLimitConfig
+): RateLimitResult {
+  const { limit, windowSeconds, prefix = 'ratelimit' } = config;
+  const key = `${prefix}:${identifier}`;
+  const now = Math.floor(Date.now() / 1000);
+
+  const entry = memoryStore.get(key);
+
+  if (!entry || entry.resetAt <= now) {
+    memoryStore.set(key, { count: 1, resetAt: now + windowSeconds });
+    return { success: true, remaining: limit - 1, reset: now + windowSeconds, limit };
+  }
+
+  entry.count++;
+  const remaining = Math.max(0, limit - entry.count);
+  return {
+    success: entry.count <= limit,
+    remaining,
+    reset: entry.resetAt,
+    limit,
+  };
+}
+
+// Periodically clean up expired entries (every 60s)
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Math.floor(Date.now() / 1000);
+    for (const [key, entry] of memoryStore) {
+      if (entry.resetAt <= now) memoryStore.delete(key);
+    }
+  }, 60_000);
+}
+
 /**
  * Get a unique identifier for rate limiting
  * Uses IP address, falling back to a hash of headers
@@ -43,14 +81,9 @@ export async function checkRateLimit(
   const redis = getRedis();
   const { limit, windowSeconds, prefix = 'ratelimit' } = config;
 
-  // If Redis is not configured, allow all requests (fail open)
+  // If Redis is not configured, use in-memory fallback
   if (!redis) {
-    return {
-      success: true,
-      remaining: limit,
-      reset: Math.floor(Date.now() / 1000) + windowSeconds,
-      limit,
-    };
+    return checkMemoryRateLimit(identifier, config);
   }
 
   const key = `${prefix}:${identifier}`;
@@ -89,13 +122,8 @@ export async function checkRateLimit(
     };
   } catch (error) {
     logger.error('Rate limit check error', { error });
-    // Fail open on errors
-    return {
-      success: true,
-      remaining: limit,
-      reset: now + windowSeconds,
-      limit,
-    };
+    // Fall back to in-memory rate limiting on Redis errors
+    return checkMemoryRateLimit(identifier, config);
   }
 }
 

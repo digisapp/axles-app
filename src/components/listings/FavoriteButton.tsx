@@ -25,10 +25,10 @@ export function FavoriteButton({
   const [isFavorited, setIsFavorited] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isToggling, setIsToggling] = useState(false);
-  const supabase = createClient();
 
   useEffect(() => {
     const checkFavorite = async () => {
+      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -48,9 +48,12 @@ export function FavoriteButton({
     };
 
     checkFavorite();
-  }, [listingId, supabase]);
+  }, [listingId]);
 
   const handleToggle = async () => {
+    if (isToggling) return; // Prevent rapid double-clicks
+
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {

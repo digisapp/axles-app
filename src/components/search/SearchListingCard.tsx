@@ -1,15 +1,13 @@
 'use client';
 
-import { memo, useState, useCallback } from 'react';
+import { memo } from 'react';
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   MapPin,
   Calendar,
   Gauge,
-  Heart,
   TrendingDown,
   Flame,
   Languages,
@@ -17,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { CompareButton } from '@/components/listings/CompareButton';
+import { FavoriteButton } from '@/components/listings/FavoriteButton';
 import { ListingCardWrapper } from '@/components/listings/ListingCardWrapper';
 import { AIPreviewIndicator } from '@/components/listings/VideoPlayer';
 import { getDealInfo } from '@/lib/deal-info';
@@ -126,9 +125,7 @@ export const SearchListingCard = memo(function SearchListingCard({
                   }}
                   variant="icon"
                 />
-                <Button variant="ghost" size="icon" className="flex-shrink-0" aria-label="Save to favorites">
-                  <Heart className="w-4 h-4 md:w-5 md:h-5" />
-                </Button>
+                <FavoriteButton listingId={listing.id} variant="ghost" size="icon" showText={false} />
               </div>
             </div>
 
@@ -217,14 +214,7 @@ export const SearchListingCard = memo(function SearchListingCard({
               variant="icon"
               className="bg-white/80 hover:bg-white w-7 h-7 md:w-8 md:h-8"
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="bg-white/80 hover:bg-white w-7 h-7 md:w-8 md:h-8"
-              aria-label="Save to favorites"
-            >
-              <Heart className="w-3 h-3 md:w-4 md:h-4" />
-            </Button>
+            <FavoriteButton listingId={listing.id} variant="ghost" size="icon" showText={false} />
           </div>
           {hasAIPreview && (
             <div className="absolute bottom-2 right-2 bg-primary/80 text-white px-2 py-1 rounded text-[10px] md:text-xs flex items-center gap-1">

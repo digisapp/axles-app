@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense, useRef, useCallback } from 'react';
+import { useEffect, useState, useMemo, Suspense, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -84,13 +84,15 @@ function SearchPageContent() {
   const fetchIdRef = useRef(0);
   const lastFetchParamsRef = useRef<string>('');
 
+  // Memoize listing data for translation hook to prevent unnecessary re-renders
+  const translationInput = useMemo(
+    () => listings.map((l) => ({ id: l.id, title: l.title, description: l.description })),
+    [listings]
+  );
+
   // Translation hook for non-English users
   const { getTranslatedListing, isTranslating, needsTranslation, locale } = useListingTranslations(
-    listings.map((l) => ({
-      id: l.id,
-      title: l.title,
-      description: l.description,
-    }))
+    translationInput
   );
 
   // Fetch categories on mount

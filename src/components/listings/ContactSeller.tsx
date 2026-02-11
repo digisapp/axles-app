@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +16,6 @@ interface ContactSellerProps {
 }
 
 export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSellerProps) {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -28,12 +26,12 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
   const [isSent, setIsSent] = useState(false);
   const [error, setError] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const supabase = createClient();
 
   const defaultMessage = `Hi, I'm interested in your listing: ${listingTitle}. Is it still available?`;
 
   // Check if user is logged in on mount
   useEffect(() => {
+    const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsLoggedIn(!!user);
       if (user?.email) {
@@ -64,6 +62,7 @@ export function ContactSeller({ listingId, sellerId, listingTitle }: ContactSell
       return;
     }
 
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     // Check if user is trying to message themselves (only if seller is specified)

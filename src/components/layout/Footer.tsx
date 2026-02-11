@@ -30,11 +30,11 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { href: 'https://facebook.com', icon: Facebook, label: 'Facebook' },
-  { href: 'https://twitter.com', icon: Twitter, label: 'Twitter' },
-  { href: 'https://instagram.com', icon: Instagram, label: 'Instagram' },
-  { href: 'https://linkedin.com', icon: Linkedin, label: 'LinkedIn' },
-  { href: 'https://youtube.com', icon: Youtube, label: 'YouTube' },
+  { href: 'https://facebook.com/axlonai', icon: Facebook, label: 'Facebook' },
+  { href: 'https://twitter.com/axlonai', icon: Twitter, label: 'Twitter' },
+  { href: 'https://instagram.com/axlonai', icon: Instagram, label: 'Instagram' },
+  { href: 'https://linkedin.com/company/axlonai', icon: Linkedin, label: 'LinkedIn' },
+  { href: 'https://youtube.com/@axlonai', icon: Youtube, label: 'YouTube' },
 ];
 
 export function Footer() {

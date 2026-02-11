@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,11 +28,7 @@ export function FinancingCalculator({ listingPrice, className }: FinancingCalcul
   const [totalInterest, setTotalInterest] = useState(0);
   const [totalCost, setTotalCost] = useState(0);
 
-  useEffect(() => {
-    calculatePayment();
-  }, [downPayment, interestRate, loanTerm, listingPrice]);
-
-  const calculatePayment = () => {
+  const calculatePayment = useCallback(() => {
     const principal = listingPrice - downPayment;
 
     if (principal <= 0) {
@@ -63,11 +59,17 @@ export function FinancingCalculator({ listingPrice, className }: FinancingCalcul
     setMonthlyPayment(payment);
     setTotalInterest(interest);
     setTotalCost(totalPaid + downPayment);
-  };
+  }, [downPayment, interestRate, loanTerm, listingPrice]);
+
+  useEffect(() => {
+    calculatePayment();
+  }, [calculatePayment]);
 
   const handleDownPaymentChange = (value: number) => {
-    setDownPayment(value);
-    setDownPaymentPercent(Math.round((value / listingPrice) * 100));
+    if (isNaN(value)) return;
+    const clamped = Math.max(0, Math.min(value, listingPrice));
+    setDownPayment(clamped);
+    setDownPaymentPercent(Math.round((clamped / listingPrice) * 100));
   };
 
   const handleDownPaymentPercentChange = (value: number[]) => {
