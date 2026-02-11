@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     .select(`
       *,
       category:categories!left(id, name, slug),
-      images:listing_images!left(id, url, thumbnail_url, is_primary, sort_order)
+      images:listing_images!inner(id, url, thumbnail_url, is_primary, sort_order)
     `)
     .eq('status', 'active')
     .not('price', 'is', null)
