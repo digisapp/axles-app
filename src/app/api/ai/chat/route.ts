@@ -968,16 +968,132 @@ COST OF OWNERSHIP:
 - 5-year trade-in value: quality brands retain 50-65% of original purchase price
 - Top resale brands: XL Specialized, Fontaine Magnitude, Talbert
 
-TOP LOWBOY MANUFACTURERS (reference when recommending):
-- XL Specialized: premium, innovative designs, excellent resale
-- Fontaine (Magnitude series): industry workhorse, huge dealer network
-- Talbert: heavy-duty specialist, great for 55+ ton
-- Trail King: good value, wide model range
-- Eager Beaver: solid mid-tier, popular with contractors
-- Landoll: known for traveling axle designs
+DETAILED MANUFACTURER KNOWLEDGE (use real model names and specs when advising buyers):
+
+TRAIL KING (Mitchell, SD) — North America's bestselling detachable lowboy for 20+ years:
+Models: TK70HDG (35T), TK102HDG (51T), TK110HDG (55T, bestseller), TK120HDG (60T), TK130HDG (65T modular), TK140HDG (70T)
+- TK110HDG: 110,000 lbs in 12ft, 25'9" deck, 24" deck height (18-20" available), 13HP Honda pony motor, dual king pin settings (16" and 40"), 110" swing clearance, 3 axles with 3rd air lift, ~$80-110K new
+- TK102HDG: 102,000 lbs, 5-position (opt 7-position) adjustable gooseneck with 6" range, knuckle/boom troughs standard
+- TK110SA (Advantage Plus SA): Sliding axle model, 100,000 lbs uniform, 61-second sliding cycle time, 6.5-degree loading angle, 25,000 lb winch
+- Gooseneck types: HDG (hydraulic detachable), Mechanical (MG), Fixed, and interchangeable (MG-HG accepts 4 gooseneck styles)
+- Strengths: proven reliability, huge dealer/parts network, adjustable ride height standard, California-legal options, self-contained pony motor
+
+FONTAINE SPECIALIZED (Alabama) — Magnitude series is the industry benchmark:
+Lines: Magnitude (55-75T heavy-duty), Workhorse (50-55T value), Renegade (30-40T commercial)
+Magnitude 55H: 55T in 12ft, 22" deck (FLD), 14.5" deck (DSR drop side rail), 26ft clear deck, ~22,335 lbs empty, 100K yield steel flanges, hook-and-shaft gooseneck (connects on uneven ground)
+Magnitude 55L Plus: 55T, 18" deck height, 26ft deck, ~24,020 lbs
+Magnitude 55MX: 55T, extendable 29ft closed to 50ft open, 20" deck, 14 pairs outriggers
+Magnitude 60LCC: 60T in 13ft at only 18" deck height, 7 ride height positions
+Magnitude 65: 65T in 16ft (70T in 12ft with 5 axles), 28ft deck, 24" (FLD) or 15" (DSR)
+Magnitude 75: 75T in 16ft, 28ft deck, EQ spreaders add 25K-75K lbs transfer capacity
+Workhorse 55LCC: 110,000 lbs in 13ft, 18" deck, 26ft clear, ~21,831 lbs, ratcheted 5-position neck, 108" swing — best value 55-ton option
+Deck types: FLD (flat level), DSR (drop side rail, 14.5" height), BMD (beam, lightest), MX (extendable)
+Modular "M" prefix means interchangeable deck sections; EQ1/EQ2/EQ3 spreaders add 1-3 axles (25K-75K lbs)
+- Strengths: most diverse product range, modular deck swapping, lowest DSR deck heights (14.5"), hook-and-shaft gooseneck, massive dealer network
+
+TALBERT MANUFACTURING (Rensselaer, IN) — Invented the hydraulic detachable gooseneck in 1947:
+Lines: CC (Close Couple), SA (Spread Axle), RP (Removable Paver), TA (Traveling Axle), HT (Hydraulic Tail)
+- 55CC: 110,000 lbs in 13ft, 26ft well (25'6" clear), 18" deck, 12" T-1A main beams, 2" apitong, 3 axles at 54" spacing — most popular Talbert model
+- 55CC-HRG: Telescopic, extends 30ft to 50ft in 4ft increments, collapses under 53ft (no over-length permit when empty)
+- 65SA Modular: 65T in 13ft (70T with 4-axle config), 30ft deck, 16" loaded side deck, E2Nitro/E3Nitro nitrogen-dampened suspension, modular 2+3+2 or 3+3+2 axle configs
+- 50CC-PS (Paver Special): 50T, 26ft deck, bolt-on ramp with 15-degree load angle (vs standard 35-degree)
+- Gooseneck types: Hydroneck (hydraulic, customizable with shims), Ratchet Neck (5 or 7 preset heights), Mechanical Removable (patented 1989, lighter, no hydraulics needed)
+- Unique: E2Nitro suspension (nitrogen-dampened, articulating, absorbs hauling shocks), all T-1 100K PSI steel, Valspar R-Cure 800 paint
+- Strengths: heaviest-duty builds, best for 55+ ton, telescopic deck option, E2Nitro suspension, T-1 steel throughout
+
+XL SPECIALIZED (Manchester, IA) — Premium innovation leader:
+Models: XL 60 (30T), XL 70 (35T), XL 80 (40T), XL 110 (55T), Guardian and Knight branding
+- XL 110 Low-Profile HDG: 110,000 lbs in 16ft, 18" deck (also 15" available), 26ft deck, ~26,185 lbs, tri-axle 3+1 capable, 5-position ride height — one of only 55-ton/18" deck/3+1 axle lowboys on market
+- Guardian 110 HDG: 110,000 lbs in 12ft, 22" deck, 26ft x 8'6", fully welded I-beam (100K flanges, 80K webs), HD swing-out outriggers (+12" per side), open boom trough for excavators, dealer-stock program
+- Knight 80 MFG: 80,000 lbs, mechanical full-width gooseneck, 29ft deck, 18" height, battery backup lighting when detached
+- XL 80 HDE: 40T extendable, 28'7" closed to 49'11" open, extends without disconnecting air/electrical, stops every 2ft
+- XL 60 Mini Deck: Industry-leading 12" loaded deck height (ultra-low for tall equipment under bridges)
+- Gooseneck types: HDG (hydraulic detachable, low-profile with fender relief cut), MFG (mechanical full-width), HDE/MDE (extendable), Mini Deck variants (12" height)
+- Warranty: 5-year structural, 3-year paint, 1-year parts
+- Strengths: ultra-low 12" mini-deck (unique in industry), 3+1 axle capability, extendable decks, lightest-weight HDG in class, best resale value
+
+PITTS TRAILERS (Pittsview, AL) — Shot-blasted PPG automotive paint finish:
+Models by suffix: FN (Fixed Neck), DC (Detachable), CS (Contractor Special), GT (Gooseneck Turntable)
+- LB55-18GT: 55T, 18" deck, 26ft deck, 53ft overall, ~21,400 lbs, low-profile cantilever neck, 5-position ride height, air locking pin system
+- LB55-22GT: 55T, 22" deck, 26ft, pony motor, HD extendable front outrigger
+- LB55-22DC: 55T, 22" deck, 25ft clear, ~19,560-20,100 lbs, tri-axle 25K each at 54.5" spread
+- LB35: From 13,500 lbs empty (lightest in 35T class), available in 26", 33", 38" deck heights
+- LB35-CS: Contractor Special with self-contained hydraulic ramps
+- Strengths: lightest tare weights, PPG automotive-grade paint on shot-blasted steel, wide deck height range (18-38"), good value pricing
+
+EAGER BEAVER (USA, since 1946) — Pierced crossmember pioneer:
+Models: 25 GLB-L through 65 GSL-3, plus Paver and Oilfield specials
+- 55 GSL-3: 110,000 lbs, GVWR 132,650 lbs, tri-axle, Cush Air Ride Suspension
+- 50 GSL-PT (Pass-Through): 100,000 lbs, 53ft, 24" deck, 24ft well, ~22,700 lbs empty
+- Naming: GLB=Fixed gooseneck, GSL=Hydraulic detachable, PT=Pass-through (drive-through loading), S4S=Basic economical
+- Pierced crossmember design: crossmembers pierce through mainrails (not welded on top) for lowest deck height and stronger unitized frame
+- Bolt-on oak decking with deck washers (easy field replacement)
+- USA Harness PLUS wiring with no-filament LED (virtually unlimited lifespan)
+- Strengths: proven design since 1946, widest model range (25-65T), pierced crossmembers, easy deck replacement, good contractor value ~$70K-95K
+
+KAUFMAN TRAILERS (South Carolina, since 1987) — Best value, factory-direct:
+Models: 35/50/55T in Standard, Deluxe, Paver Special, Ag, and Commercial series
+- 55T Deluxe: 131,000 GVWR, 110,000 lb capacity in 12ft, 26ft well (vs 24ft standard), optional 4th flip axle
+- Self-aligning V-shaped gooseneck trough (easiest hookup in industry)
+- Standard features include: lockable toolbox, boom well trough/cover, amber strobe kit, 9 pairs D-rings, 2" white oak decking, lifetime LED
+- Factory-direct pricing: 55T Deluxe ~$69K, 55T Drop Side ~$74K, Ag w/ aluminum outriggers ~$87K
+- Strengths: lowest pricing in class, factory-direct sales model, self-aligning gooseneck, good standard features
+
+WITZCO CHALLENGER — Non-Ground Bearing specialist:
+Models: RG-35 (35T ground-bearing), RG-52 (52T), NGB-35 (35T non-ground bearing), NGB-52 (52T), NGB-60 (60T)
+- NGB design: gooseneck does NOT rest on ground during loading — works on soft/uneven terrain
+- Self-contained Honda GX390 pony motors standard, 4 height settings, air ride with auto height control
+- RG-35: from $39K (most affordable lowboy); NGB-52: $76K-93K
+- Strengths: NGB technology for soft ground ops, most affordable entry-level, Honda pony motors standard
+
+GLOBE TRAILERS (Bradenton, FL) — 10-year structural warranty:
+- 35-80 ton lowboys, all US-made with locally sourced T-1 100K PSI steel
+- Patented hydraulic flip axle, air lock safety system (spring-extended pin secures gooseneck even with total air loss)
+- 30K-lb rated air bags standard (larger diameter = lower operating pressure)
+- Centralized air/electric/hydraulic fittings protected inside gooseneck bolster
+- 10-year structural warranty + 5-year STEMCO wheel warranty (best in industry)
+- Strengths: best warranty, patented flip axle, air lock safety, premium build quality
+
+ETNYRE / BLACKHAWK (Oregon, IL) — Widest tonnage range:
+- 25 to 110 ton capacity (from basic rear-ramp to well deck super-heavy)
+- Mechanical (MRG) and Hydraulic (RTN) removable gooseneck options
+- Paver Special: 35-60T, 24ft deck, 18-degree loading angle, adjustable-width front ramps
+- Full-depth cambered I-beams, 20,000 lb brake system per axle, adjustable 48-56" fifth wheel settings
+- Extendable models: 35/55/65T, extends to 26ft deck using hydraulics, full tonnage at extended length
+- Pricing: RTN35TD $90-114K; RTN55 Paver Special ~$172K
+
+LANDOLL (Kansas, since 1963) — Traveling axle / tilt-deck specialist:
+- 850XT: Extendable detachable lowboy, 50T, 22" deck, extends to 4 positions (48/50.5/53/56ft), 7 height settings, triple 25K axles
+- 455B: 55T traveling axle, 37" deck height, triple axle, tilt deck with 6-degree load angle
+- H.O.S.S. hydraulic system: cuts operational time in half (axle 36-58% faster, tilt 63% faster, winch 66% faster)
+- Strengths: best for self-loading equipment (tilt deck), extendable lowboy for buses/RVs/fire trucks
+
+FAYMONVILLE GROUP (Belgium, expanding to US) — Super-heavy/modular specialist:
+- MegaMAX: 13.8" deck height (one of lowest available), steerable flip axle, remote-control steering
+- HighwayMAX: 9 axles, 174,000+ lbs legal (249,000 lbs technical), 20K per axle
+- MultiMAX: Extendable to 77ft well + 13ft gooseneck, cable remote steering, liftable axles
+- CombiMAX: Modular 50-250 ton system with universal coupling and telescopic Add-On Beam
+- ModulMAX: Couple modules to 5,000+ tonnes, 45T per axle line, 650mm hydraulic stroke
+- Strengths: super-heavy transport beyond 100T, European engineering, 13.8" ultra-low deck, modular scalability
+
+LOADSTAR TRAILERS (Cobourg, ON, Canada) — Custom boutique builder:
+- 50-85T lowboys (3 and 4 axle), plus step decks (35-50T) and tag trailers (20-40T)
+- Continuous single-piece steel main rails (100 ksi yield) — avoids weld stress concentrations
+- HD RGN gooseneck rated 10+ tons above deck capacity for safety margin
+- Specialized 80+ ton systems: flip neck extension, jeep dolly, pin-on axle, booster (5-9+ axles)
+- CMVSS and FMVSS dual-certified for cross-border Canada/US operations
 
 BUYING ADVICE:
 When asked "what spec should I order" — always ask what equipment they haul (excavator size, dozer class), what states they run in, and whether they need permits. Then recommend specific capacity, axle count, neck type, and deck configuration.
+Budget picks: Kaufman (factory-direct value), Witzco RG-35 (cheapest entry), Pitts (light tare weight)
+Mid-tier: Eager Beaver, Trail King TK110HDG, Fontaine Workhorse 55LCC
+Premium: XL Specialized (best resale), Fontaine Magnitude (most options), Talbert (heaviest-duty builds)
+Ultra-heavy (60T+): Trail King TK140HDG, Fontaine Magnitude 65/75, Talbert 65SA, Globe 60-80T
+Super-heavy (100T+): Faymonville, Loadstar custom systems
+Best warranty: Globe (10-year structural)
+Lowest deck: XL Mini Deck (12"), Fontaine DSR (14.5"), Faymonville MegaMAX (13.8")
+Best for soft ground: Witzco NGB (non-ground bearing gooseneck)
+Best for pavers: Talbert 50CC-PS (15-degree ramp), Fontaine Workhorse PVR, Eager Beaver Paver Special, Etnyre Paver (18-degree angle)
 
 Keep responses:
 - Concise (2-4 short paragraphs or bullet points)
