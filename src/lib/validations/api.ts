@@ -363,6 +363,21 @@ export const adminStaffPatchSchema = z.object({
   is_active: z.boolean().optional(),
 });
 
+// New trailers query validation
+export const newTrailersQuerySchema = z.object({
+  manufacturer: z.string().optional(),
+  type: z.string().optional(),
+  tonnage_min: z.coerce.number().int().min(0).optional(),
+  tonnage_max: z.coerce.number().int().max(500).optional(),
+  deck_height_max: z.coerce.number().optional(),
+  axle_count: z.coerce.number().int().optional(),
+  gooseneck: z.string().optional(),
+  q: z.string().max(500).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(24),
+  sort: z.enum(['name', 'tonnage', 'deck_height', 'newest', 'manufacturer']).default('manufacturer'),
+});
+
 /**
  * Helper to validate request body with Zod schema
  * Returns parsed data or throws formatted error

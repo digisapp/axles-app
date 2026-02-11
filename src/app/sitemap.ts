@@ -46,6 +46,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/new-trailers`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/login`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -155,11 +161,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Error generating sitemap dealers:', error);
   }
 
+  // Manufacturer product pages
+  let productPages: MetadataRoute.Sitemap = [];
+
+  try {
+    const supabase = createStaticClient();
+
+    const { data: products } = await supabase
+      .from('manufacturer_products')
+      .select('slug, updated_at, manufacturers!inner(slug)')
+      .eq('is_active', true)
+      .order('updated_at', { ascending: false })
+      .limit(2000);
+
+    if (products) {
+      productPages = products.map((product: any) => ({
+        url: `${baseUrl}/new-trailers/${product.manufacturers.slug}/${product.slug}`,
+        lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }));
+    }
+  } catch (error) {
+    console.error('Error generating sitemap products:', error);
+  }
+
   return [
     ...staticPages,
     ...listingPages,
     ...categoryPages,
     ...manufacturerPages,
     ...dealerPages,
+    ...productPages,
   ];
 }

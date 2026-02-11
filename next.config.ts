@@ -125,6 +125,119 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.imanpro.net',
       },
+      // Manufacturer product catalog images
+      {
+        protocol: 'https',
+        hostname: 'trailking.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.trailking.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'fontainespecialized.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.fontainespecialized.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'talbertmfg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.talbertmfg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'xlspecializedtrailer.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.xlspecializedtrailer.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pittstrailers.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.pittstrailers.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'eagerbeavertrailers.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.eagerbeavertrailers.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'kaufmantrailers.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.kaufmantrailers.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'witzco.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.witzco.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'globetrailers.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.globetrailers.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'etnyre.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.etnyre.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'landoll.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.landoll.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'maxtrailer.us',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.maxtrailer.us',
+      },
+      {
+        protocol: 'https',
+        hostname: 'faymonville.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.faymonville.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'loadstartrailers.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.loadstartrailers.com',
+      },
     ],
   },
 };

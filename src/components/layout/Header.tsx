@@ -31,6 +31,7 @@ import {
   LogOut,
   Plus,
   LayoutDashboard,
+  Truck,
 } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { QuickSearchTrigger, QuickSearch } from '@/components/search/QuickSearch';
@@ -115,6 +116,30 @@ export function Header() {
             />
             <span className="font-bold text-lg">AxlonAI</span>
           </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            <Link
+              href="/new-trailers"
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                pathname === '/new-trailers'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+            >
+              New Trailers
+            </Link>
+            <Link
+              href="/manufacturers"
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                pathname?.startsWith('/manufacturers')
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+            >
+              Manufacturers
+            </Link>
+          </nav>
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
@@ -233,6 +258,35 @@ export function Header() {
                 </SheetHeader>
 
                 <div className="mt-6 flex flex-col gap-4">
+                  {/* Mobile Nav Links */}
+                  <nav className="flex flex-col gap-1">
+                    <Link
+                      href="/new-trailers"
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                        pathname === '/new-trailers'
+                          ? 'bg-primary/10 text-primary'
+                          : 'hover:bg-muted'
+                      }`}
+                    >
+                      <Truck className="w-5 h-5" />
+                      New Trailers
+                    </Link>
+                    <Link
+                      href="/manufacturers"
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                        pathname?.startsWith('/manufacturers')
+                          ? 'bg-primary/10 text-primary'
+                          : 'hover:bg-muted'
+                      }`}
+                    >
+                      <Package className="w-5 h-5" />
+                      Manufacturers
+                    </Link>
+                  </nav>
+                  <div className="h-px bg-border" />
+
                   {/* User Info */}
                   {user && (
                     <div className="flex items-center gap-3 pb-4 border-b">

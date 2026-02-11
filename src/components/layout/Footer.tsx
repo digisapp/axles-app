@@ -7,6 +7,7 @@ import { Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
 const footerLinks = {
   marketplace: [
     { href: '/search', label: 'Browse Listings' },
+    { href: '/new-trailers', label: 'New Trailers' },
     { href: '/categories', label: 'Categories' },
     { href: '/search?category=heavy-duty-trucks', label: 'Heavy Duty Trucks' },
     { href: '/search?category=trailers', label: 'Trailers' },

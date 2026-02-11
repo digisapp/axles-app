@@ -225,6 +225,67 @@ export interface DealerVoiceAgent {
   activated_at?: string;
 }
 
+// Manufacturer Product Catalog
+export type ProductType = 'lowboy' | 'step-deck' | 'flatbed' | 'rgn' | 'double-drop' | 'extendable' | 'modular' | 'traveling-axle' | 'tag-along' | 'other';
+export type GooseneckType = 'fixed' | 'detachable' | 'hydraulic-detachable' | 'mechanical-detachable' | 'folding' | 'non-ground-bearing' | 'sliding' | 'other';
+
+export interface ManufacturerProduct {
+  id: string;
+  manufacturer_id: string;
+  name: string;
+  slug: string;
+  series?: string;
+  model_number?: string;
+  tagline?: string;
+  description?: string;
+  short_description?: string;
+  product_type: ProductType;
+  tonnage_min?: number;
+  tonnage_max?: number;
+  deck_height_inches?: number;
+  deck_length_feet?: number;
+  overall_length_feet?: number;
+  axle_count?: number;
+  gooseneck_type?: GooseneckType;
+  empty_weight_lbs?: number;
+  gvwr_lbs?: number;
+  concentrated_capacity_lbs?: number;
+  msrp_low?: number;
+  msrp_high?: number;
+  source_url?: string;
+  last_scraped_at?: string;
+  is_active: boolean;
+  is_featured: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  images?: ManufacturerProductImage[];
+  specs?: ManufacturerProductSpec[];
+  manufacturer?: Manufacturer;
+}
+
+export interface ManufacturerProductImage {
+  id: string;
+  product_id: string;
+  url: string;
+  alt_text?: string;
+  sort_order: number;
+  is_primary: boolean;
+  source_url?: string;
+  created_at: string;
+}
+
+export interface ManufacturerProductSpec {
+  id: string;
+  product_id: string;
+  spec_category: string;
+  spec_key: string;
+  spec_value: string;
+  spec_unit?: string;
+  sort_order: number;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
   data?: T;
