@@ -21,6 +21,7 @@ import {
   ArrowRight,
   RotateCcw,
 } from 'lucide-react';
+import Link from 'next/link';
 
 interface ParsedRow {
   title: string;
@@ -401,7 +402,7 @@ export function BulkImportWizard() {
               Import More
             </Button>
             <Button asChild className="flex-1">
-              <a href="/dashboard/listings">View Listings</a>
+              <Link href="/dashboard/listings">View Listings</Link>
             </Button>
           </div>
         </div>

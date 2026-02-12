@@ -23,7 +23,6 @@ import {
   ArrowRight,
   Truck,
   Shield,
-  Clock,
   BadgeCheck,
 } from 'lucide-react';
 

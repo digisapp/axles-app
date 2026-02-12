@@ -20,12 +20,10 @@ import {
   Shield,
   Phone,
   Bot,
-  Mic,
   MessageSquare,
   Settings2,
   Save,
   Loader2,
-  CheckCircle,
   Volume2,
 } from 'lucide-react';
 import { toast } from 'sonner';

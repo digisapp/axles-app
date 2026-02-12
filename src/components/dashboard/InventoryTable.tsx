@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import Link from 'next/link';
 import {
   Table,
@@ -62,6 +62,9 @@ export const InventoryTable = memo(function InventoryTable({ listings }: Invento
   const [sortBy, setSortBy] = useState<string>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  // Capture current time once to avoid impure Date.now() calls during render
+  const now = useMemo(() => Date.now(), []);
+
   // Filter listings
   const filteredListings = listings.filter(listing => {
     const matchesSearch =
@@ -117,7 +120,7 @@ export const InventoryTable = memo(function InventoryTable({ listings }: Invento
   const getDaysOnLot = (date: string | null, createdAt: string) => {
     const startDate = new Date(date || createdAt);
     const days = Math.floor(
-      (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      (now - startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
     return days;
   };

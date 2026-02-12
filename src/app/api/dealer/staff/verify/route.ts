@@ -43,8 +43,7 @@ function verifyPin(inputPin: string, staff: { id: string; voice_pin?: string; pi
       if (matches) {
         // Auto-migrate: hash the PIN and clear the plaintext
         // This happens asynchronously - don't block the response
-        const { createClient } = require('@/lib/supabase/server');
-        createClient().then(async (supabase: { from: (table: string) => { update: (data: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<unknown> } } }) => {
+        createClient().then(async (supabase) => {
           const hashedPin = hashPin(inputPin, staff.id);
           await supabase
             .from('dealer_staff')

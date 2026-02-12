@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
@@ -12,8 +11,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Loader2, Mail, Lock, Building2, ArrowLeft, Check, Package, BarChart3, Users } from 'lucide-react';
 
 export default function SignupPage() {
-  const router = useRouter();
-
   const [formData, setFormData] = useState({
     email: '',
     password: '',

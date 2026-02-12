@@ -74,7 +74,7 @@ function extractPrice(query: string): number | null {
   for (const pattern of patterns) {
     const match = query.match(pattern);
     if (match) {
-      let value = match[1].replace(/,/g, '');
+      const value = match[1].replace(/,/g, '');
       let num = parseFloat(value);
 
       // Handle "k" suffix (e.g., "50k" = 50000)
@@ -832,7 +832,7 @@ For detailed calculations with adjustable cargo position, use our Axle Weight Ca
     }
 
     // Build system prompt - add finance context if relevant
-    let systemPrompt = `You are Axlon, the AI assistant for AxlonAI - a marketplace for buying and selling commercial trucks, trailers, and heavy equipment. You're knowledgeable, helpful, and passionate about the trucking industry.
+    const systemPrompt = `You are Axlon, the AI assistant for AxlonAI - a marketplace for buying and selling commercial trucks, trailers, and heavy equipment. You're knowledgeable, helpful, and passionate about the trucking industry.
 
 PERSONALITY: Be friendly and conversational. You can say things like "I found some great options for you" or "Based on what I'm seeing in the market..." - make users feel like they're talking to a helpful expert, not a search engine.
 

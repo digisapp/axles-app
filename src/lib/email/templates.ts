@@ -1,3 +1,5 @@
+import { escapeHtml, sanitizeUrl } from '@/lib/utils/html-escape';
+
 const baseStyles = `
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #1a1a1a;
@@ -62,17 +64,17 @@ export function newMessageEmail({
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">New Message</h1>
 
-          <p>Hi ${recipientName},</p>
+          <p>Hi ${escapeHtml(recipientName)},</p>
 
-          <p><strong>${senderName}</strong> sent you a message about:</p>
+          <p><strong>${escapeHtml(senderName)}</strong> sent you a message about:</p>
 
           <div style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; margin: 20px 0;">
-            <p style="font-weight: 600; margin: 0 0 8px 0;">${listingTitle}</p>
-            <p style="margin: 0; color: #666;">"${messagePreview}"</p>
+            <p style="font-weight: 600; margin: 0 0 8px 0;">${escapeHtml(listingTitle)}</p>
+            <p style="margin: 0; color: #666;">"${escapeHtml(messagePreview)}"</p>
           </div>
 
           <p style="text-align: center;">
-            <a href="${conversationUrl}" style="${buttonStyles}">
+            <a href="${sanitizeUrl(conversationUrl)}" style="${buttonStyles}">
               View Message
             </a>
           </p>
@@ -111,16 +113,16 @@ export function listingPublishedEmail({
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">Your Listing is Live!</h1>
 
-          <p>Hi ${sellerName},</p>
+          <p>Hi ${escapeHtml(sellerName)},</p>
 
           <p>Great news! Your listing is now live and visible to buyers:</p>
 
           <div style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; margin: 20px 0;">
-            <p style="font-weight: 600; margin: 0;">${listingTitle}</p>
+            <p style="font-weight: 600; margin: 0;">${escapeHtml(listingTitle)}</p>
           </div>
 
           <p style="text-align: center;">
-            <a href="${listingUrl}" style="${buttonStyles}">
+            <a href="${sanitizeUrl(listingUrl)}" style="${buttonStyles}">
               View Listing
             </a>
           </p>
@@ -164,12 +166,12 @@ export function welcomeEmail({
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">Welcome to AxlonAI!</h1>
 
-          <p>Hi ${userName},</p>
+          <p>Hi ${escapeHtml(userName)},</p>
 
           <p>Thank you for joining AxlonAI, the AI-powered marketplace for trucks, trailers, and equipment.</p>
 
           <p style="text-align: center; margin: 32px 0;">
-            <a href="${dashboardUrl}" style="${buttonStyles}">
+            <a href="${sanitizeUrl(dashboardUrl)}" style="${buttonStyles}">
               Get Started
             </a>
           </p>
@@ -219,17 +221,17 @@ export function inquiryReceivedEmail({
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">New Inquiry Received!</h1>
 
-          <p>Hi ${sellerName},</p>
+          <p>Hi ${escapeHtml(sellerName)},</p>
 
-          <p>Good news! <strong>${buyerName}</strong> is interested in your listing:</p>
+          <p>Good news! <strong>${escapeHtml(buyerName)}</strong> is interested in your listing:</p>
 
           <div style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; margin: 20px 0;">
-            <p style="font-weight: 600; margin: 0 0 8px 0;">${listingTitle}</p>
-            <p style="margin: 0; color: #666;">Message: "${messagePreview}"</p>
+            <p style="font-weight: 600; margin: 0 0 8px 0;">${escapeHtml(listingTitle)}</p>
+            <p style="margin: 0; color: #666;">Message: "${escapeHtml(messagePreview)}"</p>
           </div>
 
           <p style="text-align: center;">
-            <a href="${replyUrl}" style="${buttonStyles}">
+            <a href="${sanitizeUrl(replyUrl)}" style="${buttonStyles}">
               Reply Now
             </a>
           </p>
@@ -273,18 +275,18 @@ export function newChatConversationEmail({
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">New Chat on Your Storefront</h1>
 
-          <p>Hi ${dealerName},</p>
+          <p>Hi ${escapeHtml(dealerName)},</p>
 
           <p>A visitor just started a conversation with your AI assistant on your storefront:</p>
 
           <div style="background-color: #f0f9ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0066cc;">
-            <p style="margin: 0; color: #333;">"${visitorMessage}"</p>
+            <p style="margin: 0; color: #333;">"${escapeHtml(visitorMessage)}"</p>
           </div>
 
           <p>Your AI assistant is handling the conversation, but you can take over anytime.</p>
 
           <p style="text-align: center; margin: 32px 0;">
-            <a href="${conversationUrl}" style="${buttonStyles}">
+            <a href="${sanitizeUrl(conversationUrl)}" style="${buttonStyles}">
               View Conversation
             </a>
           </p>
@@ -331,7 +333,7 @@ export function chatLeadCapturedEmail({
             <strong>New Lead Captured!</strong>
           </div>
 
-          <p>Hi ${dealerName},</p>
+          <p>Hi ${escapeHtml(dealerName)},</p>
 
           <p>Great news! A visitor shared their contact information during a chat on your storefront:</p>
 
@@ -339,19 +341,19 @@ export function chatLeadCapturedEmail({
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
                 <td style="padding: 8px 0; color: #666; width: 100px;">Name:</td>
-                <td style="padding: 8px 0; font-weight: 600;">${visitorName}</td>
+                <td style="padding: 8px 0; font-weight: 600;">${escapeHtml(visitorName)}</td>
               </tr>
               <tr>
                 <td style="padding: 8px 0; color: #666;">Email:</td>
                 <td style="padding: 8px 0;">
-                  <a href="mailto:${visitorEmail}" style="color: #0066cc;">${visitorEmail}</a>
+                  <a href="mailto:${escapeHtml(visitorEmail)}" style="color: #0066cc;">${escapeHtml(visitorEmail)}</a>
                 </td>
               </tr>
               ${visitorPhone ? `
               <tr>
                 <td style="padding: 8px 0; color: #666;">Phone:</td>
                 <td style="padding: 8px 0;">
-                  <a href="tel:${visitorPhone}" style="color: #0066cc;">${visitorPhone}</a>
+                  <a href="tel:${escapeHtml(visitorPhone)}" style="color: #0066cc;">${escapeHtml(visitorPhone)}</a>
                 </td>
               </tr>
               ` : ''}
@@ -359,10 +361,10 @@ export function chatLeadCapturedEmail({
           </div>
 
           <p style="text-align: center; margin: 32px 0;">
-            <a href="${conversationUrl}" style="${buttonStyles}">
+            <a href="${sanitizeUrl(conversationUrl)}" style="${buttonStyles}">
               View Chat History
             </a>
-            <a href="${leadsUrl}" style="${buttonStyles} background-color: #10b981; margin-left: 12px;">
+            <a href="${sanitizeUrl(leadsUrl)}" style="${buttonStyles} background-color: #10b981; margin-left: 12px;">
               Go to Leads
             </a>
           </p>
@@ -397,9 +399,9 @@ export function savedSearchAlertEmail({
   const listingRows = listings.slice(0, 5).map(l => `
     <tr>
       <td style="padding: 12px; border-bottom: 1px solid #eee;">
-        <a href="${l.url}" style="color: #0066cc; text-decoration: none; font-weight: 500;">${l.title}</a>
+        <a href="${sanitizeUrl(l.url)}" style="color: #0066cc; text-decoration: none; font-weight: 500;">${escapeHtml(l.title)}</a>
         <br>
-        <span style="color: #666; font-size: 14px;">${l.price}</span>
+        <span style="color: #666; font-size: 14px;">${escapeHtml(l.price)}</span>
       </td>
     </tr>
   `).join('');
@@ -419,12 +421,12 @@ export function savedSearchAlertEmail({
 
           <h1 style="font-size: 24px; margin-bottom: 16px;">${newListingsCount} New Matches!</h1>
 
-          <p>Hi ${userName},</p>
+          <p>Hi ${escapeHtml(userName)},</p>
 
           <p>We found <strong>${newListingsCount} new listing${newListingsCount > 1 ? 's' : ''}</strong> matching your saved search:</p>
 
           <div style="background-color: #f0f9ff; padding: 12px 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #0066cc;">
-            <strong>${searchName}</strong>
+            <strong>${escapeHtml(searchName)}</strong>
           </div>
 
           <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
@@ -434,7 +436,7 @@ export function savedSearchAlertEmail({
           ${newListingsCount > 5 ? `<p style="color: #666; font-size: 14px;">... and ${newListingsCount - 5} more</p>` : ''}
 
           <p style="text-align: center; margin: 32px 0;">
-            <a href="${searchUrl}" style="${buttonStyles}">
+            <a href="${sanitizeUrl(searchUrl)}" style="${buttonStyles}">
               View All Matches
             </a>
           </p>
@@ -483,27 +485,27 @@ export function newLeadEmail({
             <strong>New Lead Received!</strong>
           </div>
 
-          <p>Hi ${dealerName},</p>
+          <p>Hi ${escapeHtml(dealerName)},</p>
 
-          <p>You have a new lead${listingTitle ? ` interested in <strong>${listingTitle}</strong>` : ''}:</p>
+          <p>You have a new lead${listingTitle ? ` interested in <strong>${escapeHtml(listingTitle)}</strong>` : ''}:</p>
 
           <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
                 <td style="padding: 8px 0; color: #666; width: 100px;">Name:</td>
-                <td style="padding: 8px 0; font-weight: 600;">${buyerName}</td>
+                <td style="padding: 8px 0; font-weight: 600;">${escapeHtml(buyerName)}</td>
               </tr>
               <tr>
                 <td style="padding: 8px 0; color: #666;">Email:</td>
                 <td style="padding: 8px 0;">
-                  <a href="mailto:${buyerEmail}" style="color: #0066cc;">${buyerEmail}</a>
+                  <a href="mailto:${escapeHtml(buyerEmail)}" style="color: #0066cc;">${escapeHtml(buyerEmail)}</a>
                 </td>
               </tr>
               ${buyerPhone ? `
               <tr>
                 <td style="padding: 8px 0; color: #666;">Phone:</td>
                 <td style="padding: 8px 0;">
-                  <a href="tel:${buyerPhone}" style="color: #0066cc;">${buyerPhone}</a>
+                  <a href="tel:${escapeHtml(buyerPhone)}" style="color: #0066cc;">${escapeHtml(buyerPhone)}</a>
                 </td>
               </tr>
               ` : ''}
@@ -511,13 +513,13 @@ export function newLeadEmail({
             ${message ? `
             <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #ddd;">
               <p style="margin: 0; color: #666; font-size: 14px;">Message:</p>
-              <p style="margin: 8px 0 0 0;">"${message}"</p>
+              <p style="margin: 8px 0 0 0;">"${escapeHtml(message)}"</p>
             </div>
             ` : ''}
           </div>
 
           <p style="text-align: center; margin: 32px 0;">
-            <a href="${leadsUrl}" style="${buttonStyles}">
+            <a href="${sanitizeUrl(leadsUrl)}" style="${buttonStyles}">
               View Lead Details
             </a>
           </p>

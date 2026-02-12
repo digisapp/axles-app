@@ -15,14 +15,11 @@ import {
   Calendar,
   Gauge,
   Phone,
-  Share2,
   Shield,
   TrendingUp,
   Check,
   AlertCircle,
-  Building2,
   ChevronLeft,
-  ChevronRight,
   Sparkles,
 } from 'lucide-react';
 import { FavoriteButton } from '@/components/listings/FavoriteButton';
@@ -195,6 +192,9 @@ export default async function ListingPage({ params }: PageProps) {
   if (error || !listing) {
     notFound();
   }
+
+  // Capture current time once to avoid impure Date.now() calls during render
+  const now = Date.now();
 
   // Increment view count
   await supabase
@@ -580,7 +580,7 @@ export default async function ListingPage({ params }: PageProps) {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">
-                      {Math.floor((Date.now() - new Date(listing.created_at).getTime()) / (1000 * 60 * 60 * 24))}
+                      {Math.floor((now - new Date(listing.created_at).getTime()) / (1000 * 60 * 60 * 24))}
                     </p>
                     <p className="text-sm text-muted-foreground">Days Listed</p>
                   </div>

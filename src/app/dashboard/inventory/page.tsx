@@ -80,11 +80,14 @@ export default async function InventoryPage() {
   // Calculate potential profit
   const potentialProfit = stats.totalValue - stats.totalCost;
 
+  // Capture current time once to avoid impure Date.now() calls during render
+  const now = Date.now();
+
   // Find listings with long days on lot (over 90 days)
   const longDaysOnLot = listings?.filter(l => {
     if (l.status !== 'active') return false;
     const days = Math.floor(
-      (Date.now() - new Date(l.acquired_date || l.created_at).getTime()) /
+      (now - new Date(l.acquired_date || l.created_at).getTime()) /
         (1000 * 60 * 60 * 24)
     );
     return days > 90;

@@ -375,9 +375,9 @@ export default function StaffManagementPage() {
               </p>
               <ol className="list-decimal list-inside space-y-1 text-blue-700 dark:text-blue-300">
                 <li>Staff calls your AI phone number</li>
-                <li>Says "Internal access" to trigger authentication</li>
-                <li>AI asks: "Please say your name and access code"</li>
-                <li>Staff says: "John, 4521"</li>
+                <li>Says &quot;Internal access&quot; to trigger authentication</li>
+                <li>AI asks: &quot;Please say your name and access code&quot;</li>
+                <li>Staff says: &quot;John, 4521&quot;</li>
                 <li>AI verifies and unlocks internal database access</li>
               </ol>
             </div>

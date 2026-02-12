@@ -70,7 +70,7 @@ function SearchPageContent() {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [aiInterpretation, setAiInterpretation] = useState<AISearchResult | null>(null);
+  const [_aiInterpretation, setAiInterpretation] = useState<AISearchResult | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
   const [sortBy, setSortBy] = useState('created_at');
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -91,7 +91,7 @@ function SearchPageContent() {
   );
 
   // Translation hook for non-English users
-  const { getTranslatedListing, isTranslating, needsTranslation, locale } = useListingTranslations(
+  const { getTranslatedListing } = useListingTranslations(
     translationInput
   );
 

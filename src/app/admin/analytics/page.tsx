@@ -21,13 +21,10 @@ import {
   Mail,
   Building2,
   TrendingUp,
-  TrendingDown,
   Loader2,
   BarChart3,
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   BarChart,
