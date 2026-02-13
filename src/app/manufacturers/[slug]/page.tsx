@@ -182,14 +182,14 @@ export default async function ManufacturerPage({ params }: PageProps) {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-gray-50 to-white dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
       {/* JSON-LD Structured Data */}
       <ManufacturerJsonLd manufacturer={manufacturer as Manufacturer} slug={slug} />
       <BreadcrumbJsonLd manufacturerName={manufacturer.name} slug={slug} />
 
       {/* Background Pattern */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-300/20 rounded-full blur-[150px]" />
       </div>
 
@@ -303,41 +303,41 @@ export default async function ManufacturerPage({ params }: PageProps) {
       <div className="relative max-w-7xl mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-          <Card>
+          <Card className="dark:bg-zinc-900 dark:border-zinc-700">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <Package className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                <Package className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">{listingCount || 0}</p>
-                <p className="text-sm text-slate-500">Available Listings</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">{listingCount || 0}</p>
+                <p className="text-sm text-slate-600 dark:text-zinc-400">Available Listings</p>
               </div>
             </CardContent>
           </Card>
 
           {avgPrice && (
-            <Card>
+            <Card className="dark:bg-zinc-900 dark:border-zinc-700">
               <CardContent className="p-4 flex items-center gap-4">
-                <div className="p-3 bg-green-100 rounded-xl">
-                  <DollarSign className="w-6 h-6 text-green-600" />
+                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                  <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-slate-900">${avgPrice.toLocaleString()}</p>
-                  <p className="text-sm text-slate-500">Average Price</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">${avgPrice.toLocaleString()}</p>
+                  <p className="text-sm text-slate-600 dark:text-zinc-400">Average Price</p>
                 </div>
               </CardContent>
             </Card>
           )}
 
           {manufacturer.country && (
-            <Card>
+            <Card className="dark:bg-zinc-900 dark:border-zinc-700">
               <CardContent className="p-4 flex items-center gap-4">
-                <div className="p-3 bg-amber-100 rounded-xl">
-                  <Globe className="w-6 h-6 text-amber-600" />
+                <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
+                  <Globe className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-slate-900">{manufacturer.country}</p>
-                  <p className="text-sm text-slate-500">Headquarters</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{manufacturer.country}</p>
+                  <p className="text-sm text-slate-600 dark:text-zinc-400">Headquarters</p>
                 </div>
               </CardContent>
             </Card>
@@ -346,10 +346,10 @@ export default async function ManufacturerPage({ params }: PageProps) {
 
         {/* Description */}
         {manufacturer.description && (
-          <Card className="mb-8">
+          <Card className="mb-8 dark:bg-zinc-900 dark:border-zinc-700">
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-3">About {manufacturer.name}</h2>
-              <p className="text-slate-600 leading-relaxed">{manufacturer.description}</p>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">About {manufacturer.name}</h2>
+              <p className="text-slate-600 dark:text-zinc-400 leading-relaxed">{manufacturer.description}</p>
             </CardContent>
           </Card>
         )}
@@ -357,7 +357,7 @@ export default async function ManufacturerPage({ params }: PageProps) {
         {/* Listings Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
               Available {manufacturer.name} Equipment
             </h2>
             {(listingCount || 0) > 12 && (
@@ -373,13 +373,13 @@ export default async function ManufacturerPage({ params }: PageProps) {
           {listings && listings.length > 0 ? (
             <ManufacturerListingGrid listings={listings} />
           ) : (
-            <Card>
+            <Card className="dark:bg-zinc-900 dark:border-zinc-700">
               <CardContent className="py-12 text-center">
-                <Package className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                <Package className="w-12 h-12 text-slate-300 dark:text-zinc-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
                   No Listings Available
                 </h3>
-                <p className="text-slate-500 mb-4">
+                <p className="text-slate-600 dark:text-zinc-400 mb-4">
                   There are currently no {manufacturer.name} listings on AxlonAI.
                 </p>
                 <Link href="/search">

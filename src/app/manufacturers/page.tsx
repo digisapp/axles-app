@@ -80,10 +80,10 @@ export default async function ManufacturersPage({ searchParams }: PageProps) {
   const regularManufacturers = updatedManufacturers.filter(m => !m.is_featured);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-gray-50 to-white dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
       {/* Background Pattern */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-300/20 rounded-full blur-[150px]" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-amber-200/10 rounded-full blur-[150px]" />
       </div>
@@ -98,7 +98,7 @@ export default async function ManufacturersPage({ searchParams }: PageProps) {
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Manufacturer Directory</h1>
           </div>
-          <p className="text-slate-400 text-lg max-w-2xl">
+          <p className="text-slate-300 text-lg max-w-2xl">
             Research leading truck, trailer, and equipment manufacturers. Find equipment from the brands you trust.
           </p>
         </div>
@@ -113,7 +113,7 @@ export default async function ManufacturersPage({ searchParams }: PageProps) {
               name="q"
               placeholder="Search manufacturers..."
               defaultValue={q}
-              className="h-12 pl-12 pr-4 bg-white border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-all shadow-sm"
+              className="h-12 pl-12 pr-4 bg-white dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:border-slate-400 dark:focus:border-zinc-500 focus:ring-1 focus:ring-slate-400 dark:focus:ring-zinc-500 transition-all shadow-sm"
             />
             {type && <input type="hidden" name="type" value={type} />}
           </form>
@@ -124,8 +124,8 @@ export default async function ManufacturersPage({ searchParams }: PageProps) {
               <Badge
                 className={`cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   !type
-                    ? 'bg-slate-900 text-white border-0 shadow-md'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
+                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-0 shadow-md'
+                    : 'bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-700 hover:border-slate-300'
                 }`}
               >
                 All
@@ -136,8 +136,8 @@ export default async function ManufacturersPage({ searchParams }: PageProps) {
                 <Badge
                   className={`cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
                     type === et.value
-                      ? 'bg-slate-900 text-white border-0 shadow-md'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-0 shadow-md'
+                      : 'bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-700 hover:border-slate-300'
                   }`}
                 >
                   <et.icon className="w-3.5 h-3.5" />
@@ -149,8 +149,8 @@ export default async function ManufacturersPage({ searchParams }: PageProps) {
         </div>
 
         {/* Results Count */}
-        <p className="text-slate-500 mb-6">
-          <span className="text-slate-900 font-semibold">{updatedManufacturers.length}</span> manufacturers found
+        <p className="text-slate-600 dark:text-zinc-400 mb-6">
+          <span className="text-slate-900 dark:text-white font-semibold">{updatedManufacturers.length}</span> manufacturers found
           {q && ` matching "${q}"`}
           {type && ` in ${EQUIPMENT_TYPES.find(t => t.value === type)?.label || type}`}
         </p>
@@ -158,7 +158,7 @@ export default async function ManufacturersPage({ searchParams }: PageProps) {
         {/* Featured Manufacturers */}
         {featuredManufacturers.length > 0 && (
           <div className="mb-10">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <Star className="w-5 h-5 text-amber-500" />
               Featured Manufacturers
             </h2>
@@ -179,11 +179,11 @@ export default async function ManufacturersPage({ searchParams }: PageProps) {
           </div>
         ) : !featuredManufacturers.length ? (
           <div className="text-center py-20">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-slate-100 flex items-center justify-center">
-              <Factory className="w-8 h-8 text-slate-400" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
+              <Factory className="w-8 h-8 text-slate-400 dark:text-zinc-500" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">No manufacturers found</h2>
-            <p className="text-slate-500">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No manufacturers found</h2>
+            <p className="text-slate-600 dark:text-zinc-400">
               {q ? `No results for "${q}"` : 'Check back soon for manufacturer listings'}
             </p>
           </div>
@@ -196,10 +196,10 @@ export default async function ManufacturersPage({ searchParams }: PageProps) {
 function ManufacturerCard({ manufacturer, featured = false }: { manufacturer: Manufacturer; featured?: boolean }) {
   return (
     <Link href={`/manufacturers/${manufacturer.slug}`} className="group">
-      <div className={`h-full bg-white border rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 ${
+      <div className={`h-full bg-white dark:bg-zinc-900 border rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 ${
         featured
-          ? 'border-amber-300 hover:border-amber-400'
-          : 'border-slate-200 hover:border-slate-300'
+          ? 'border-amber-300 dark:border-amber-700 hover:border-amber-400'
+          : 'border-slate-200 dark:border-zinc-700 hover:border-slate-300 dark:hover:border-zinc-500'
       }`}>
         {/* Manufacturer Header */}
         <div className="p-5">
@@ -228,8 +228,8 @@ function ManufacturerCard({ manufacturer, featured = false }: { manufacturer: Ma
               <div className="flex items-center gap-2 mb-1">
                 <h3 className={`font-semibold truncate transition-colors ${
                   featured
-                    ? 'text-slate-900 group-hover:text-amber-600'
-                    : 'text-slate-900 group-hover:text-blue-600'
+                    ? 'text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400'
+                    : 'text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
                 }`}>
                   {manufacturer.name}
                 </h3>
@@ -238,7 +238,7 @@ function ManufacturerCard({ manufacturer, featured = false }: { manufacturer: Ma
                 )}
               </div>
               {manufacturer.short_description && (
-                <p className="text-sm text-slate-500 line-clamp-2">
+                <p className="text-sm text-slate-600 dark:text-zinc-400 line-clamp-2">
                   {manufacturer.short_description}
                 </p>
               )}
@@ -255,7 +255,7 @@ function ManufacturerCard({ manufacturer, featured = false }: { manufacturer: Ma
           </div>
 
           {/* Details */}
-          <div className="flex flex-wrap gap-3 mt-3 text-sm text-slate-500">
+          <div className="flex flex-wrap gap-3 mt-3 text-sm text-slate-600 dark:text-zinc-400">
             {manufacturer.headquarters && (
               <span className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5" />
@@ -279,22 +279,24 @@ function ManufacturerCard({ manufacturer, featured = false }: { manufacturer: Ma
 
         {/* Footer */}
         <div className={`px-5 py-3 border-t flex items-center justify-between ${
-          featured ? 'bg-amber-50 border-amber-100' : 'bg-slate-50 border-slate-100'
+          featured
+            ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-900/50'
+            : 'bg-slate-50 dark:bg-zinc-800/50 border-slate-100 dark:border-zinc-800'
         }`}>
           <div className="flex items-center gap-2">
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-              featured ? 'bg-amber-500' : 'bg-slate-900'
+              featured ? 'bg-amber-500' : 'bg-slate-900 dark:bg-zinc-600'
             }`}>
               <Truck className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-sm font-medium text-slate-700">
+            <span className="text-sm font-medium text-slate-700 dark:text-zinc-300">
               {manufacturer.listing_count} listings
             </span>
           </div>
           <span className={`text-sm font-medium flex items-center gap-1 transition-colors ${
             featured
-              ? 'text-amber-600 group-hover:text-amber-700'
-              : 'text-slate-400 group-hover:text-blue-500'
+              ? 'text-amber-600 dark:text-amber-400 group-hover:text-amber-700 dark:group-hover:text-amber-300'
+              : 'text-slate-500 dark:text-zinc-400 group-hover:text-blue-500 dark:group-hover:text-blue-400'
           }`}>
             View Brand
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

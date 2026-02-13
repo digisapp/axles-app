@@ -31,9 +31,9 @@ function ManufacturerCard({ listing }: { listing: ManufacturerListing }) {
 
   return (
     <ListingCardWrapper listingId={listing.id} listingTitle={listing.title}>
-      <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-slate-300 cursor-pointer">
+      <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-slate-300 dark:hover:border-zinc-500 cursor-pointer dark:bg-zinc-900 dark:border-zinc-700">
         {/* Image */}
-        <div className="aspect-[4/3] relative bg-slate-100">
+        <div className="aspect-[4/3] relative bg-slate-100 dark:bg-zinc-800">
           {primaryImage && !hasError ? (
             <Image
               src={primaryImage.thumbnail_url || primaryImage.url}
@@ -45,7 +45,7 @@ function ManufacturerCard({ listing }: { listing: ManufacturerListing }) {
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Truck className="w-12 h-12 text-slate-300" />
+              <Truck className="w-12 h-12 text-slate-300 dark:text-zinc-600" />
             </div>
           )}
           {listing.is_featured && (
@@ -62,18 +62,18 @@ function ManufacturerCard({ listing }: { listing: ManufacturerListing }) {
         </div>
 
         <CardContent className="p-4">
-          <h3 className="font-semibold text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
+          <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
             {listing.title}
           </h3>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-600 dark:text-zinc-400 mt-1">
             {[listing.year, listing.make, listing.model].filter(Boolean).join(' ')}
           </p>
           <div className="flex items-center justify-between mt-3">
-            <span className="text-lg font-bold text-slate-900">
+            <span className="text-lg font-bold text-slate-900 dark:text-white">
               {listing.price ? `$${listing.price.toLocaleString()}` : 'Call for Price'}
             </span>
             {(listing.city || listing.state) && (
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-500 dark:text-zinc-500">
                 {[listing.city, listing.state].filter(Boolean).join(', ')}
               </span>
             )}
