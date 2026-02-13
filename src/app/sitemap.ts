@@ -2,13 +2,14 @@ import { MetadataRoute } from 'next';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 // Use a simple client without cookies for sitemap generation
-// This avoids the dynamic server usage error with cookies
 function createStaticClient() {
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 }
+
+const LISTINGS_PER_PAGE = 5000;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axlon.ai';
@@ -25,6 +26,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/search`,
       lastModified: new Date(),
       changeFrequency: 'hourly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/deals`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
       priority: 0.9,
     },
     {
@@ -52,39 +59,65 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/finance`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/trade-in`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/login`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.3,
     },
     {
       url: `${baseUrl}/signup`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.3,
     },
   ];
 
-  // Dynamic listing pages
+  // Dynamic listing pages - fetch ALL active listings (paginated to avoid Supabase row limits)
   let listingPages: MetadataRoute.Sitemap = [];
 
   try {
     const supabase = createStaticClient();
 
-    const { data: listings } = await supabase
+    // First get total count
+    const { count } = await supabase
       .from('listings')
-      .select('id, updated_at')
-      .eq('status', 'active')
-      .order('updated_at', { ascending: false })
-      .limit(1000);
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active');
 
-    if (listings) {
-      listingPages = listings.map((listing) => ({
-        url: `${baseUrl}/listing/${listing.id}`,
-        lastModified: new Date(listing.updated_at),
-        changeFrequency: 'daily' as const,
-        priority: 0.7,
-      }));
+    const totalListings = count || 0;
+    const pages = Math.ceil(totalListings / LISTINGS_PER_PAGE);
+
+    // Fetch all listings in batches
+    for (let i = 0; i < pages; i++) {
+      const { data: listings } = await supabase
+        .from('listings')
+        .select('id, updated_at')
+        .eq('status', 'active')
+        .order('updated_at', { ascending: false })
+        .range(i * LISTINGS_PER_PAGE, (i + 1) * LISTINGS_PER_PAGE - 1);
+
+      if (listings) {
+        listingPages = listingPages.concat(
+          listings.map((listing) => ({
+            url: `${baseUrl}/listing/${listing.id}`,
+            lastModified: new Date(listing.updated_at),
+            changeFrequency: 'daily' as const,
+            priority: 0.7,
+          }))
+        );
+      }
     }
   } catch (error) {
     console.error('Error generating sitemap listings:', error);
@@ -171,10 +204,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('manufacturer_products')
       .select('slug, updated_at, manufacturers!inner(slug)')
       .eq('is_active', true)
-      .order('updated_at', { ascending: false })
-      .limit(2000);
+      .order('updated_at', { ascending: false });
 
     if (products) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       productPages = products.map((product: any) => ({
         url: `${baseUrl}/new-trailers/${product.manufacturers.slug}/${product.slug}`,
         lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),

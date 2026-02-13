@@ -1,6 +1,7 @@
 // Revalidate every hour - categories change infrequently
 export const revalidate = 3600;
 
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +12,15 @@ import {
   Cog,
   ArrowRight,
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Browse Categories - Trucks, Trailers & Equipment',
+  description: 'Browse all equipment categories including semi trucks, lowboy trailers, flatbed trailers, heavy equipment, and parts. Find what you need on AxlonAI.',
+  openGraph: {
+    title: 'Browse Equipment Categories | AxlonAI',
+    description: 'Browse trucks, trailers, heavy equipment, and parts categories.',
+  },
+};
 
 const categoryIcons: Record<string, React.ReactNode> = {
   'trucks': <Truck className="w-6 h-6 md:w-8 md:h-8" />,

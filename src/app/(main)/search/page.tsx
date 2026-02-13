@@ -66,13 +66,26 @@ function SearchPageContent() {
   const category = searchParams.get('category') || '';
   const page = parseInt(searchParams.get('page') || '1');
 
+  // Map URL sort values to internal sort values
+  const urlSort = searchParams.get('sort') || '';
+  const initialSort = (() => {
+    const sortMap: Record<string, string> = {
+      price: 'price',
+      price_desc: 'price_desc',
+      year: 'year',
+      mileage: 'mileage',
+      created_at: 'created_at',
+    };
+    return sortMap[urlSort] || 'created_at';
+  })();
+
   const [listings, setListings] = useState<Listing[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [_aiInterpretation, setAiInterpretation] = useState<AISearchResult | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
-  const [sortBy, setSortBy] = useState('created_at');
+  const [sortBy, setSortBy] = useState(initialSort);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({});
@@ -178,7 +191,16 @@ function SearchPageContent() {
         // Build the API URL with filters
         const params = new URLSearchParams();
         params.set('page', page.toString());
-        params.set('sort', sortBy);
+        // Map client sort values to API sort + order params
+        if (sortBy === 'price_desc') {
+          params.set('sort', 'price');
+          params.set('order', 'desc');
+        } else if (sortBy === 'price') {
+          params.set('sort', 'price');
+          params.set('order', 'asc');
+        } else {
+          params.set('sort', sortBy);
+        }
         if (category) params.set('category', category);
 
         // Add advanced filters
@@ -293,7 +315,16 @@ function SearchPageContent() {
       // Build the API URL with current filters
       const params = new URLSearchParams();
       params.set('page', nextPage.toString());
-      params.set('sort', sortBy);
+      // Map client sort values to API sort + order params
+      if (sortBy === 'price_desc') {
+        params.set('sort', 'price');
+        params.set('order', 'desc');
+      } else if (sortBy === 'price') {
+        params.set('sort', 'price');
+        params.set('order', 'asc');
+      } else {
+        params.set('sort', sortBy);
+      }
       if (category) params.set('category', category);
 
       // Add advanced filters

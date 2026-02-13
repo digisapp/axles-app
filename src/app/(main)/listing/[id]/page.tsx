@@ -74,9 +74,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const priceText = listing.price ? `$${listing.price.toLocaleString()}` : 'Contact for price';
   const locationText = [listing.city, listing.state].filter(Boolean).join(', ');
 
+  const conditionText = listing.condition ? `${listing.condition} ` : '';
   const metaDescription = listing.description
     ? listing.description.slice(0, 155) + (listing.description.length > 155 ? '...' : '')
-    : `${metaTitle} - ${priceText}${locationText ? ` in ${locationText}` : ''}. Browse trucks, trailers, and equipment on AxlonAI.`;
+    : `${conditionText}${metaTitle} - ${priceText}${locationText ? ` in ${locationText}` : ''}. Browse trucks, trailers, and equipment on AxlonAI.`;
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://axlon.ai';
 
@@ -127,6 +128,7 @@ interface ListingForSchema {
   mileage?: number;
   images?: Array<{ url: string; is_primary?: boolean }>;
   user?: ListingUser;
+  category?: { name?: string; slug?: string } | null;
 }
 
 function ProductJsonLd({ listing, url }: { listing: ListingForSchema; url: string }) {
@@ -164,6 +166,44 @@ function ProductJsonLd({ listing, url }: { listing: ListingForSchema; url: strin
       value: listing.mileage,
       unitCode: 'SMI',
     }}),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+// Breadcrumb JSON-LD for better search result display
+function BreadcrumbJsonLd({ listing, baseUrl }: { listing: ListingForSchema; baseUrl: string }) {
+  const items = [
+    { name: 'Home', url: baseUrl },
+    { name: 'Search', url: `${baseUrl}/search` },
+  ];
+
+  if (listing.category?.name && listing.category?.slug) {
+    items.push({
+      name: listing.category.name,
+      url: `${baseUrl}/search?category=${listing.category.slug}`,
+    });
+  }
+
+  items.push({
+    name: listing.title || 'Listing',
+    url: '',
+  });
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      ...(item.url ? { item: item.url } : {}),
+    })),
   };
 
   return (
@@ -241,8 +281,9 @@ export default async function ListingPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* JSON-LD Product Schema for SEO */}
+      {/* JSON-LD Product + Breadcrumb Schema for SEO */}
       <ProductJsonLd listing={listing as ListingForSchema} url={listingUrl} />
+      <BreadcrumbJsonLd listing={listing as ListingForSchema} baseUrl={baseUrl} />
 
       {/* Track view client-side */}
       <TrackViewClient listing={trackingData} />
