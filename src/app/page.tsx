@@ -53,31 +53,31 @@ export default function HomePage() {
             href="/search?category=lowboy-trailers&sort=price"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
-            🔥 Lowboy Deals
+            Lowboy Deals
           </Link>
           <Link
             href="/search?category=sleeper-trucks&sort=price"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
-            🚛 Sleeper Deals
+            Sleeper Deals
           </Link>
           <Link
             href="/search?category=flatbed-trailers&sort=price"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
-            📦 Flatbed Deals
+            Flatbed Deals
           </Link>
           <Link
             href="/new-trailers"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
-            🏭 New Trailers
+            New Trailers
           </Link>
           <Link
             href="/deals"
             className="px-3 py-1.5 text-xs md:text-sm bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors"
           >
-            💰 View All Deals
+            View All Deals
           </Link>
         </div>
 
